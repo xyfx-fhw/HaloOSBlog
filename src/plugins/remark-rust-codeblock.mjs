@@ -26,7 +26,14 @@
  */
 
 import { visit } from 'unist-util-visit';
-import { codeToHtml } from 'shiki';
+import { createHighlighter } from 'shiki';
+
+// 模块加载时初始化 Shiki（top-level await，ESM 支持）
+// 之后 highlighter.codeToHtml() 是同步调用，transformer 无需 async
+const highlighter = await createHighlighter({
+  themes: ['github-dark'],
+  langs: ['rust'],
+});
 
 // 转义 HTML 标签体内容（不适用于属性值，双引号不转义）
 function escapeHtml(str) {
@@ -40,9 +47,9 @@ function escapeHtml(str) {
  * 用 Shiki 高亮代码，返回 <code> 标签内部的 HTML（不含外层 <pre>）。
  * 出错时回退为纯文本转义。
  */
-async function highlightCode(code) {
+function highlightCode(code) {
   try {
-    const html = await codeToHtml(code, { lang: 'rust', theme: 'github-dark' });
+    const html = highlighter.codeToHtml(code, { lang: 'rust', theme: 'github-dark' });
     // 提取 <code>...</code> 之间的内容（Shiki 输出结构固定）
     const match = html.match(/<code[^>]*>([\s\S]*?)<\/code>/);
     return match?.[1] ?? escapeHtml(code);
@@ -94,31 +101,23 @@ function encodeLines(lines) {
 }
 
 /**
- * remark 插件主函数（async transformer，等待 Shiki 高亮完成）。
+ * remark 插件主函数（同步 transformer，Shiki 在模块加载时已初始化）。
  */
 export default function remarkRustCodeblock() {
-  return async function transformer(tree) {
-    const tasks = [];
-
+  return function transformer(tree) {
     visit(tree, 'code', (node, index, parent) => {
-      // 只处理 lang 为 `rust` 且 meta 中包含 `runnable` 的节点
       if (node.lang !== 'rust') return;
       const meta = node.meta ?? '';
       if (!meta.includes('runnable')) return;
 
-      tasks.push({ node, index, parent });
-    });
-
-    await Promise.all(tasks.map(async ({ node, index, parent }) => {
-      const mode = (node.meta ?? '').includes('expect-error') ? 'expect-error' : 'run';
+      const mode = meta.includes('expect-error') ? 'expect-error' : 'run';
 
       const { fullLines, visibleLines, hasHidden } = parseCodeLines(node.value);
 
       const dataFullCode = encodeLines(fullLines);
       const visibleCode = visibleLines.join('\n');
 
-      // 用 Shiki 高亮可见代码（只取 <code> 内部 HTML）
-      const highlightedInner = await highlightCode(visibleCode);
+      const highlightedInner = highlightCode(visibleCode);
 
       let dataAttrs = `data-mode="${mode}" data-full-code="${dataFullCode}"`;
       if (hasHidden) {
@@ -131,6 +130,6 @@ export default function remarkRustCodeblock() {
         `</div>`;
 
       parent.children[index] = { type: 'html', value: html };
-    }));
+    });
   };
 }
