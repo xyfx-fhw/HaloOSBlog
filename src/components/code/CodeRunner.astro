@@ -26,13 +26,13 @@
   function initCodeRunner(el: HTMLElement): void {
     const fullCode = decodeURIComponent(el.dataset.fullCode ?? '');
     const hasHidden = el.dataset.hasHidden === 'true';
-    const fullCodeHl = hasHidden ? decodeURIComponent(el.dataset.fullCodeHl ?? '') : '';
     const mode = el.dataset.mode ?? 'run';
 
     if (!fullCode) return;
     const codeEl = el.querySelector('code');
-    // 保存初始高亮 HTML（Shiki 在构建时注入），折叠时恢复
     const initialHighlightedHtml = codeEl?.innerHTML ?? '';
+    const fullHlEl = hasHidden ? el.querySelector<HTMLElement>('.code-runner-full-hl') : null;
+    const fullCodeHl = fullHlEl?.innerHTML ?? '';
 
     // ── 工具栏 ─────────────────────────────────────────────────────────────
 

@@ -120,15 +120,17 @@ export default function remarkRustCodeblock() {
       const highlightedInner = highlightCode(visibleCode);
 
       let dataAttrs = `data-mode="${mode}" data-full-code="${dataFullCode}"`;
+      let fullHlBlock = '';
       if (hasHidden) {
-        const fullCode = fullLines.join('\n');
-        const fullHighlightedInner = highlightCode(fullCode);
-        dataAttrs += ` data-has-hidden="true" data-full-code-hl="${encodeURIComponent(fullHighlightedInner)}"`;
+        const fullHighlightedInner = highlightCode(fullLines.join('\n'));
+        dataAttrs += ` data-has-hidden="true"`;
+        fullHlBlock = `<div class="code-runner-full-hl" hidden aria-hidden="true">${fullHighlightedInner}</div>`;
       }
 
       const html =
         `<div class="code-runner" ${dataAttrs}>` +
         `<pre class="code-runner-pre"><code class="language-rust">${highlightedInner}</code></pre>` +
+        fullHlBlock +
         `</div>`;
 
       parent.children[index] = { type: 'html', value: html };
