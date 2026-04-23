@@ -130,6 +130,15 @@ a:hover {
 
 .prose strong {
   font-weight: 700;
+}
+
+/* **text** → 蓝色加粗 */
+.prose .strong-star {
+  color: #60a5fa;
+}
+
+/* __text__ → 紫→靛→天蓝渐变加粗 */
+.prose .strong-under {
   background: linear-gradient(135deg, #c084fc 0%, #818cf8 50%, #60a5fa 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
