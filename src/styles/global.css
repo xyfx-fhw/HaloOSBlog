@@ -63,7 +63,8 @@ a:hover {
 
 /* 文章排版 */
 .prose {
-  color: var(--color-text);
+  /* 比全局 --color-text (#E8E8E8) 略暗偏冷，正文阅读更柔和 */
+  color: #C0C5D0;
   line-height: 1.75;
 }
 
@@ -119,7 +120,11 @@ a:hover {
 }
 
 .prose strong {
-  font-weight: 600;
+  font-weight: 700;
+  background: linear-gradient(135deg, #c084fc 0%, #818cf8 50%, #60a5fa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .prose code {
