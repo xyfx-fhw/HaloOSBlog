@@ -3,6 +3,7 @@ import type { MarkdownHeading } from 'astro';
 import BaseLayout from './BaseLayout.astro';
 import Sidebar from './Sidebar.astro';
 import PageToc from './PageToc.astro';
+import CodeRunner from '../code/CodeRunner.astro';
 import type { NavChapter, NavArticle, BreadcrumbItem } from '../../lib/content';
 
 interface Props {
@@ -71,6 +72,7 @@ const {
     </div>
     <PageToc headings={headings} />
   </div>
+  <CodeRunner />
 </BaseLayout>
 
 <style>

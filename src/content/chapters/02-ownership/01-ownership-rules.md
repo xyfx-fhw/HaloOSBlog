@@ -18,11 +18,22 @@ Rust 中的所有权遵循以下三条规则：
 
 当你将一个变量赋值给另一个变量时，所有权会发生 **移动**（move）：
 
-```rust
+```rust runnable
+# fn main() {
 let s1 = String::from("hello");
-let s2 = s1; // s1 的所有权移动到 s2
-// println!("{}", s1); // 编译错误！s1 已失效
+let s2 = s1;
 println!("{}", s2);
+# }
+```
+
+尝试在移动后使用 s1 会发生什么？
+
+```rust runnable expect-error
+# fn main() {
+let s1 = String::from("hello");
+let s2 = s1;
+println!("{}", s1); // s1 已失效，这是编译错误
+# }
 ```
 
 ## Copy 类型
