@@ -23,6 +23,7 @@ export async function buildNavTree(): Promise<NavChapter[]> {
   const allEntries = await getCollection('chapters');
   const chapterMap = new Map<string, CollectionEntry<'chapters'>[]>();
 
+  // 约定：chapters 条目路径为两级结构 `<chapterDir>/<filename>`（如 01-getting-started/00-index）
   for (const entry of allEntries) {
     const chapterKey = entry.slug.split('/')[0];
     if (!chapterMap.has(chapterKey)) chapterMap.set(chapterKey, []);
