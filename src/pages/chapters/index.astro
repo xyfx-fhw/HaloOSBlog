@@ -34,14 +34,14 @@ const difficultyMap: Record<string, { label: string; color: string }> = {
     </header>
 
     <div class="chapter-groups">
-      {groups.map(({ index, articles }) => (
-        <section class="group">
+      {groups.map(({ key, index, articles }) => (
+        <section class="group" data-group={key}>
           {index && (
             <h2 class="group-title">
               <a href={`/chapters/${index.slug}`}>{index.data.title}</a>
               <span class="group-meta">
-                <span style={`color: ${difficultyMap[index.data.difficulty].color}`}>
-                  {difficultyMap[index.data.difficulty].label}
+                <span style={`color: ${(difficultyMap[index.data.difficulty] ?? difficultyMap.beginner).color}`}>
+                  {(difficultyMap[index.data.difficulty] ?? difficultyMap.beginner).label}
                 </span>
                 <span>⏱ {index.data.estimatedTime} 分钟</span>
               </span>

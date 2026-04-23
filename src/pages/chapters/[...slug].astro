@@ -29,7 +29,7 @@ const difficultyLabel: Record<string, string> = {
       <p class="article-desc">{description}</p>
       <div class="article-meta">
         <span class={`meta-badge difficulty-${difficulty}`}>
-          {difficultyLabel[difficulty]}
+          {difficultyLabel[difficulty] ?? difficulty}
         </span>
         <span class="meta-time">⏱ {estimatedTime} 分钟</span>
         {keywords.map(kw => (
