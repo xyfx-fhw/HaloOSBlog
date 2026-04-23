@@ -28,7 +28,7 @@
     const hasHidden = el.dataset.hasHidden === 'true';
     const mode = el.dataset.mode ?? 'run';
 
-    // 可见代码：有隐藏行时从 data 属性读取，否则从 <code> 文本内容读取
+    if (!fullCode) return;
     const codeEl = el.querySelector('code');
     const initialVisibleCode = hasHidden
       ? decodeURIComponent(el.dataset.visibleCode ?? '')
@@ -101,10 +101,12 @@
                 ? `<pre class="code-runner-stderr">${escapeHtml(result.stderr)}</pre>`
                 : '');
           } else {
-            // API 返回成功 → 正常显示 stdout
-            output.innerHTML = result.stdout
-              ? `<pre class="code-runner-stdout">${escapeHtml(result.stdout)}</pre>`
-              : '<span class="code-runner-stdout">（无输出）</span>';
+            // expect-error 但编译意外通过了 → 给出警告
+            output.innerHTML =
+              '<div class="code-runner-warn">⚠️ 该代码应产生编译错误，但编译意外通过了</div>' +
+              (result.stdout
+                ? `<pre class="code-runner-stdout">${escapeHtml(result.stdout)}</pre>`
+                : '');
           }
         } else {
           // mode === 'run'（默认）
@@ -135,6 +137,7 @@
 
       toggleBtn.addEventListener('click', () => {
         isExpanded = !isExpanded;
+        // 注意：textContent 赋值会清除 Shiki 注入的高亮 span，当前版本不支持展开后的语法高亮
         if (isExpanded) {
           // 展示完整代码（含隐藏行）
           codeEl.textContent = fullCode;
@@ -156,7 +159,8 @@
           copyBtn.textContent = '复制';
         }, 2000);
       }).catch(() => {
-        // 剪贴板权限被拒绝时静默忽略
+        copyBtn.textContent = '复制失败';
+        setTimeout(() => { copyBtn.textContent = '复制'; }, 2000);
       });
     });
   }
@@ -281,6 +285,11 @@
 
   .code-runner-expected-error {
     color: var(--color-success);
+    margin-bottom: 0.5rem;
+  }
+
+  .code-runner-warn {
+    color: var(--color-warning);
     margin-bottom: 0.5rem;
   }
 
