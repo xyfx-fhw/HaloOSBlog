@@ -21,19 +21,34 @@
  *        data-full-code="...url-encoded..."
  *        [data-visible-code="...url-encoded..."]
  *        [data-has-hidden="true"]>
- *     <pre class="code-runner-pre"><code class="language-rust">可见代码的 HTML 转义文本</code></pre>
+ *     <pre class="code-runner-pre"><code class="language-rust">Shiki 高亮 HTML</code></pre>
  *   </div>
  */
 
 import { visit } from 'unist-util-visit';
+import { codeToHtml } from 'shiki';
 
 // 转义 HTML 标签体内容（不适用于属性值，双引号不转义）
-// HTML 特殊字符转义（`&`、`<`、`>`）
 function escapeHtml(str) {
   return str
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
+}
+
+/**
+ * 用 Shiki 高亮代码，返回 <code> 标签内部的 HTML（不含外层 <pre>）。
+ * 出错时回退为纯文本转义。
+ */
+async function highlightCode(code) {
+  try {
+    const html = await codeToHtml(code, { lang: 'rust', theme: 'github-dark' });
+    // 提取 <code>...</code> 之间的内容（Shiki 输出结构固定）
+    const match = html.match(/<code[^>]*>([\s\S]*?)<\/code>/);
+    return match?.[1] ?? escapeHtml(code);
+  } catch {
+    return escapeHtml(code);
+  }
 }
 
 /**
@@ -79,44 +94,43 @@ function encodeLines(lines) {
 }
 
 /**
- * remark 插件主函数。
+ * remark 插件主函数（async transformer，等待 Shiki 高亮完成）。
  */
 export default function remarkRustCodeblock() {
-  return function transformer(tree) {
+  return async function transformer(tree) {
+    const tasks = [];
+
     visit(tree, 'code', (node, index, parent) => {
       // 只处理 lang 为 `rust` 且 meta 中包含 `runnable` 的节点
       if (node.lang !== 'rust') return;
       const meta = node.meta ?? '';
       if (!meta.includes('runnable')) return;
 
-      // 确定运行模式
-      const mode = meta.includes('expect-error') ? 'expect-error' : 'run';
+      tasks.push({ node, index, parent });
+    });
 
-      // 解析代码行
+    await Promise.all(tasks.map(async ({ node, index, parent }) => {
+      const mode = (node.meta ?? '').includes('expect-error') ? 'expect-error' : 'run';
+
       const { fullLines, visibleLines, hasHidden } = parseCodeLines(node.value);
 
-      // 编码后的代码字符串
       const dataFullCode = encodeLines(fullLines);
-
-      // 可见代码的 HTML 转义文本（用于展示）
       const visibleCode = visibleLines.join('\n');
-      const escapedVisible = escapeHtml(visibleCode);
 
-      // 构造 data 属性字符串
+      // 用 Shiki 高亮可见代码（只取 <code> 内部 HTML）
+      const highlightedInner = await highlightCode(visibleCode);
+
       let dataAttrs = `data-mode="${mode}" data-full-code="${dataFullCode}"`;
       if (hasHidden) {
-        const dataVisibleCode = encodeURIComponent(visibleCode);
-        dataAttrs += ` data-visible-code="${dataVisibleCode}" data-has-hidden="true"`;
+        dataAttrs += ` data-visible-code="${encodeURIComponent(visibleCode)}" data-has-hidden="true"`;
       }
 
-      // 构造输出 HTML
       const html =
         `<div class="code-runner" ${dataAttrs}>` +
-        `<pre class="code-runner-pre"><code class="language-rust">${escapedVisible}</code></pre>` +
+        `<pre class="code-runner-pre"><code class="language-rust">${highlightedInner}</code></pre>` +
         `</div>`;
 
-      // 将原节点替换为 html 节点
       parent.children[index] = { type: 'html', value: html };
-    });
+    }));
   };
 }

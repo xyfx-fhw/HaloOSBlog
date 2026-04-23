@@ -30,9 +30,8 @@
 
     if (!fullCode) return;
     const codeEl = el.querySelector('code');
-    const initialVisibleCode = hasHidden
-      ? decodeURIComponent(el.dataset.visibleCode ?? '')
-      : (codeEl?.textContent ?? '');
+    // 保存初始高亮 HTML（Shiki 在构建时注入），折叠时恢复
+    const initialHighlightedHtml = codeEl?.innerHTML ?? '';
 
     // ── 工具栏 ─────────────────────────────────────────────────────────────
 
@@ -137,14 +136,13 @@
 
       toggleBtn.addEventListener('click', () => {
         isExpanded = !isExpanded;
-        // 注意：textContent 赋值会清除 Shiki 注入的高亮 span，当前版本不支持展开后的语法高亮
         if (isExpanded) {
-          // 展示完整代码（含隐藏行）
+          // 展开：显示完整代码（含隐藏行），以纯文本展示（不支持高亮）
           codeEl.textContent = fullCode;
           toggleBtn!.textContent = '折叠';
         } else {
-          // 还原为可见代码
-          codeEl.textContent = initialVisibleCode;
+          // 折叠：恢复 Shiki 高亮 HTML
+          codeEl.innerHTML = initialHighlightedHtml;
           toggleBtn!.textContent = '展开';
         }
       });
