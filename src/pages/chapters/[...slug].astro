@@ -15,19 +15,23 @@ const { entry } = Astro.props;
 const { Content, headings } = await entry.render();
 
 const navTree = await buildNavTree();
-const flatList = await getFlatArticleList();
+const flatList = await getFlatArticleList(navTree);
 
 const currentIdx = flatList.findIndex(a => a.slug === entry.slug);
 const prevArticle = currentIdx > 0 ? flatList[currentIdx - 1] : undefined;
 const nextArticle = currentIdx < flatList.length - 1 ? flatList[currentIdx + 1] : undefined;
 
-const chapterTitle = navTree.find(
+const currentChapter = navTree.find(
   ch => ch.indexSlug === entry.slug || ch.articles.some(a => a.slug === entry.slug)
-)?.title ?? '';
+);
 
 const breadcrumb: BreadcrumbItem[] = [
   { label: '课程', href: '/' },
-  ...(chapterTitle ? [{ label: chapterTitle, href: `/chapters/${navTree.find(ch => ch.indexSlug === entry.slug || ch.articles.some(a => a.slug === entry.slug))?.indexSlug ?? ''}` }] : []),
+  ...(currentChapter && currentChapter.indexSlug !== entry.slug
+    ? [{ label: currentChapter.title, href: currentChapter.href }]
+    : currentChapter
+    ? [{ label: currentChapter.title }]
+    : []),
   { label: entry.data.title },
 ];
 ---

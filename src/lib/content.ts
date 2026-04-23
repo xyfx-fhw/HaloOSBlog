@@ -58,10 +58,10 @@ export async function buildNavTree(): Promise<NavChapter[]> {
   });
 }
 
-export async function getFlatArticleList(): Promise<NavArticle[]> {
-  const navTree = await buildNavTree();
+export async function getFlatArticleList(navTree?: NavChapter[]): Promise<NavArticle[]> {
+  const tree = navTree ?? await buildNavTree();
   const flat: NavArticle[] = [];
-  for (const chapter of navTree) {
+  for (const chapter of tree) {
     flat.push({ slug: chapter.indexSlug, title: chapter.title, href: chapter.href });
     flat.push(...chapter.articles);
   }
