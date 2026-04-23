@@ -1,114 +1,49 @@
 ---
-import { getCollection, render } from 'astro:content';
-import BaseLayout from '../../components/layout/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import ChapterLayout from '../../components/layout/ChapterLayout.astro';
+import { buildNavTree, getFlatArticleList, type BreadcrumbItem } from '../../lib/content';
 
 export async function getStaticPaths() {
-  const chapters = await getCollection('chapters');
-  return chapters.map(entry => ({
+  const entries = await getCollection('chapters');
+  return entries.map(entry => ({
     params: { slug: entry.slug },
     props: { entry },
   }));
 }
 
 const { entry } = Astro.props;
-const { Content } = await render(entry);
+const { Content, headings } = await entry.render();
 
-const { title, description, difficulty, estimatedTime, keywords } = entry.data;
+const navTree = await buildNavTree();
+const flatList = await getFlatArticleList();
 
-const difficultyLabel: Record<string, string> = {
-  beginner: '初级',
-  intermediate: '中级',
-  advanced: '高级',
-};
+const currentIdx = flatList.findIndex(a => a.slug === entry.slug);
+const prevArticle = currentIdx > 0 ? flatList[currentIdx - 1] : undefined;
+const nextArticle = currentIdx < flatList.length - 1 ? flatList[currentIdx + 1] : undefined;
+
+const chapterTitle = navTree.find(
+  ch => ch.indexSlug === entry.slug || ch.articles.some(a => a.slug === entry.slug)
+)?.title ?? '';
+
+const breadcrumb: BreadcrumbItem[] = [
+  { label: '课程', href: '/' },
+  ...(chapterTitle ? [{ label: chapterTitle, href: `/chapters/${navTree.find(ch => ch.indexSlug === entry.slug || ch.articles.some(a => a.slug === entry.slug))?.indexSlug ?? ''}` }] : []),
+  { label: entry.data.title },
+];
 ---
 
-<BaseLayout title={title} description={description}>
-  <article class="chapter-page">
-    <header class="article-header">
-      <h1 class="article-title">{title}</h1>
-      <p class="article-desc">{description}</p>
-      <div class="article-meta">
-        <span class={`meta-badge difficulty-${difficulty}`}>
-          {difficultyLabel[difficulty] ?? difficulty}
-        </span>
-        <span class="meta-time">⏱ {estimatedTime} 分钟</span>
-        {keywords.map(kw => (
-          <span class="meta-keyword">{kw}</span>
-        ))}
-      </div>
-    </header>
-
-    <div class="prose">
-      <Content />
-    </div>
+<ChapterLayout
+  title={entry.data.title}
+  description={entry.data.description}
+  navTree={navTree}
+  currentSlug={entry.slug}
+  headings={headings}
+  breadcrumb={breadcrumb}
+  prevArticle={prevArticle}
+  nextArticle={nextArticle}
+>
+  <article class="prose">
+    <h1>{entry.data.title}</h1>
+    <Content />
   </article>
-</BaseLayout>
-
-<style>
-  .chapter-page {
-    max-width: var(--content-max-width);
-    margin: 2rem auto;
-    padding: 0 1.5rem;
-  }
-
-  .article-header {
-    margin-bottom: 2rem;
-  }
-
-  .article-title {
-    font-size: 2rem;
-    font-weight: 700;
-    line-height: 1.25;
-    margin-bottom: 0.5rem;
-  }
-
-  .article-desc {
-    color: var(--color-text-muted);
-    font-size: 1rem;
-    margin-bottom: 1rem;
-  }
-
-  .article-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    align-items: center;
-  }
-
-  .meta-badge {
-    font-size: 0.75rem;
-    padding: 0.125rem 0.625rem;
-    border: 1px solid;
-    border-radius: 999px;
-    font-weight: 500;
-  }
-
-  .meta-badge.difficulty-beginner {
-    color: var(--color-success);
-    border-color: rgba(34, 197, 94, 0.2);
-  }
-
-  .meta-badge.difficulty-intermediate {
-    color: var(--color-warning);
-    border-color: rgba(245, 158, 11, 0.2);
-  }
-
-  .meta-badge.difficulty-advanced {
-    color: var(--color-error);
-    border-color: rgba(239, 68, 68, 0.2);
-  }
-
-  .meta-time {
-    font-size: 0.8125rem;
-    color: var(--color-text-muted);
-  }
-
-  .meta-keyword {
-    font-size: 0.75rem;
-    padding: 0.125rem 0.5rem;
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: 4px;
-    color: var(--color-text-muted);
-  }
-</style>
+</ChapterLayout>
