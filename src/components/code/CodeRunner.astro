@@ -1,0 +1,299 @@
+---
+// CodeRunner.astro
+// 无 props、无服务端渲染内容。
+// 仅提供：
+//   1. 客户端脚本：初始化页面中所有 .code-runner 元素的交互功能
+//   2. 全局样式：供 remark 插件生成的 HTML 元素使用
+---
+
+<script>
+  import { executeCode } from '../../lib/rust-playground';
+
+  /**
+   * 对字符串进行 HTML 转义，防止 XSS
+   * stdout/stderr 来自外部 API，必须转义后才能写入 innerHTML
+   */
+  function escapeHtml(s: string): string {
+    return s
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  /**
+   * 初始化单个 .code-runner 元素
+   */
+  function initCodeRunner(el: HTMLElement): void {
+    const fullCode = decodeURIComponent(el.dataset.fullCode ?? '');
+    const hasHidden = el.dataset.hasHidden === 'true';
+    const mode = el.dataset.mode ?? 'run';
+
+    // 可见代码：有隐藏行时从 data 属性读取，否则从 <code> 文本内容读取
+    const codeEl = el.querySelector('code');
+    const initialVisibleCode = hasHidden
+      ? decodeURIComponent(el.dataset.visibleCode ?? '')
+      : (codeEl?.textContent ?? '');
+
+    // ── 工具栏 ─────────────────────────────────────────────────────────────
+
+    const toolbar = document.createElement('div');
+    toolbar.className = 'code-runner-toolbar';
+
+    // 运行按钮
+    const runBtn = document.createElement('button');
+    runBtn.className = 'code-runner-btn code-runner-run';
+    runBtn.textContent = '▶ 运行';
+    toolbar.appendChild(runBtn);
+
+    // 展开/折叠按钮（仅当有隐藏行时）
+    let toggleBtn: HTMLButtonElement | null = null;
+    if (hasHidden) {
+      toggleBtn = document.createElement('button');
+      toggleBtn.className = 'code-runner-btn code-runner-toggle';
+      toggleBtn.textContent = '展开';
+      toolbar.appendChild(toggleBtn);
+    }
+
+    // 复制按钮
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'code-runner-btn code-runner-copy';
+    copyBtn.textContent = '复制';
+    toolbar.appendChild(copyBtn);
+
+    // ── 输出区 ─────────────────────────────────────────────────────────────
+
+    const output = document.createElement('div');
+    output.className = 'code-runner-output';
+    output.hidden = true;
+
+    // ── 将元素插入 DOM ─────────────────────────────────────────────────────
+
+    const pre = el.querySelector('.code-runner-pre');
+    if (pre) {
+      // 工具栏插在 pre 之前
+      el.insertBefore(toolbar, pre);
+      // 输出区插在 pre 之后
+      pre.after(output);
+    } else {
+      // 回退：直接 append
+      el.appendChild(toolbar);
+      el.appendChild(output);
+    }
+
+    // ── 运行按钮逻辑 ──────────────────────────────────────────────────────
+
+    runBtn.addEventListener('click', async () => {
+      // 禁用按钮，显示等待状态
+      runBtn.disabled = true;
+      runBtn.textContent = '运行中...';
+      output.hidden = false;
+      output.innerHTML = '<span class="code-runner-spinner">⏳ 执行中...</span>';
+
+      try {
+        const result = await executeCode(fullCode);
+
+        if (mode === 'expect-error') {
+          if (!result.success) {
+            // API 返回编译失败 → 符合预期
+            output.innerHTML =
+              '<div class="code-runner-expected-error">✓ 这是预期的编译错误</div>' +
+              (result.stderr
+                ? `<pre class="code-runner-stderr">${escapeHtml(result.stderr)}</pre>`
+                : '');
+          } else {
+            // API 返回成功 → 正常显示 stdout
+            output.innerHTML = result.stdout
+              ? `<pre class="code-runner-stdout">${escapeHtml(result.stdout)}</pre>`
+              : '<span class="code-runner-stdout">（无输出）</span>';
+          }
+        } else {
+          // mode === 'run'（默认）
+          if (result.success) {
+            output.innerHTML = result.stdout
+              ? `<pre class="code-runner-stdout">${escapeHtml(result.stdout)}</pre>`
+              : '<span class="code-runner-stdout">（无输出）</span>';
+          } else {
+            output.innerHTML = result.stderr
+              ? `<pre class="code-runner-stderr">${escapeHtml(result.stderr)}</pre>`
+              : '<span class="code-runner-stderr">（编译失败，无错误信息）</span>';
+          }
+        }
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        output.innerHTML = `<span class="code-runner-stderr">请求失败: ${escapeHtml(msg)}</span>`;
+      } finally {
+        // 恢复按钮状态
+        runBtn.disabled = false;
+        runBtn.textContent = '▶ 运行';
+      }
+    });
+
+    // ── 展开/折叠按钮逻辑 ─────────────────────────────────────────────────
+
+    if (toggleBtn && codeEl) {
+      let isExpanded = false;
+
+      toggleBtn.addEventListener('click', () => {
+        isExpanded = !isExpanded;
+        if (isExpanded) {
+          // 展示完整代码（含隐藏行）
+          codeEl.textContent = fullCode;
+          toggleBtn!.textContent = '折叠';
+        } else {
+          // 还原为可见代码
+          codeEl.textContent = initialVisibleCode;
+          toggleBtn!.textContent = '展开';
+        }
+      });
+    }
+
+    // ── 复制按钮逻辑 ──────────────────────────────────────────────────────
+
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(fullCode).then(() => {
+        copyBtn.textContent = '已复制';
+        setTimeout(() => {
+          copyBtn.textContent = '复制';
+        }, 2000);
+      }).catch(() => {
+        // 剪贴板权限被拒绝时静默忽略
+      });
+    });
+  }
+
+  // ── 页面加载后初始化所有 .code-runner ────────────────────────────────────
+
+  document.querySelectorAll<HTMLElement>('.code-runner').forEach(initCodeRunner);
+</script>
+
+<style is:global>
+  /* ── 容器 ──────────────────────────────────────────────────────────────── */
+  .code-runner {
+    background: var(--color-code-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+  }
+
+  /* ── 工具栏 ─────────────────────────────────────────────────────────────── */
+  .code-runner-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  /* ── 通用按钮 ──────────────────────────────────────────────────────────── */
+  .code-runner-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.625rem;
+    background: transparent;
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+    white-space: nowrap;
+  }
+
+  .code-runner-btn:hover {
+    color: var(--color-text);
+    border-color: var(--color-text-muted);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .code-runner-btn:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  /* ── 运行按钮（accent 颜色） ───────────────────────────────────────────── */
+  .code-runner-run {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+
+  .code-runner-run:hover {
+    color: var(--color-text);
+    background: rgba(206, 65, 43, 0.12);
+    border-color: var(--color-accent);
+  }
+
+  /* ── 禁用状态 ──────────────────────────────────────────────────────────── */
+  .code-runner-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .code-runner-btn:disabled:hover {
+    color: inherit;
+    border-color: var(--color-border);
+    background: transparent;
+  }
+
+  /* ── 代码区 ─────────────────────────────────────────────────────────────── */
+  .code-runner-pre {
+    margin: 0;
+    padding: 1.25rem;
+    overflow-x: auto;
+    background: none;
+    border: none;
+  }
+
+  .code-runner-pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--color-code-text);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    line-height: 1.65;
+  }
+
+  /* ── 输出区 ─────────────────────────────────────────────────────────────── */
+  .code-runner-output {
+    border-top: 1px solid var(--color-border);
+    padding: 0.875rem 1.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    overflow-x: auto;
+  }
+
+  /* 隐藏状态由 [hidden] 属性处理（global.css 已有 [hidden] { display: none !important } */
+
+  /* ── 输出内容样式 ───────────────────────────────────────────────────────── */
+  .code-runner-stdout {
+    color: var(--color-text);
+  }
+
+  .code-runner-stderr {
+    color: var(--color-error);
+  }
+
+  .code-runner-expected-error {
+    color: var(--color-success);
+    margin-bottom: 0.5rem;
+  }
+
+  .code-runner-spinner {
+    color: var(--color-text-muted);
+  }
+
+  /* 输出区内的 pre 元素继承字体，去除默认的 pre 样式 */
+  .code-runner-output pre {
+    margin: 0;
+    font-family: inherit;
+    font-size: inherit;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+</style>
