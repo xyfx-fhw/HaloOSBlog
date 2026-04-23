@@ -1,0 +1,152 @@
+---
+import BaseLayout from '../../components/layout/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const allChapters = await getCollection('chapters');
+allChapters.sort((a, b) => a.slug.localeCompare(b.slug));
+
+// 按目录前缀（第一段路径）分组
+const groupMap = new Map<string, typeof allChapters>();
+for (const entry of allChapters) {
+  const groupKey = entry.slug.split('/')[0];
+  if (!groupMap.has(groupKey)) groupMap.set(groupKey, []);
+  groupMap.get(groupKey)!.push(entry);
+}
+
+const groups = Array.from(groupMap.entries()).map(([key, entries]) => ({
+  key,
+  index: entries.find(e => e.slug.endsWith('/00-index')),
+  articles: entries.filter(e => !e.slug.endsWith('/00-index')),
+}));
+
+const difficultyMap: Record<string, { label: string; color: string }> = {
+  beginner: { label: '初级', color: 'var(--color-success)' },
+  intermediate: { label: '中级', color: 'var(--color-warning)' },
+  advanced: { label: '高级', color: 'var(--color-error)' },
+};
+---
+
+<BaseLayout title="课程目录">
+  <div class="chapters-page">
+    <header class="page-header">
+      <h1>课程目录</h1>
+      <p class="subtitle">系统学习 Rust，从入门到进阶</p>
+    </header>
+
+    <div class="chapter-groups">
+      {groups.map(({ index, articles }) => (
+        <section class="group">
+          {index && (
+            <h2 class="group-title">
+              <a href={`/chapters/${index.slug}`}>{index.data.title}</a>
+              <span class="group-meta">
+                <span style={`color: ${difficultyMap[index.data.difficulty].color}`}>
+                  {difficultyMap[index.data.difficulty].label}
+                </span>
+                <span>⏱ {index.data.estimatedTime} 分钟</span>
+              </span>
+            </h2>
+          )}
+          <ul class="article-list">
+            {articles.map(article => (
+              <li class="article-item">
+                <a href={`/chapters/${article.slug}`} class="article-link">
+                  <span class="article-title">{article.data.title}</span>
+                  <span class="article-time">⏱ {article.data.estimatedTime} 分钟</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .chapters-page {
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+
+  .page-header {
+    margin-bottom: 2.5rem;
+  }
+
+  .page-header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.375rem;
+  }
+
+  .subtitle {
+    color: var(--color-text-muted);
+    font-size: 0.9375rem;
+  }
+
+  .group {
+    margin-bottom: 2.5rem;
+  }
+
+  .group-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .group-title a {
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .group-title a:hover {
+    color: var(--color-accent);
+  }
+
+  .group-meta {
+    display: flex;
+    gap: 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 400;
+    color: var(--color-text-muted);
+  }
+
+  .article-list {
+    list-style: none;
+  }
+
+  .article-item {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .article-link {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0.5rem;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    font-size: 0.9375rem;
+    border-radius: 4px;
+    transition: color 0.15s, background 0.15s;
+  }
+
+  .article-link:hover {
+    color: var(--color-text);
+    background: rgba(255, 255, 255, 0.03);
+    text-decoration: none;
+  }
+
+  .article-time {
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+    flex-shrink: 0;
+  }
+</style>
