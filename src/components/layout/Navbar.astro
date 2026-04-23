@@ -1,0 +1,103 @@
+---
+const currentPath = Astro.url.pathname;
+---
+
+<header class="navbar">
+  <div class="navbar-inner">
+    <a href="/" class="logo">
+      <span class="logo-rust">RUST</span> 互动教程
+    </a>
+    <nav class="nav-links">
+      <a
+        href="/"
+        class:list={['nav-link', { active: currentPath === '/' }]}
+      >
+        首页
+      </a>
+      <a
+        href="/chapters"
+        class:list={['nav-link', { active: currentPath.startsWith('/chapters') }]}
+      >
+        开始学习
+      </a>
+      <a
+        href="/progress"
+        class:list={['nav-link', { active: currentPath === '/progress' }]}
+      >
+        学习进度
+      </a>
+    </nav>
+    <div class="nav-progress" id="nav-progress">⏱ 0%</div>
+  </div>
+</header>
+
+<style>
+  .navbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    height: var(--navbar-height);
+  }
+
+  .navbar-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .logo {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--color-text);
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .logo:hover {
+    text-decoration: none;
+    color: var(--color-text);
+  }
+
+  .logo-rust {
+    color: var(--color-accent);
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 0.25rem;
+    flex: 1;
+  }
+
+  .nav-link {
+    color: var(--color-text-muted);
+    text-decoration: none;
+    padding: 0.375rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    transition: color 0.15s, background 0.15s;
+  }
+
+  .nav-link:hover {
+    color: var(--color-text);
+    background: rgba(255, 255, 255, 0.05);
+    text-decoration: none;
+  }
+
+  .nav-link.active {
+    color: var(--color-text);
+  }
+
+  .nav-progress {
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+</style>
