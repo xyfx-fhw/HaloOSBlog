@@ -25,7 +25,10 @@ const tocHeadings = headings.filter(h => h.depth === 2 || h.depth === 3);
 )}
 
 <script>
-  const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('.toc-link'));
+  const toc = document.querySelector<HTMLElement>('.page-toc');
+  const links = toc
+    ? Array.from(toc.querySelectorAll<HTMLAnchorElement>('.toc-link'))
+    : [];
   if (links.length > 0) {
     const headingEls = links.map(l => {
       const id = l.getAttribute('href')?.slice(1);
