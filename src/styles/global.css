@@ -233,3 +233,11 @@ a:hover {
   outline: 2px solid var(--color-text-muted);
   outline-offset: 3px;
 }
+
+.wip {
+  font-size: 0.6em;
+  font-weight: 400;
+  color: var(--color-text-muted);
+  vertical-align: middle;
+  margin-left: 0.25rem;
+}
