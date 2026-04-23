@@ -1,10 +1,267 @@
 ---
 import BaseLayout from '../components/layout/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+// 只取父文章（00-index）作为章节卡片
+const allChapters = await getCollection('chapters');
+const chapterIndex = allChapters
+  .filter(c => c.slug.endsWith('/00-index'))
+  .sort((a, b) => a.slug.localeCompare(b.slug));
+
+const difficultyMap: Record<string, { label: string; color: string }> = {
+  beginner: { label: '初级', color: 'var(--color-success)' },
+  intermediate: { label: '中级', color: 'var(--color-warning)' },
+  advanced: { label: '高级', color: 'var(--color-error)' },
+};
 ---
 
-<BaseLayout title="首页">
-  <div style="padding: 2rem;">
-    <h1 style="color: var(--color-accent);">RUST 互动教程</h1>
-    <p>框架搭建中...</p>
-  </div>
+<BaseLayout title="首页" description="RUST 互动教程 — 零基础系统学习 Rust 语言">
+  <!-- Hero 区 -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-badge">系统 · 互动 · 零基础</div>
+      <h1 class="hero-title">
+        <span class="accent">RUST</span> 互动教程<span class="wip">（搭建中）</span>
+      </h1>
+      <p class="hero-subtitle">
+        像官方 Rust Book 一样系统讲解，加入在线代码执行、可编辑练习、章节测验等互动功能。从第一行代码开始，逐步掌握 Rust 语言。
+      </p>
+      <div class="hero-actions">
+        <a href="/chapters/01-getting-started/00-index" class="btn-primary">
+          开始学习 →
+        </a>
+        <a href="/chapters" class="btn-secondary">查看目录</a>
+      </div>
+      <p class="hero-author">作者：雪云飞星</p>
+    </div>
+  </section>
+
+  <!-- 课程大纲预览 -->
+  {chapterIndex.length > 0 && (
+    <section class="outline">
+      <div class="outline-inner">
+        <p class="section-label">课程大纲</p>
+        <ul class="chapter-list">
+          {chapterIndex.map((chapter, i) => {
+            const diff = difficultyMap[chapter.data.difficulty] ?? difficultyMap.beginner;
+            return (
+              <li class="chapter-item">
+                <a href={`/chapters/${chapter.slug}`} class="chapter-link">
+                  <span class="chapter-num">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <span class="chapter-info">
+                    <span class="chapter-name">{chapter.data.title}</span>
+                    <span class="chapter-meta">
+                      <span style={`color: ${diff.color}`}>{diff.label}</span>
+                      <span>·</span>
+                      <span>⏱ {chapter.data.estimatedTime} 分钟</span>
+                    </span>
+                  </span>
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </section>
+  )}
+
+  <!-- 特性介绍 -->
+  <section class="features">
+    <div class="features-inner">
+      <div class="feature-card">
+        <div class="feature-icon">▶</div>
+        <h3>在线运行代码</h3>
+        <p>文档中的代码示例调用 Rust Playground API 一键运行，即时查看输出。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">✎</div>
+        <h3>可编辑练习</h3>
+        <p>内嵌 Monaco 编辑器，动手修改代码，自动验证答案并给出提示。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">✓</div>
+        <h3>章节测验</h3>
+        <p>每章配套选择题与编程题，检验学习成果，完成 90% 可领取证书。</p>
+      </div>
+    </div>
+  </section>
 </BaseLayout>
+
+<style>
+  /* Hero */
+  .hero {
+    padding: 6rem 1.5rem;
+    text-align: center;
+  }
+
+  .hero-inner {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+    border: 1px solid var(--color-accent);
+    border-radius: 999px;
+    padding: 0.25rem 0.875rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-title {
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+  }
+
+  .accent {
+    color: var(--color-accent);
+  }
+
+  .hero-subtitle {
+    font-size: 1.0625rem;
+    color: var(--color-text-muted);
+    line-height: 1.7;
+    margin-bottom: 2rem;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .wip {
+    font-size: 0.6em;
+    font-weight: 400;
+    color: var(--color-text-muted);
+    vertical-align: middle;
+    margin-left: 0.25rem;
+  }
+
+  .hero-author {
+    margin-top: 1.5rem;
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+  }
+
+  /* 课程大纲 */
+  .outline {
+    padding: 3rem 1.5rem;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .outline-inner {
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    margin-bottom: 1.25rem;
+  }
+
+  .chapter-list {
+    list-style: none;
+  }
+
+  .chapter-item {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .chapter-item:first-child {
+    border-top: 1px solid var(--color-border);
+  }
+
+  .chapter-link {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1rem 0.5rem;
+    color: var(--color-text);
+    text-decoration: none;
+    transition: background 0.15s;
+    border-radius: 6px;
+  }
+
+  .chapter-link:hover {
+    background: rgba(255, 255, 255, 0.03);
+    text-decoration: none;
+  }
+
+  .chapter-num {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-border);
+    font-family: var(--font-mono);
+    min-width: 2.5rem;
+  }
+
+  .chapter-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .chapter-name {
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  .chapter-meta {
+    display: flex;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+  }
+
+  /* 特性 */
+  .features {
+    padding: 3rem 1.5rem;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .features-inner {
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .feature-card {
+    padding: 1.5rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+  }
+
+  .feature-icon {
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+    color: var(--color-accent);
+  }
+
+  .feature-card h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  .feature-card p {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    line-height: 1.6;
+  }
+</style>

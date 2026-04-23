@@ -1,0 +1,31 @@
+---
+import BaseLayout from '../components/layout/BaseLayout.astro';
+---
+
+<BaseLayout title="学习证书">
+  <div class="placeholder-page">
+    <h1>学习证书</h1>
+    <p>此功能将在子计划 7（证书系统）中实现。完成 90% 课程后可在此领取证书。</p>
+    <a href="/progress" class="btn-secondary">← 查看学习进度</a>
+  </div>
+</BaseLayout>
+
+<style>
+  .placeholder-page {
+    max-width: var(--content-max-width);
+    margin: 5rem auto;
+    padding: 0 1.5rem;
+    text-align: center;
+  }
+
+  .placeholder-page h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+
+  .placeholder-page p {
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+  }
+</style>
