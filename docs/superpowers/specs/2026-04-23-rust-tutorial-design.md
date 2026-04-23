@@ -1,7 +1,17 @@
 # RUST 互动教程 — 需求设计文档
 
 **日期**：2026-04-23  
-**状态**：实现中（子计划 1–2 已完成）
+**状态**：实现中（子计划 1–3 已完成，子计划 4–7 待实现）
+
+| 子计划 | 内容 | 状态 |
+|--------|------|------|
+| 1 | 基础框架（Astro 配置、全局样式、首页骨架） | ✅ 完成 |
+| 2 | 内容导航（章节布局、侧边栏、TOC、面包屑、前后页导航） | ✅ 完成 |
+| 3 | 代码执行（runnable 代码块、Shiki 高亮、Playground API） | ✅ 完成 |
+| 4 | 进度系统（localStorage 进度追踪、进度页） | ⬜ 待实现 |
+| 5 | 练习与测验（Monaco Editor + 选择题 + 编码题） | ⬜ 待实现 |
+| 6 | 交互式图解（SVG + JS 动画组件） | ⬜ 待实现 |
+| 7 | 学习证书（jsPDF 导出） | ⬜ 待实现 |
 
 ---
 
@@ -60,87 +70,92 @@
 
 ## 三、目录结构
 
+> ✅ = 已创建，⬜ = 计划中（尚未实现）
+
 ```
 rust_course_web/
-├── CLAUDE.md                          # 项目说明（所有回复和文档使用中文）
-├── astro.config.mjs                   # Astro 配置，注册 remark 插件
-├── package.json
-├── tsconfig.json
+├── .claude/
+│   └── CLAUDE.md                          ✅ 项目说明（AI 回复和文档使用中文）
+├── astro.config.mjs                       ✅ 注册 remark-rust-codeblock 插件
+├── package.json / package-lock.json       ✅
+├── tsconfig.json                          ✅
 │
 ├── public/
-│   └── favicon.svg
+│   └── favicon.svg                        ✅
 │
 ├── src/
-│   ├── content/                       # Astro Content Collections
-│   │   ├── chapters/                  # 所有章节文章（Markdown）
-│   │   │   ├── 01-getting-started/
-│   │   │   │   ├── 00-index.md        # 父文章（有内容，也是章节入口）
-│   │   │   │   ├── 01-installation.md
-│   │   │   │   └── 02-hello-world.md
-│   │   │   ├── 02-ownership/
-│   │   │   │   ├── 00-index.md
-│   │   │   │   ├── 01-ownership-rules.md
-│   │   │   │   └── 02-borrowing.md
-│   │   │   └── ...
-│   │   ├── exercises/                 # 练习题配置（JSON）
-│   │   │   ├── getting-started.json
-│   │   │   ├── ownership.json
-│   │   │   └── ...
-│   │   └── quizzes/                   # 测验题配置（JSON）
-│   │       ├── getting-started.json
-│   │       ├── ownership.json
-│   │       └── ...
+│   ├── content/                           # Astro Content Collections
+│   │   ├── config.ts                      ✅ chapters collection 定义
+│   │   └── chapters/                      ✅ 所有章节文章（Markdown）
+│   │       ├── 00-preface/
+│   │       │   └── 00-index.md            ✅
+│   │       ├── 01-getting-started/
+│   │       │   ├── 00-index.md            ✅
+│   │       │   ├── 01-installation.md     ✅
+│   │       │   └── 02-hello-world.md      ✅
+│   │       └── 02-ownership/
+│   │           ├── 00-index.md            ✅
+│   │           ├── 01-ownership-rules.md  ✅（含 runnable 代码块示例）
+│   │           └── 02-borrowing.md        ✅
+│   │   ├── exercises/                     ⬜ 练习题配置（JSON）—— 子计划 5
+│   │   └── quizzes/                       ⬜ 测验题配置（JSON）—— 子计划 5
 │   │
 │   ├── pages/
-│   │   ├── index.astro                # 首页
-│   │   ├── progress.astro             # 学习进度页
-│   │   ├── certificate.astro          # 学习证书页
-│   │   ├── chapters/
-│   │   │   ├── index.astro            # 重定向至 /#outline（课程目录已合并至首页）
-│   │   │   └── [...slug].astro        # 章节文档页（动态路由，支持多级）
+│   │   ├── index.astro                    ✅ 首页（Hero + 课程目录 + 进度点占位）
+│   │   ├── progress.astro                 ✅ 学习进度页（占位，子计划 4 实现）
+│   │   ├── certificate.astro              ✅ 学习证书页（占位，子计划 7 实现）
+│   │   └── chapters/
+│   │       ├── index.astro                ✅ 重定向至 /#outline
+│   │       └── [...slug].astro            ✅ 章节文档页（动态路由，三栏布局）
 │   │   ├── exercises/
-│   │   │   └── [slug].astro           # 练习页
+│   │   │   └── [slug].astro               ⬜ 练习页 —— 子计划 5
 │   │   └── quiz/
-│   │       └── [slug].astro           # 测验页
+│   │       └── [slug].astro               ⬜ 测验页 —— 子计划 5
 │   │
 │   ├── components/
 │   │   ├── layout/
-│   │   │   ├── BaseLayout.astro       # 基础布局（head、顶部导航、页脚）
-│   │   │   ├── ChapterLayout.astro    # 章节页三栏布局
-│   │   │   ├── Navbar.astro           # 顶部导航栏
-│   │   │   ├── Sidebar.astro          # 左侧课程目录树
-│   │   │   └── PageToc.astro          # 右侧页面内锚点目录
+│   │   │   ├── BaseLayout.astro           ✅ 基础布局（head、全局 page-bg 动画）
+│   │   │   ├── ChapterLayout.astro        ✅ 章节页三栏布局（含 CodeRunner 挂载）
+│   │   │   ├── Navbar.astro               ✅ 顶部导航（logo、链接、进度显示占位）
+│   │   │   ├── Footer.astro               ✅ 页脚（作者信息、版权年份）
+│   │   │   ├── Sidebar.astro              ✅ 左侧课程目录（可折叠章节）
+│   │   │   └── PageToc.astro              ✅ 右侧页内目录（IntersectionObserver 追踪）
 │   │   ├── code/
-│   │   │   ├── CodeRunner.astro       # 只读可执行代码块
-│   │   │   └── CodeEditor.astro       # 可编辑代码编辑器（练习用）
-│   │   ├── quiz/
-│   │   │   ├── QuizPage.astro         # 测验页主组件
-│   │   │   ├── MultipleChoice.astro   # 选择题组件
-│   │   │   └── CodingQuestion.astro   # 编码题组件（复用 CodeEditor）
-│   │   └── ui/
-│   │       ├── DifficultyBadge.astro  # 难度标签
-│   │       ├── TimeEstimate.astro     # 预计时间
-│   │       ├── KeywordTags.astro      # 关键词标签
-│   │       ├── ProgressBar.astro      # 进度条
-│   │       ├── SectionProgress.astro  # 文章内节段进度标签栏
-│   │       ├── ConfirmDialog.astro    # 全局重置确认弹窗
-│   │       └── Certificate.astro      # 证书展示组件
+│   │   │   ├── CodeRunner.astro           ✅ 只读可执行代码块（含工具栏状态区）
+│   │   │   └── CodeEditor.astro           ⬜ 可编辑代码编辑器 —— 子计划 5
+│   │   ├── quiz/                          ⬜ 测验组件 —— 子计划 5
+│   │   │   ├── QuizPage.astro
+│   │   │   ├── MultipleChoice.astro
+│   │   │   └── CodingQuestion.astro
+│   │   ├── diagrams/                      ⬜ 交互式图解组件 —— 子计划 6
+│   │   └── ui/                            ⬜ 通用 UI 组件 —— 子计划 4+
+│   │       ├── ProgressBar.astro
+│   │       ├── ConfirmDialog.astro
+│   │       └── Certificate.astro
 │   │
 │   ├── lib/
-│   │   ├── rust-playground.ts         # Rust Playground API 封装
-│   │   ├── progress.ts                # 进度管理（localStorage + 预留接口）
-│   │   └── content.ts                 # 内容读取工具函数
+│   │   ├── rust-playground.ts             ✅ Rust Playground API 封装
+│   │   ├── content.ts                     ✅ 导航树构建（buildNavTree / getFlatArticleList）
+│   │   └── progress.ts                    ⬜ 进度管理接口 —— 子计划 4
 │   │
 │   ├── plugins/
-│   │   └── remark-rust-codeblock.mjs  # 解析 ```rust runnable 等特殊标记
+│   │   └── remark-rust-codeblock.mjs      ✅ 解析 rust runnable / expect-error 标记
 │   │
 │   └── styles/
-│       └── global.css
+│       └── global.css                     ✅ CSS 变量、排版（.prose）、动画
 │
 └── docs/
     └── superpowers/
-        └── specs/
-            └── 2026-04-23-rust-tutorial-design.md  # 本文档
+        ├── specs/
+        │   └── 2026-04-23-rust-tutorial-design.md   # 本文档
+        └── plans/
+            ├── 2026-04-23-01-foundation.md           ✅
+            ├── 2026-04-23-02-content-navigation.md   ✅
+            ├── 2026-04-23-03-code-execution.md       ✅
+            ├── 2026-04-23-04-progress-system.md      ⬜
+            ├── 2026-04-23-05-quiz-exercises.md       ⬜
+            ├── 2026-04-23-06-interactive-diagrams.md ⬜
+            └── 2026-04-23-07-certificate.md          ⬜
 ```
 
 ---
@@ -270,23 +285,46 @@ src/components/diagrams/
 
 ## 六、交互组件规格
 
-### 6.1 只读可执行代码块（CodeRunner）
+### 6.1 只读可执行代码块（CodeRunner）✅ 已实现
 
-**功能：**
-- Rust 语法高亮
-- 复制按钮（复制完整代码含隐藏行）
-- 展开/折叠隐藏行按钮
-- 运行按钮（调用 Rust Playground API）
+**功能（已实现）：**
+
+- Shiki 语法高亮（github-dark 主题，服务端构建时生成）
+- 工具栏布局：`[状态区（左，flex:1）] [▶ 运行] [展开] [复制]`
+- **状态区**：执行中显示 `⏳ 执行中...`；`expect-error` 成功显示 `✓ 这是预期的编译错误`；失败显示 `⚠️` 或 `✗` 提示
+- 展开/折叠隐藏行按钮（有隐藏行时显示）；展开后保持语法高亮
+- 复制按钮（始终复制含隐藏行的完整代码）
 - 输出区域（点击运行后展开，显示 stdout / stderr）
-- `expect-error` 模式：错误信息红色高亮，添加"这是预期的编译错误"提示
+- `expect-error` 模式：编译失败为预期结果，详细 stderr 在输出区展示
 
-**代码执行 API：**
+**隐藏行技术方案：**
+
+- remark 插件在构建时用 Shiki 高亮完整代码，存入 `<div class="code-runner-full-hl" hidden>` 隐藏 div
+- 客户端展开时直接读取该 div 的 innerHTML，无编解码开销
+- `rehypeShiki` 在 `rehypeRaw` 之前执行，故不会二次处理 raw HTML，隐藏 div 安全透明
+
+**代码执行 API（已修正）：**
+
 ```
 POST https://play.rust-lang.org/execute
 Content-Type: application/json
-Body: { "code": "...", "edition": "2021", "mode": "debug", "crateType": "bin" }
+Body: {
+  "code": "...",
+  "channel": "stable",
+  "edition": "2021",
+  "mode": "debug",
+  "crateType": "bin",
+  "tests": false,
+  "backtrace": false
+}
 返回: { "success": true/false, "stdout": "...", "stderr": "..." }
 ```
+
+> ⚠️ `channel`、`tests`、`backtrace` 为必填字段，缺少会导致 400 错误。超时设置 15 秒。
+
+**CSS 注意事项：**
+
+- `.code-runner .code-runner-pre`（优先级 0-2-0）需显式覆盖 `.prose pre`（优先级 0-1-1）的 `margin-bottom`，否则代码区下方出现空白。
 
 ### 6.2 可编辑代码编辑器（CodeEditor）
 
@@ -554,7 +592,9 @@ export function getCertificate(): { name: string; earnedAt: string } | null
 
 ## 十、CLAUDE.md 说明
 
-项目根目录创建 `CLAUDE.md`，包含：
-- 所有 AI 回复使用中文
-- 编写文档、注释使用中文
+项目指令文件位于 `.claude/CLAUDE.md`（Astro 项目根目录），包含：
+
+- 所有 AI 对话回复使用中文
+- 代码注释、文档（README、设计文档、计划文档等）使用中文
+- 代码标识符（变量名、函数名、文件名）保持英文惯例
 - 项目概述和技术栈说明
