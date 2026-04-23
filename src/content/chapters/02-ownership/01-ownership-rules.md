@@ -20,9 +20,9 @@ Rust 中的所有权遵循以下三条规则：
 
 ```rust runnable
 # fn main() {
-let s1 = String::from("hello");
-let s2 = s1;
-println!("{}", s2);
+    let s1 = String::from("hello");
+    let s2 = s1;
+    println!("{}", s2);
 # }
 ```
 
@@ -30,9 +30,9 @@ println!("{}", s2);
 
 ```rust runnable expect-error
 # fn main() {
-let s1 = String::from("hello");
-let s2 = s1;
-println!("{}", s1); // s1 已失效，这是编译错误
+    let s1 = String::from("hello");
+    let s2 = s1;
+    println!("{}", s1); // s1 已失效，这是编译错误
 # }
 ```
 
@@ -50,7 +50,7 @@ println!("x = {}, y = {}", x, y);
 
 将值传给函数时，所有权同样会发生移动或复制，规则与赋值完全相同：
 
-```rust
+```rust runnable
 fn main() {
     let s = String::from("hello");
     takes_ownership(s);        // s 的所有权移入函数

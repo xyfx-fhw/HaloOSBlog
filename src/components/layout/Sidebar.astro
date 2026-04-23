@@ -15,7 +15,7 @@ const activeChapterKey = navTree.find(
 
 <aside class="sidebar" id="sidebar">
   <nav class="sidebar-nav" aria-label="课程目录">
-    {navTree.map((chapter, chapterIdx) => {
+    {navTree.map((chapter) => {
       const isExpanded = chapter.key === activeChapterKey;
       const isIndexActive = chapter.indexSlug === currentSlug;
       return (
@@ -26,7 +26,7 @@ const activeChapterKey = navTree.find(
               class:list={['chapter-link', { active: isIndexActive }]}
               aria-current={isIndexActive ? 'page' : undefined}
             >
-              <span class="chapter-num">第{chapterIdx + 1}章</span>
+              <span class="chapter-num">{chapter.chapterNumber !== null ? `第${chapter.chapterNumber}章` : '序'}</span>
               {chapter.title}
             </a>
             {chapter.articles.length > 0 && (
@@ -53,7 +53,7 @@ const activeChapterKey = navTree.find(
                   class:list={['article-link', { active: article.slug === currentSlug }]}
                   aria-current={article.slug === currentSlug ? 'page' : undefined}
                 >
-                  <span class="article-num">{chapterIdx + 1}.{articleIdx + 1}</span>
+                  <span class="article-num">{chapter.chapterNumber !== null ? `${chapter.chapterNumber}.${articleIdx + 1}` : `序.${articleIdx + 1}`}</span>
                   {article.title}
                 </a>
               </li>

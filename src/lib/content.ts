@@ -12,6 +12,7 @@ export interface NavChapter {
   indexSlug: string;
   href: string;
   articles: NavArticle[];
+  chapterNumber: number | null; // null 表示前言/序章，不计入章节编号
 }
 
 export interface BreadcrumbItem {
@@ -32,7 +33,11 @@ export async function buildNavTree(): Promise<NavChapter[]> {
 
   const sortedKeys = [...chapterMap.keys()].sort();
 
+  let chapterCounter = 0;
   return sortedKeys.map(key => {
+    const isPreface = key.startsWith('00-');
+    const chapterNumber = isPreface ? null : ++chapterCounter;
+
     const entries = [...chapterMap.get(key)!].sort((a, b) =>
       (a.slug.split('/')[1] ?? '').localeCompare(b.slug.split('/')[1] ?? '')
     );
@@ -54,6 +59,7 @@ export async function buildNavTree(): Promise<NavChapter[]> {
         title: e.data.title,
         href: `/chapters/${e.slug}`,
       })),
+      chapterNumber,
     };
   });
 }

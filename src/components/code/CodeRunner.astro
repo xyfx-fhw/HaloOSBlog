@@ -39,6 +39,11 @@
     const toolbar = document.createElement('div');
     toolbar.className = 'code-runner-toolbar';
 
+    // 工具栏左侧：状态/进度提示
+    const statusEl = document.createElement('span');
+    statusEl.className = 'code-runner-status';
+    toolbar.appendChild(statusEl);
+
     // 运行按钮
     const runBtn = document.createElement('button');
     runBtn.className = 'code-runner-btn code-runner-run';
@@ -83,33 +88,39 @@
     // ── 运行按钮逻辑 ──────────────────────────────────────────────────────
 
     runBtn.addEventListener('click', async () => {
-      // 禁用按钮，显示等待状态
+      // 禁用按钮，工具栏左侧显示执行状态
       runBtn.disabled = true;
       runBtn.textContent = '运行中...';
-      output.hidden = false;
-      output.innerHTML = '<span class="code-runner-spinner">⏳ 执行中...</span>';
+      statusEl.textContent = '⏳ 执行中...';
+      statusEl.className = 'code-runner-status code-runner-status-running';
+      output.hidden = true;
 
       try {
         const result = await executeCode(fullCode);
 
         if (mode === 'expect-error') {
           if (!result.success) {
-            // API 返回编译失败 → 符合预期
-            output.innerHTML =
-              '<div class="code-runner-expected-error">✓ 这是预期的编译错误</div>' +
-              (result.stderr
-                ? `<pre class="code-runner-stderr">${escapeHtml(result.stderr)}</pre>`
-                : '');
+            // 编译失败 → 符合预期，在工具栏显示成功提示
+            statusEl.textContent = '✓ 这是预期的编译错误';
+            statusEl.className = 'code-runner-status code-runner-status-ok';
+            if (result.stderr) {
+              output.hidden = false;
+              output.innerHTML = `<pre class="code-runner-stderr">${escapeHtml(result.stderr)}</pre>`;
+            }
           } else {
-            // expect-error 但编译意外通过了 → 给出警告
-            output.innerHTML =
-              '<div class="code-runner-warn">⚠️ 该代码应产生编译错误，但编译意外通过了</div>' +
-              (result.stdout
-                ? `<pre class="code-runner-stdout">${escapeHtml(result.stdout)}</pre>`
-                : '');
+            // expect-error 但编译意外通过了 → 工具栏显示警告
+            statusEl.textContent = '⚠️ 该代码应产生编译错误，但编译意外通过了';
+            statusEl.className = 'code-runner-status code-runner-status-warn';
+            if (result.stdout) {
+              output.hidden = false;
+              output.innerHTML = `<pre class="code-runner-stdout">${escapeHtml(result.stdout)}</pre>`;
+            }
           }
         } else {
           // mode === 'run'（默认）
+          statusEl.textContent = '';
+          statusEl.className = 'code-runner-status';
+          output.hidden = false;
           if (result.success) {
             output.innerHTML = result.stdout
               ? `<pre class="code-runner-stdout">${escapeHtml(result.stdout)}</pre>`
@@ -122,7 +133,10 @@
         }
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
-        output.innerHTML = `<span class="code-runner-stderr">请求失败: ${escapeHtml(msg)}</span>`;
+        statusEl.textContent = '✗ 请求失败';
+        statusEl.className = 'code-runner-status code-runner-status-error';
+        output.hidden = false;
+        output.innerHTML = `<span class="code-runner-stderr">${escapeHtml(msg)}</span>`;
       } finally {
         // 恢复按钮状态
         runBtn.disabled = false;
@@ -180,13 +194,28 @@
   /* ── 工具栏 ─────────────────────────────────────────────────────────────── */
   .code-runner-toolbar {
     display: flex;
-    justify-content: flex-end;
     align-items: center;
     gap: 0.5rem;
     padding: 0.375rem 0.75rem;
     background: rgba(255, 255, 255, 0.03);
     border-bottom: 1px solid var(--color-border);
   }
+
+  /* 工具栏左侧状态区：占满剩余空间，文字截断 */
+  .code-runner-status {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .code-runner-status-running { color: var(--color-text-muted); }
+  .code-runner-status-ok      { color: var(--color-success); }
+  .code-runner-status-warn    { color: var(--color-warning); }
+  .code-runner-status-error   { color: var(--color-error); }
 
   /* ── 通用按钮 ──────────────────────────────────────────────────────────── */
   .code-runner-btn {
@@ -241,12 +270,14 @@
   }
 
   /* ── 代码区 ─────────────────────────────────────────────────────────────── */
-  .code-runner-pre {
+  /* 优先级 (0-2-0)，覆盖 .prose pre 的 (0-1-1)，防止 margin/border 渗透 */
+  .code-runner .code-runner-pre {
     margin: 0;
     padding: 1.25rem;
     overflow-x: auto;
     background: none;
     border: none;
+    border-radius: 0;
   }
 
   .code-runner-pre code {
@@ -278,20 +309,6 @@
 
   .code-runner-stderr {
     color: var(--color-error);
-  }
-
-  .code-runner-expected-error {
-    color: var(--color-success);
-    margin-bottom: 0.5rem;
-  }
-
-  .code-runner-warn {
-    color: var(--color-warning);
-    margin-bottom: 0.5rem;
-  }
-
-  .code-runner-spinner {
-    color: var(--color-text-muted);
   }
 
   /* 输出区内的 pre 元素继承字体，去除默认的 pre 样式 */
