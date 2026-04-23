@@ -1,0 +1,184 @@
+---
+import type { MarkdownHeading } from 'astro';
+import BaseLayout from './BaseLayout.astro';
+import Sidebar from './Sidebar.astro';
+import PageToc from './PageToc.astro';
+import type { NavChapter, NavArticle, BreadcrumbItem } from '../../lib/content';
+
+interface Props {
+  title: string;
+  description?: string;
+  navTree: NavChapter[];
+  currentSlug: string;
+  headings: MarkdownHeading[];
+  breadcrumb: BreadcrumbItem[];
+  prevArticle?: NavArticle;
+  nextArticle?: NavArticle;
+}
+
+const {
+  title,
+  description,
+  navTree,
+  currentSlug,
+  headings,
+  breadcrumb,
+  prevArticle,
+  nextArticle,
+} = Astro.props;
+---
+
+<BaseLayout title={title} description={description}>
+  <div class="chapter-layout">
+    <Sidebar navTree={navTree} currentSlug={currentSlug} />
+    <div class="chapter-body">
+      <nav class="breadcrumb" aria-label="面包屑">
+        {breadcrumb.map((item, i) => (
+          <Fragment>
+            {i > 0 && <span class="breadcrumb-sep" aria-hidden="true">／</span>}
+            {item.href
+              ? <a href={item.href} class="breadcrumb-link">{item.label}</a>
+              : <span class="breadcrumb-current" aria-current="page">{item.label}</span>
+            }
+          </Fragment>
+        ))}
+      </nav>
+
+      <main class="chapter-main">
+        <slot />
+      </main>
+
+      <nav class="article-nav" aria-label="文章导航">
+        <div class="article-nav-prev">
+          {prevArticle && (
+            <a href={prevArticle.href} class="article-nav-link">
+              <span class="nav-label">← 上一节</span>
+              <span class="nav-title">{prevArticle.title}</span>
+            </a>
+          )}
+        </div>
+        <div class="article-nav-next">
+          {nextArticle && (
+            <a href={nextArticle.href} class="article-nav-link">
+              <span class="nav-label">下一节 →</span>
+              <span class="nav-title">{nextArticle.title}</span>
+            </a>
+          )}
+        </div>
+      </nav>
+    </div>
+    <PageToc headings={headings} />
+  </div>
+</BaseLayout>
+
+<style>
+  .chapter-layout {
+    display: flex;
+    align-items: flex-start;
+    min-height: calc(100vh - var(--navbar-height));
+  }
+
+  .chapter-body {
+    flex: 1;
+    min-width: 0;
+    padding: 1.5rem 2rem 4rem;
+    max-width: 820px;
+  }
+
+  /* 面包屑 */
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+  }
+
+  .breadcrumb-sep {
+    color: var(--color-border);
+    margin: 0 0.125rem;
+  }
+
+  .breadcrumb-link {
+    color: var(--color-text-muted);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+
+  .breadcrumb-link:hover {
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .breadcrumb-current {
+    color: var(--color-text);
+  }
+
+  /* 上一节/下一节导航 */
+  .article-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .article-nav-prev,
+  .article-nav-next {
+    flex: 1;
+  }
+
+  .article-nav-next {
+    text-align: right;
+  }
+
+  .article-nav-link {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.875rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    text-decoration: none;
+    transition: border-color 0.15s, background 0.15s;
+    max-width: 100%;
+  }
+
+  .article-nav-link:hover {
+    border-color: var(--color-accent);
+    background: rgba(206, 65, 43, 0.04);
+    text-decoration: none;
+  }
+
+  .nav-label {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+  }
+
+  .nav-title {
+    font-size: 0.9375rem;
+    color: var(--color-text);
+    font-weight: 500;
+  }
+
+  /* 响应式：中等屏幕隐藏右侧 TOC */
+  @media (max-width: 1200px) {
+    :global(.page-toc) {
+      display: none;
+    }
+  }
+
+  /* 响应式：小屏幕隐藏侧边栏 */
+  @media (max-width: 768px) {
+    :global(.sidebar) {
+      display: none;
+    }
+
+    .chapter-body {
+      padding: 1.5rem 1rem 4rem;
+    }
+  }
+</style>
