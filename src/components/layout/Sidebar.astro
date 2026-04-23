@@ -29,15 +29,18 @@ const activeChapterKey = navTree.find(
               <span class="chapter-num">第{chapterIdx + 1}章</span>
               {chapter.title}
             </a>
-            <button
-              class:list={['chapter-toggle', { open: isExpanded }]}
-              aria-label={isExpanded ? '折叠' : '展开'}
-              aria-expanded={isExpanded ? 'true' : 'false'}
-              data-chapter-toggle
-            >
-              <span class="toggle-arrow">{isExpanded ? '▾' : '▸'}</span>
-            </button>
+            {chapter.articles.length > 0 && (
+              <button
+                class:list={['chapter-toggle', { open: isExpanded }]}
+                aria-label={isExpanded ? '折叠' : '展开'}
+                aria-expanded={isExpanded ? 'true' : 'false'}
+                data-chapter-toggle
+              >
+                <span class="toggle-arrow">{isExpanded ? '▾' : '▸'}</span>
+              </button>
+            )}
           </div>
+          {chapter.articles.length > 0 && (
           <ul
             class="article-list"
             aria-hidden={!isExpanded ? 'true' : 'false'}
@@ -56,6 +59,7 @@ const activeChapterKey = navTree.find(
               </li>
             ))}
           </ul>
+          )}
         </div>
       );
     })}
@@ -65,8 +69,9 @@ const activeChapterKey = navTree.find(
 <script>
   document.querySelectorAll('[data-chapter-toggle]').forEach(btn => {
     btn.addEventListener('click', () => {
-      const item = btn.closest('.chapter-item') as HTMLElement;
-      const list = item.querySelector('.article-list') as HTMLElement;
+      const item = btn.closest('.chapter-item') as HTMLElement | null;
+      const list = item?.querySelector('.article-list') as HTMLElement | null;
+      if (!item || !list) return;
       const isOpen = item.dataset.open === 'true';
       item.dataset.open = isOpen ? 'false' : 'true';
       list.hidden = isOpen;
