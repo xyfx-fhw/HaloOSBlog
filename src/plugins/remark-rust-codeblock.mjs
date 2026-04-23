@@ -121,7 +121,9 @@ export default function remarkRustCodeblock() {
 
       let dataAttrs = `data-mode="${mode}" data-full-code="${dataFullCode}"`;
       if (hasHidden) {
-        dataAttrs += ` data-visible-code="${encodeURIComponent(visibleCode)}" data-has-hidden="true"`;
+        const fullCode = fullLines.join('\n');
+        const fullHighlightedInner = highlightCode(fullCode);
+        dataAttrs += ` data-has-hidden="true" data-full-code-hl="${encodeURIComponent(fullHighlightedInner)}"`;
       }
 
       const html =

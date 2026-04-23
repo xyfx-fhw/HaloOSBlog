@@ -21,9 +21,12 @@ export async function executeCode(code: string): Promise<PlaygroundResult> {
       },
       body: JSON.stringify({
         code,
+        channel: 'stable',
         edition: '2021',
         mode: 'debug',
         crateType: 'bin',
+        tests: false,
+        backtrace: false,
       }),
       signal: AbortSignal.timeout(15_000),
     });

@@ -26,6 +26,7 @@
   function initCodeRunner(el: HTMLElement): void {
     const fullCode = decodeURIComponent(el.dataset.fullCode ?? '');
     const hasHidden = el.dataset.hasHidden === 'true';
+    const fullCodeHl = hasHidden ? decodeURIComponent(el.dataset.fullCodeHl ?? '') : '';
     const mode = el.dataset.mode ?? 'run';
 
     if (!fullCode) return;
@@ -137,11 +138,9 @@
       toggleBtn.addEventListener('click', () => {
         isExpanded = !isExpanded;
         if (isExpanded) {
-          // 展开：显示完整代码（含隐藏行），以纯文本展示（不支持高亮）
-          codeEl.textContent = fullCode;
+          codeEl.innerHTML = fullCodeHl || fullCode;
           toggleBtn!.textContent = '折叠';
         } else {
-          // 折叠：恢复 Shiki 高亮 HTML
           codeEl.innerHTML = initialHighlightedHtml;
           toggleBtn!.textContent = '展开';
         }
