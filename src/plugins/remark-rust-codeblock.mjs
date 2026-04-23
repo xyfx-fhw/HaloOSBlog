@@ -27,6 +27,7 @@
 
 import { visit } from 'unist-util-visit';
 
+// 转义 HTML 标签体内容（不适用于属性值，双引号不转义）
 // HTML 特殊字符转义（`&`、`<`、`>`）
 function escapeHtml(str) {
   return str
@@ -104,7 +105,7 @@ export default function remarkRustCodeblock() {
       // 构造 data 属性字符串
       let dataAttrs = `data-mode="${mode}" data-full-code="${dataFullCode}"`;
       if (hasHidden) {
-        const dataVisibleCode = encodeLines(visibleLines);
+        const dataVisibleCode = encodeURIComponent(visibleCode);
         dataAttrs += ` data-visible-code="${dataVisibleCode}" data-has-hidden="true"`;
       }
 
