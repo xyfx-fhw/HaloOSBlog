@@ -456,3 +456,38 @@ const firstChapterHref = navTree[0]?.href ?? '/chapters';
     color: var(--color-text);
   }
 </style>
+
+<script>
+  function syncProgressDots(): void {
+    let store: { articles?: Record<string, { status: string }> } = {};
+    try {
+      const raw = localStorage.getItem('rust-tutorial-progress');
+      if (raw) store = JSON.parse(raw) as typeof store;
+    } catch {
+      // ignore
+    }
+
+    document
+      .querySelectorAll<HTMLElement>('.item-progress-area[data-slug]')
+      .forEach((area) => {
+        const slug = area.dataset.slug ?? '';
+        const status = store.articles?.[slug]?.status ?? 'not-started';
+        const dot = area.querySelector<HTMLElement>('.progress-dot');
+        if (!dot) return;
+
+        if (status === 'completed') {
+          dot.style.background = 'var(--color-success)';
+          dot.style.borderColor = 'var(--color-success)';
+        } else if (status === 'in-progress') {
+          dot.style.background = 'rgba(245, 158, 11, 0.2)';
+          dot.style.borderColor = 'var(--color-warning)';
+        } else {
+          dot.style.background = '';
+          dot.style.borderColor = '';
+        }
+      });
+  }
+
+  syncProgressDots();
+  window.addEventListener('progress-updated', syncProgressDots);
+</script>
