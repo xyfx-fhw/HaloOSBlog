@@ -52,7 +52,11 @@ const hasSections = h1s.length > 0;
     markSectionRead,
     markArticleComplete,
     getSectionStatus,
+    getArticleStatus,
     initArticleSections,
+    setSectionStatus,
+    getBlockResult,
+    resetArticle,
   } from '../../lib/progress';
 
   (function init() {
@@ -65,8 +69,31 @@ const hasSections = h1s.length > 0;
     const articleContent = document.getElementById('article-content');
     if (!articleContent) return;
 
-    // ── 无 H1 段落：监听页面底部完成整篇 ──────────────────
+    // ── 无 H1 段落 ─────────────────────────────────────────────
     if (!hasSections) {
+      // 若整篇内有互动块，退化为单 practice tab：按 blocks 结果决定整篇 completed
+      const blockIds = Array.from(
+        articleContent.querySelectorAll<HTMLElement>(
+          '.quiz-choice[data-block-id], .code-editor[data-block-id]'
+        )
+      ).map((n) => n.dataset.blockId ?? '').filter(Boolean);
+
+      if (blockIds.length > 0) {
+        const recompute = () => {
+          const allPass = blockIds.every((b) => getBlockResult(b) === 'pass');
+          if (allPass) {
+            markArticleComplete(articleSlug);
+          } else if (getArticleStatus(articleSlug) === 'completed') {
+            // 原状态是 completed 才回退，避免重复无效写入
+            resetArticle(articleSlug);
+          }
+        };
+        recompute();
+        window.addEventListener('progress-updated', recompute);
+        return;
+      }
+
+      // 纯讲解型无 H1 → 沿用滚到底
       const sentinel = document.createElement('div');
       sentinel.className = 'sp-sentinel';
       articleContent.appendChild(sentinel);
@@ -116,10 +143,39 @@ const hasSections = h1s.length > 0;
       panels.push(panel);
     });
 
+    // 每个 panel 的互动块 blockId 列表。长度为 0 表示普通 tab（滚到底判定）。
+    const panelBlockIds: string[][] = panels.map((panel) =>
+      Array.from(
+        panel.querySelectorAll<HTMLElement>(
+          '.quiz-choice[data-block-id], .code-editor[data-block-id]'
+        )
+      ).map((n) => n.dataset.blockId ?? '').filter(Boolean)
+    );
+
+    const isPracticeTab = (idx: number) => panelBlockIds[idx].length > 0;
+
+    function recomputePracticeTab(idx: number): void {
+      if (!isPracticeTab(idx)) return;
+      const title = panels[idx].dataset.sectionTitle ?? '';
+      const allPass = panelBlockIds[idx].every(
+        (bid) => getBlockResult(bid) === 'pass'
+      );
+      setSectionStatus(articleSlug, title, allPass);
+    }
+
+    function recomputeAllPracticeTabs(): void {
+      panels.forEach((_, i) => recomputePracticeTab(i));
+    }
+
     let currentObserver: IntersectionObserver | null = null;
 
     function setupSentinelObserver(idx: number) {
       currentObserver?.disconnect();
+      // practice tab 不靠滚到底，由 blocks 结果决定完成
+      if (isPracticeTab(idx)) {
+        currentObserver = null;
+        return;
+      }
       const sentinel = panels[idx]?.querySelector<HTMLElement>('.sp-sentinel');
       if (!sentinel) return;
       const title = panels[idx].dataset.sectionTitle ?? '';
@@ -163,7 +219,11 @@ const hasSections = h1s.length > 0;
     }
 
     refreshTabs();
-    window.addEventListener('progress-updated', refreshTabs);
+    recomputeAllPracticeTabs();  // 首次加载时按 blocks 派生 sections 状态
+    window.addEventListener('progress-updated', () => {
+      recomputeAllPracticeTabs();
+      refreshTabs();
+    });
     tabs.forEach((tab, i) => tab.addEventListener('click', () => switchTab(i)));
 
     // ── 接管 article-nav，按 tab 位置显示标签页/文章级跳转 ──
