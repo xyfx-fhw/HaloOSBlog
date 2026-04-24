@@ -114,8 +114,9 @@ const chapterBlocks = navTree.map((chapter) => ({
 <script>
   import { resetArticle, resetChapter, resetAll } from '../lib/progress';
 
-  const page = document.querySelector<HTMLElement>('.progress-page')!;
-  if (!page) throw new Error('progress page: root element not found');
+  const pageEl = document.querySelector<HTMLElement>('.progress-page');
+  if (!pageEl) throw new Error('progress page: root element not found');
+  const page = pageEl;
 
   const total = parseInt(page.dataset.totalArticles ?? '0', 10);
   const overallBar = document.getElementById('overall-bar') as HTMLElement | null;
