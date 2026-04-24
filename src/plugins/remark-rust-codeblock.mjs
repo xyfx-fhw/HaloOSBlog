@@ -101,13 +101,100 @@ function encodeLines(lines) {
 }
 
 /**
+ * 解析 ```quiz single | ```quiz multi 代码块的 DSL。
+ *
+ * @param {string} code - 代码块原始内容
+ * @param {'single' | 'multi'} kind - 题目类型
+ * @param {number} lineNo - 代码块在源文件中的起始行号（用于错误信息）
+ * @returns {{ question: string, options: string[], correct: number[], explanation: string }}
+ */
+function parseQuiz(code, kind, lineNo) {
+  const lines = code.split('\n');
+  let question = '';
+  let explanation = '';
+  const options = [];
+  const correct = [];
+
+  for (const raw of lines) {
+    const line = raw.trimEnd();
+    if (line.trim() === '') continue;
+    if (line.startsWith('Q:')) {
+      if (question === '') question = line.slice(2).trim();
+      continue;
+    }
+    if (line.startsWith('E:')) {
+      if (explanation === '') explanation = line.slice(2).trim();
+      continue;
+    }
+    if (line.startsWith('+ ')) {
+      correct.push(options.length);
+      options.push(line.slice(2).trim());
+      continue;
+    }
+    if (line.startsWith('- ')) {
+      options.push(line.slice(2).trim());
+      continue;
+    }
+    // 其他行静默忽略
+  }
+
+  if (question === '') {
+    throw new Error(`quiz 代码块缺少 "Q:" 题干（源码约第 ${lineNo} 行）`);
+  }
+  if (options.length < 2) {
+    throw new Error(`quiz 代码块选项少于 2 个（源码约第 ${lineNo} 行）`);
+  }
+  if (kind === 'single' && correct.length !== 1) {
+    throw new Error(`quiz single 必须有且仅有 1 个正确答案（用 "+"），当前为 ${correct.length}（源码约第 ${lineNo} 行）`);
+  }
+  if (kind === 'multi' && correct.length < 1) {
+    throw new Error(`quiz multi 至少需要 1 个正确答案（用 "+"），当前为 0（源码约第 ${lineNo} 行）`);
+  }
+
+  return { question, options, correct, explanation };
+}
+
+/**
  * remark 插件主函数（同步 transformer，Shiki 在模块加载时已初始化）。
  */
 export default function remarkRustCodeblock() {
   return function transformer(tree) {
     visit(tree, 'code', (node, index, parent) => {
+      const lineNo = node.position?.start?.line ?? 0;
+
+      // ── quiz single / quiz multi ─────────────────────────────────────────
+      if (node.lang === 'quiz') {
+        const meta = node.meta ?? '';
+        const kind = meta.includes('multi') ? 'multi' : meta.includes('single') ? 'single' : null;
+        if (!kind) {
+          throw new Error(`quiz 代码块需在语言标记后写明 "single" 或 "multi"（源码约第 ${lineNo} 行）`);
+        }
+        const parsed = parseQuiz(node.value, kind, lineNo);
+        const dataPayload = encodeURIComponent(JSON.stringify(parsed));
+        const html =
+          `<div class="quiz-choice" data-kind="${kind}" data-payload="${dataPayload}">` +
+          `<div class="quiz-placeholder">加载题目中…</div>` +
+          `</div>`;
+        parent.children[index] = { type: 'html', value: html };
+        return;
+      }
+
       if (node.lang !== 'rust') return;
       const meta = node.meta ?? '';
+
+      // ── rust editable：可编辑可运行的代码块 ───────────────────────────────
+      if (meta.includes('editable')) {
+        const starter = node.value.replace(/\n+$/, '');
+        const starterEnc = encodeURIComponent(starter);
+        const highlighted = highlightCode(starter);
+        const html =
+          `<div class="code-editor" data-starter-code="${starterEnc}">` +
+          `<pre class="code-editor-fallback"><code class="language-rust">${highlighted}</code></pre>` +
+          `</div>`;
+        parent.children[index] = { type: 'html', value: html };
+        return;
+      }
+
       if (!meta.includes('runnable')) return;
 
       const mode = meta.includes('expect-error') ? 'expect-error' : 'run';
