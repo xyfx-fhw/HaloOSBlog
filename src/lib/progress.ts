@@ -54,6 +54,33 @@ export function getSectionStatus(
   return load().articles[articleSlug]?.sections ?? {};
 }
 
+/** 页面加载时同步当前文章的节段列表：新节段初始化为 false，已删除的旧节段剪掉。 */
+export function initArticleSections(
+  articleSlug: string,
+  sectionTitles: string[]
+): void {
+  const store = load();
+  const ap: ArticleProgress = store.articles[articleSlug] ?? {
+    status: 'not-started',
+    sections: {},
+  };
+
+  // 重建 sections：只保留当前文章存在的节段，旧节段一并清除
+  const newSections: Record<string, boolean> = {};
+  for (const title of sectionTitles) {
+    newSections[title] = ap.sections[title] ?? false;
+  }
+
+  const oldKeys = Object.keys(ap.sections).sort().join(',');
+  const newKeys = Object.keys(newSections).sort().join(',');
+  if (oldKeys !== newKeys) {
+    ap.sections = newSections;
+    ap.status = deriveStatus(ap.sections);
+    store.articles[articleSlug] = ap;
+    save(store);
+  }
+}
+
 export function markSectionRead(
   articleSlug: string,
   sectionTitle: string
@@ -142,16 +169,24 @@ export function resetQuiz(slug: string): void {
 // ── 进度计算 ─────────────────────────────────────────────
 
 /**
- * 返回 0-100 的整体进度百分比。
- * totalArticles 由服务端通过 getFlatArticleList() 计算并经 data-* 属性传入。
+ * 返回 0-100 的整体进度百分比，精确到小节粒度。
+ * 每篇文章权重相等（1），有 H2 的文章按已读小节占比折算，无 H2 的文章完成即得满分。
  */
 export function getOverallProgress(totalArticles: number): number {
   if (totalArticles === 0) return 0;
   const store = load();
-  const completed = Object.values(store.articles).filter(
-    (a) => a.status === 'completed'
-  ).length;
-  return Math.round((completed / totalArticles) * 100);
+  let completedWeight = 0;
+
+  for (const ap of Object.values(store.articles)) {
+    const sectionVals = Object.values(ap.sections);
+    if (sectionVals.length > 0) {
+      completedWeight += sectionVals.filter(Boolean).length / sectionVals.length;
+    } else if (ap.status === 'completed') {
+      completedWeight += 1;
+    }
+  }
+
+  return Math.round((completedWeight / totalArticles) * 100);
 }
 
 /**
