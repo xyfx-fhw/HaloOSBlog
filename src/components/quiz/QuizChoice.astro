@@ -1,0 +1,297 @@
+---
+// QuizChoice.astro
+// 无 props、无服务端渲染内容。
+// 客户端扫描所有 <div class="quiz-choice">，读取 data-payload，渲染成交互题。
+// 支持 data-kind="single"（单选）与 data-kind="multi"（多选）。
+---
+
+<script>
+  interface QuizPayload {
+    question: string;
+    options: string[];
+    correct: number[];
+    explanation: string;
+  }
+
+  function escapeHtml(s: string): string {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function arrEq(a: number[], b: number[]): boolean {
+    if (a.length !== b.length) return false;
+    const s = new Set(a);
+    return b.every((x) => s.has(x));
+  }
+
+  function initQuiz(el: HTMLElement): void {
+    const kind = (el.dataset.kind ?? 'single') as 'single' | 'multi';
+    let payload: QuizPayload;
+    try {
+      payload = JSON.parse(decodeURIComponent(el.dataset.payload ?? ''));
+    } catch {
+      el.innerHTML = '<div class="quiz-error">题目解析失败</div>';
+      return;
+    }
+
+    const inputType = kind === 'single' ? 'radio' : 'checkbox';
+    // 同一组单选按钮需要唯一 name，使用元素在页面中的索引
+    const groupName = `quiz-${Math.random().toString(36).slice(2, 9)}`;
+
+    const optionsHtml = payload.options
+      .map(
+        (opt, i) => `
+          <label class="quiz-option" data-idx="${i}">
+            <input type="${inputType}" name="${groupName}" value="${i}" />
+            <span class="quiz-option-label">${escapeHtml(opt)}</span>
+            <span class="quiz-option-icon" aria-hidden="true"></span>
+          </label>
+        `
+      )
+      .join('');
+
+    el.innerHTML = `
+      <div class="quiz-header">
+        <span class="quiz-badge">${kind === 'single' ? '单选题' : '多选题'}</span>
+        <div class="quiz-question">${escapeHtml(payload.question)}</div>
+      </div>
+      <div class="quiz-options" role="${kind === 'single' ? 'radiogroup' : 'group'}">
+        ${optionsHtml}
+      </div>
+      <div class="quiz-actions">
+        <button type="button" class="quiz-submit">提交</button>
+        <button type="button" class="quiz-reset" hidden>重做</button>
+      </div>
+      <div class="quiz-feedback" hidden></div>
+    `;
+
+    const inputs = Array.from(el.querySelectorAll<HTMLInputElement>('input'));
+    const optionEls = Array.from(el.querySelectorAll<HTMLLabelElement>('.quiz-option'));
+    const submitBtn = el.querySelector<HTMLButtonElement>('.quiz-submit')!;
+    const resetBtn = el.querySelector<HTMLButtonElement>('.quiz-reset')!;
+    const feedback = el.querySelector<HTMLDivElement>('.quiz-feedback')!;
+
+    function setLocked(locked: boolean): void {
+      inputs.forEach((i) => (i.disabled = locked));
+      submitBtn.hidden = locked;
+      resetBtn.hidden = !locked;
+    }
+
+    submitBtn.addEventListener('click', () => {
+      const selected = inputs.filter((i) => i.checked).map((i) => Number(i.value));
+      if (selected.length === 0) {
+        feedback.hidden = false;
+        feedback.className = 'quiz-feedback quiz-feedback-warn';
+        feedback.textContent = '请先选择一个选项';
+        return;
+      }
+
+      const isCorrect = arrEq(selected, payload.correct);
+
+      optionEls.forEach((o) => {
+        const idx = Number(o.dataset.idx);
+        o.classList.remove('correct', 'wrong', 'should-be-correct');
+        if (payload.correct.includes(idx)) {
+          o.classList.add(selected.includes(idx) ? 'correct' : 'should-be-correct');
+        } else if (selected.includes(idx)) {
+          o.classList.add('wrong');
+        }
+      });
+
+      feedback.hidden = false;
+      feedback.className = `quiz-feedback ${isCorrect ? 'quiz-feedback-ok' : 'quiz-feedback-err'}`;
+      const head = isCorrect ? '✓ 回答正确' : '✗ 回答错误';
+      feedback.innerHTML = payload.explanation
+        ? `<strong>${head}</strong><div class="quiz-explanation">${escapeHtml(payload.explanation)}</div>`
+        : `<strong>${head}</strong>`;
+
+      setLocked(true);
+    });
+
+    resetBtn.addEventListener('click', () => {
+      inputs.forEach((i) => (i.checked = false));
+      optionEls.forEach((o) => o.classList.remove('correct', 'wrong', 'should-be-correct'));
+      feedback.hidden = true;
+      setLocked(false);
+    });
+  }
+
+  document.querySelectorAll<HTMLElement>('.quiz-choice').forEach(initQuiz);
+</script>
+
+<style is:global>
+  .quiz-choice {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    padding: 1.25rem 1.25rem 1rem;
+    margin: 1.5rem 0;
+  }
+
+  .quiz-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .quiz-badge {
+    flex-shrink: 0;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    color: var(--color-accent);
+    background: rgba(206, 65, 43, 0.1);
+    border: 1px solid rgba(206, 65, 43, 0.3);
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+
+  .quiz-question {
+    font-size: 0.9375rem;
+    color: var(--color-text);
+    font-weight: 500;
+    line-height: 1.6;
+  }
+
+  .quiz-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .quiz-option {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.625rem 0.875rem;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: var(--color-text);
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  .quiz-option:hover:not(:has(input:disabled)) {
+    border-color: var(--color-text-muted);
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .quiz-option input {
+    accent-color: var(--color-accent);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .quiz-option input:disabled {
+    cursor: default;
+  }
+
+  .quiz-option-label {
+    flex: 1;
+  }
+
+  .quiz-option-icon {
+    width: 1rem;
+    text-align: right;
+    font-size: 0.875rem;
+    line-height: 1;
+  }
+
+  .quiz-option.correct {
+    border-color: var(--color-success);
+    background: rgba(34, 197, 94, 0.08);
+  }
+  .quiz-option.correct .quiz-option-icon::after { content: '✓'; color: var(--color-success); }
+
+  .quiz-option.wrong {
+    border-color: var(--color-error);
+    background: rgba(239, 68, 68, 0.08);
+  }
+  .quiz-option.wrong .quiz-option-icon::after { content: '✗'; color: var(--color-error); }
+
+  .quiz-option.should-be-correct {
+    border-color: var(--color-success);
+    border-style: dashed;
+  }
+  .quiz-option.should-be-correct .quiz-option-icon::after { content: '✓'; color: var(--color-success); opacity: 0.6; }
+
+  .quiz-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .quiz-submit,
+  .quiz-reset {
+    padding: 0.375rem 0.875rem;
+    font-size: 0.8125rem;
+    font-family: var(--font-sans);
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .quiz-submit {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+
+  .quiz-submit:hover {
+    background: rgba(206, 65, 43, 0.1);
+  }
+
+  .quiz-reset:hover {
+    color: var(--color-text);
+    border-color: var(--color-text-muted);
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .quiz-feedback {
+    margin-top: 0.875rem;
+    padding: 0.75rem 0.875rem;
+    border-radius: 6px;
+    font-size: 0.8125rem;
+    line-height: 1.55;
+  }
+
+  .quiz-feedback-ok {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    color: var(--color-text);
+  }
+  .quiz-feedback-ok strong { color: var(--color-success); }
+
+  .quiz-feedback-err {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: var(--color-text);
+  }
+  .quiz-feedback-err strong { color: var(--color-error); }
+
+  .quiz-feedback-warn {
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    color: var(--color-warning);
+  }
+
+  .quiz-explanation {
+    margin-top: 0.5rem;
+    color: var(--color-text-muted);
+  }
+
+  .quiz-placeholder {
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+    font-style: italic;
+  }
+
+  .quiz-error {
+    color: var(--color-error);
+    font-size: 0.875rem;
+  }
+</style>
