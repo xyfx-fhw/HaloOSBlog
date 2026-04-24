@@ -29,7 +29,7 @@
 | **practice tab** | tab 面板内含至少一个互动块 |
 | **普通 tab** | tab 面板内不含互动块（讲解型） |
 | **blockId** | 互动块的稳定标识：`${articleSlug}#${tabIdx}:${blockIdx}`，由 remark 插件在构建时分配 |
-| **latest** | 某 blockId 最近一次提交 / 运行的结果：`'pass' | 'fail' | null`（null = 从未提交） |
+| **latest** | 某 blockId 最近一次提交 / 运行的结果：`'pass' \| 'fail' \| null`（null = 从未提交） |
 
 ## 四、完成判定规则
 
