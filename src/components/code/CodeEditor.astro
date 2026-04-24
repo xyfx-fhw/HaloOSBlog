@@ -7,6 +7,7 @@
 
 <script>
   import { executeCode } from '../../lib/rust-playground';
+  import { markBlockResult, getBlockResult } from '../../lib/progress';
 
   // ── Monaco 懒加载 ────────────────────────────────────────────────────────
   // 使用 jsdelivr 的 AMD loader（monaco 官方推荐的 CDN 方式）。
@@ -74,6 +75,13 @@
     const starterCode = decodeURIComponent(el.dataset.starterCode ?? '');
     if (!starterCode) return;
 
+    // 读取 expect 配置（由 remark 插件写入 data-* 属性）
+    const blockId = el.dataset.blockId ?? '';
+    const expectMode = (el.dataset.expectMode ?? '') as '' | 'literal' | 'regex';
+    const expectPattern = el.dataset.expectPattern
+      ? decodeURIComponent(el.dataset.expectPattern)
+      : '';
+
     // ── 工具栏 ─────────────────────────────────────────────────────────────
     const toolbar = document.createElement('div');
     toolbar.className = 'code-editor-toolbar';
@@ -98,6 +106,12 @@
     copyBtn.className = 'code-editor-btn code-editor-copy';
     copyBtn.textContent = '复制';
     toolbar.appendChild(copyBtn);
+
+    // 历史徽章（latest === 'pass' / 'fail' / null）
+    const historyBadge = document.createElement('span');
+    historyBadge.className = 'ce-history-badge';
+    historyBadge.hidden = true;
+    toolbar.appendChild(historyBadge);
 
     // ── 编辑器挂载容器 ────────────────────────────────────────────────────
     const editorHost = document.createElement('div');
@@ -178,6 +192,61 @@
     }
 
     // ── 运行按钮 ───────────────────────────────────────────────────────────
+    /**
+     * 依据 expect 配置 + Playground 响应决定 pass/fail。
+     * - success=false：一律 fail
+     * - 无 expect：success 即 pass
+     * - literal：stdout.trim() === pattern
+     * - regex：new RegExp(pattern, 's').test(stdout.trim())；正则语法错或 RegExp 抛出 → fail
+     */
+    function judge(r: { success: boolean; stdout: string; stderr: string }):
+      { ok: boolean; label: string; detail?: string } {
+      if (!r.success) {
+        return { ok: false, label: '✗ 编译或运行失败' };
+      }
+      if (expectMode === '') {
+        return { ok: true, label: '✓ 编译运行通过' };
+      }
+      const out = (r.stdout ?? '').trim();
+      if (expectMode === 'literal') {
+        const ok = out === expectPattern;
+        return ok
+          ? { ok: true, label: '✓ 运行结果符合预期' }
+          : { ok: false, label: '✗ 运行结果与预期不符', detail: `期望：\n${expectPattern}\n\n实际：\n${out}` };
+      }
+      // regex 模式
+      try {
+        const re = new RegExp(expectPattern, 's');
+        const ok = re.test(out);
+        return ok
+          ? { ok: true, label: '✓ 运行结果符合预期' }
+          : { ok: false, label: '✗ 运行结果与预期不符', detail: `正则：${expectPattern}\n\n实际：\n${out}` };
+      } catch (e) {
+        console.warn('[CodeEditor] 正则语法错误', expectPattern, e);
+        return { ok: false, label: '✗ 预期正则语法错误' };
+      }
+    }
+
+    // 刷新工具栏历史徽章（反映 localStorage 中的 latest 值）
+    function refreshHistoryBadge(): void {
+      if (!blockId) { historyBadge.hidden = true; return; }
+      const latest = getBlockResult(blockId);
+      if (latest === 'pass') {
+        historyBadge.hidden = false;
+        historyBadge.textContent = '✓ 已通过';
+        historyBadge.className = 'ce-history-badge ce-history-badge-pass';
+      } else if (latest === 'fail') {
+        historyBadge.hidden = false;
+        historyBadge.textContent = '↻ 上次未通过';
+        historyBadge.className = 'ce-history-badge ce-history-badge-fail';
+      } else {
+        historyBadge.hidden = true;
+      }
+    }
+
+    // 水合时立即显示历史徽章
+    refreshHistoryBadge();
+
     runBtn.addEventListener('click', async () => {
       currentCode = editor.getValue();
       runBtn.disabled = true;
@@ -190,22 +259,54 @@
         const result = await executeCode(currentCode);
         statusEl.textContent = '';
         statusEl.className = 'code-editor-status';
-        output.hidden = false;
+
+        // 判定 verdict
+        const verdict = judge(result);
+
+        // verdict 行 + 可选 detail + 原有 stdout/stderr
+        const parts: string[] = [];
+        parts.push(
+          `<div class="ce-verdict ${verdict.ok ? 'ce-verdict-pass' : 'ce-verdict-fail'}">` +
+          escapeHtml(verdict.label) +
+          `</div>`
+        );
+        if (verdict.detail) {
+          parts.push(`<pre class="ce-verdict-detail">${escapeHtml(verdict.detail)}</pre>`);
+        }
         if (result.success) {
-          output.innerHTML = result.stdout
-            ? `<pre class="code-editor-stdout">${escapeHtml(result.stdout)}</pre>`
-            : '<span class="code-editor-stdout">（无输出）</span>';
+          parts.push(
+            result.stdout
+              ? `<pre class="code-editor-stdout">${escapeHtml(result.stdout)}</pre>`
+              : '<span class="code-editor-stdout">（无输出）</span>'
+          );
         } else {
-          output.innerHTML = result.stderr
-            ? `<pre class="code-editor-stderr">${escapeHtml(result.stderr)}</pre>`
-            : '<span class="code-editor-stderr">（编译失败，无错误信息）</span>';
+          parts.push(
+            result.stderr
+              ? `<pre class="code-editor-stderr">${escapeHtml(result.stderr)}</pre>`
+              : '<span class="code-editor-stderr">（编译失败，无错误信息）</span>'
+          );
+        }
+        output.hidden = false;
+        output.innerHTML = parts.join('');
+
+        // 记录 latest + 刷新徽章
+        if (blockId) {
+          markBlockResult(blockId, verdict.ok ? 'pass' : 'fail');
+          refreshHistoryBadge();
         }
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
         statusEl.textContent = '✗ 请求失败';
         statusEl.className = 'code-editor-status code-editor-status-error';
         output.hidden = false;
-        output.innerHTML = `<span class="code-editor-stderr">${escapeHtml(msg)}</span>`;
+        output.innerHTML =
+          `<div class="ce-verdict ce-verdict-fail">✗ 请求失败</div>` +
+          `<span class="code-editor-stderr">${escapeHtml(msg)}</span>`;
+        // 请求异常也视为 fail
+        if (blockId) {
+          markBlockResult(blockId, 'fail');
+          refreshHistoryBadge();
+        }
       } finally {
         runBtn.disabled = false;
         runBtn.textContent = '▶ 运行';
@@ -352,5 +453,55 @@
     font-size: inherit;
     white-space: pre-wrap;
     word-break: break-word;
+  }
+
+  /* 历史徽章 */
+  .code-editor .ce-history-badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+  .code-editor .ce-history-badge-pass {
+    color: var(--color-success);
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+  }
+  .code-editor .ce-history-badge-fail {
+    color: var(--color-error);
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+  }
+
+  /* verdict 提示行 */
+  .code-editor .ce-verdict {
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+  .code-editor .ce-verdict-pass {
+    background: rgba(34, 197, 94, 0.1);
+    border-left: 3px solid var(--color-success);
+    color: var(--color-success);
+  }
+  .code-editor .ce-verdict-fail {
+    background: rgba(239, 68, 68, 0.1);
+    border-left: 3px solid var(--color-error);
+    color: var(--color-error);
+  }
+  .code-editor .ce-verdict-detail {
+    margin-top: 0.25rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--color-surface, #1A1A1E);
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    white-space: pre-wrap;
+    overflow-x: auto;
   }
 </style>
