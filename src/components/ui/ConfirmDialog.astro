@@ -54,15 +54,19 @@
     confirmText: string;
     onConfirm: () => void;
   }): void {
-    if (!msgEl || !requiredEl || !inputEl || !okBtn || !overlayEl) return;
+    if (!msgEl || !requiredEl || !inputEl || !okBtn) {
+      throw new Error('ConfirmDialog: required child elements not found');
+    }
     msgEl.textContent = opts.message;
     requiredEl.textContent = opts.confirmText;
     requiredText = opts.confirmText;
     currentCallback = opts.onConfirm;
     inputEl.value = '';
     okBtn.disabled = true;
-    overlayEl.hidden = false;
-    overlayEl.removeAttribute('aria-hidden');
+    if (overlayEl) {
+      overlayEl.hidden = false;
+      overlayEl.removeAttribute('aria-hidden');
+    }
     inputEl.focus();
   }
 
@@ -81,10 +85,8 @@
   cancelBtn?.addEventListener('click', close);
 
   okBtn?.addEventListener('click', () => {
-    if (inputEl?.value === requiredText && currentCallback) {
-      currentCallback();
-      close();
-    }
+    currentCallback?.();
+    close();
   });
 
   // 点击遮罩关闭
@@ -92,7 +94,7 @@
     if (e.target === overlayEl) close();
   });
 
-  // ESC 关闭
+  // Astro MPA 架构下此监听器随页面卸载自动销毁，无需手动 removeEventListener
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !overlayEl.hidden) close();
   });
