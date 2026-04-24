@@ -43,6 +43,11 @@ fn main() {
 }
 ```
 
+```expected
+hello
+hello
+```
+
 # 借用与引用
 
 ## 单选：可变借用的独占性
@@ -83,6 +88,11 @@ fn main() {
 }
 ```
 
+```expected
+长度：5
+hello
+```
+
 # 综合练习
 
 ## 单选：Clone vs Copy
@@ -110,4 +120,8 @@ fn main() {
     take_and_give_back(s);
     println!("{}", s);
 }
+```
+
+```expected
+world
 ```

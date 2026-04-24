@@ -53,6 +53,10 @@ fn main() {
 }
 ```
 
+```expected
+Hello, World!
+```
+
 # 变量与可变性
 
 ## 单选：可变变量
@@ -76,4 +80,8 @@ fn main() {
     x = 6;
     println!("{}", x);
 }
+```
+
+```expected
+6
 ```
