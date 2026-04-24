@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import ChapterLayout from '../../components/layout/ChapterLayout.astro';
+import SectionProgress from '../../components/ui/SectionProgress.astro';
 import { buildNavTree, getFlatArticleList, type BreadcrumbItem } from '../../lib/content';
 
 export async function getStaticPaths() {
@@ -59,6 +60,7 @@ const breadcrumb: BreadcrumbItem[] = [
         <span class="meta-keyword">{kw}</span>
       ))}
     </div>
+    <SectionProgress headings={headings} articleSlug={entry.slug} />
     <Content />
   </article>
 </ChapterLayout>
