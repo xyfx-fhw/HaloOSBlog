@@ -43,12 +43,13 @@ const currentPath = Astro.url.pathname;
 
 <script>
   (function refreshNavProgress() {
-    const el = document.getElementById('nav-progress');
+    const el = document.getElementById('nav-progress') as HTMLElement | null;
     if (!el) return;
-    const total = parseInt((el as HTMLElement).dataset['total'] ?? '0', 10);
+    const total = parseInt(el.dataset.total ?? '0', 10);
     if (total === 0) return;
 
     function update() {
+      if (!el) return;
       try {
         const raw = localStorage.getItem('rust-tutorial-progress');
         if (!raw) return;
@@ -59,7 +60,7 @@ const currentPath = Astro.url.pathname;
           (a) => a.status === 'completed'
         ).length;
         const pct = Math.round((completed / total) * 100);
-        (el as HTMLElement).textContent = `⏱ ${pct}%`;
+        el.textContent = `⏱ ${pct}%`;
       } catch {
         // ignore
       }
