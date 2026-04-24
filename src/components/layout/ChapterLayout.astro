@@ -4,6 +4,8 @@ import BaseLayout from './BaseLayout.astro';
 import Sidebar from './Sidebar.astro';
 import PageToc from './PageToc.astro';
 import CodeRunner from '../code/CodeRunner.astro';
+import QuizChoice from '../quiz/QuizChoice.astro';
+import CodeEditor from '../code/CodeEditor.astro';
 import type { NavChapter, NavArticle, BreadcrumbItem } from '../../lib/content';
 
 interface Props {
@@ -73,6 +75,8 @@ const {
     <PageToc headings={headings} />
   </div>
   <CodeRunner />
+  <QuizChoice />
+  <CodeEditor />
 </BaseLayout>
 
 <style>
