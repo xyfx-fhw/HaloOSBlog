@@ -6,6 +6,8 @@
 ---
 
 <script>
+  import { markBlockResult, getBlockResult } from '../../lib/progress';
+
   interface QuizPayload {
     question: string;
     options: string[];
@@ -25,6 +27,8 @@
 
   function initQuiz(el: HTMLElement): void {
     const kind = (el.dataset.kind ?? 'single') as 'single' | 'multi';
+    // 读取 remark 插件注入的 blockId，用于写入 / 读取答题历史
+    const blockId = el.dataset.blockId ?? '';
     let payload: QuizPayload;
     try {
       payload = JSON.parse(decodeURIComponent(el.dataset.payload ?? ''));
@@ -52,6 +56,7 @@
     el.innerHTML = `
       <div class="quiz-header">
         <span class="quiz-badge">${kind === 'single' ? '单选题' : '多选题'}</span>
+        <span class="quiz-history-badge" hidden></span>
         <div class="quiz-question">${escapeHtml(payload.question)}</div>
       </div>
       <div class="quiz-options" role="${kind === 'single' ? 'radiogroup' : 'group'}">
@@ -63,6 +68,29 @@
       </div>
       <div class="quiz-feedback" hidden></div>
     `;
+
+    // 获取历史徽章元素，用于显示上次答题结果
+    const historyBadge = el.querySelector<HTMLSpanElement>('.quiz-history-badge')!;
+
+    // 根据 localStorage 中的历史记录刷新徽章显示
+    function refreshHistoryBadge(): void {
+      if (!blockId) { historyBadge.hidden = true; return; }
+      const latest = getBlockResult(blockId);
+      if (latest === 'pass') {
+        historyBadge.hidden = false;
+        historyBadge.textContent = '✓ 已答对';
+        historyBadge.className = 'quiz-history-badge quiz-history-badge-pass';
+      } else if (latest === 'fail') {
+        historyBadge.hidden = false;
+        historyBadge.textContent = '↻ 待重做';
+        historyBadge.className = 'quiz-history-badge quiz-history-badge-fail';
+      } else {
+        historyBadge.hidden = true;
+      }
+    }
+
+    // 初始化时立即刷新一次，显示历史答题状态
+    refreshHistoryBadge();
 
     const inputs = Array.from(el.querySelectorAll<HTMLInputElement>('input'));
     const optionEls = Array.from(el.querySelectorAll<HTMLLabelElement>('.quiz-option'));
@@ -103,6 +131,12 @@
       feedback.innerHTML = payload.explanation
         ? `<strong>${head}</strong><div class="quiz-explanation">${escapeHtml(payload.explanation)}</div>`
         : `<strong>${head}</strong>`;
+
+      // 写入答题结果到 localStorage，并刷新历史徽章
+      if (blockId) {
+        markBlockResult(blockId, isCorrect ? 'pass' : 'fail');
+        refreshHistoryBadge();
+      }
 
       setLocked(true);
     });
@@ -145,6 +179,28 @@
     border: 1px solid rgba(206, 65, 43, 0.3);
     line-height: 1.4;
     white-space: nowrap;
+  }
+
+  .quiz-history-badge {
+    flex-shrink: 0;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+
+  .quiz-history-badge-pass {
+    color: var(--color-success);
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+  }
+
+  .quiz-history-badge-fail {
+    color: var(--color-error);
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
   }
 
   .quiz-question {
