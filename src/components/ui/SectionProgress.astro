@@ -47,91 +47,98 @@ const hasH2 = h2s.length > 0;
     getSectionStatus,
   } from '../../lib/progress';
 
-  const el = document.querySelector<HTMLElement>('.section-progress');
-  if (!el) throw new Error('SectionProgress: element not found');
+  (function init() {
+    const el = document.querySelector<HTMLElement>('.section-progress');
+    if (!el) {
+      console.warn('SectionProgress: element not found');
+      return;
+    }
 
-  const articleSlug = el.dataset.articleSlug ?? '';
-  const hasH2 = el.dataset.hasH2 === 'true';
-  const tabs = Array.from(el.querySelectorAll<HTMLButtonElement>('.sp-tab'));
+    const articleSlug = el.dataset.articleSlug ?? '';
+    const hasH2 = el.dataset.hasH2 === 'true';
+    const tabs = Array.from(el.querySelectorAll<HTMLButtonElement>('.sp-tab'));
 
-  function refreshTabs(): void {
-    const sections = getSectionStatus(articleSlug);
+    function refreshTabs(): void {
+      const sections = getSectionStatus(articleSlug);
+      tabs.forEach((tab) => {
+        const text = tab.dataset.h2Text ?? '';
+        tab.dataset.completed = String(sections[text] === true);
+      });
+    }
+
+    refreshTabs();
+    window.addEventListener('progress-updated', refreshTabs);
+
+    // 点击 tab：平滑滚动到对应 H2
     tabs.forEach((tab) => {
-      const text = tab.dataset.h2Text ?? '';
-      tab.dataset.completed = String(sections[text] === true);
-    });
-  }
-
-  refreshTabs();
-  window.addEventListener('progress-updated', refreshTabs);
-
-  // 点击 tab：平滑滚动到对应 H2
-  tabs.forEach((tab) => {
-    tab.addEventListener('click', () => {
-      const id = tab.dataset.h2Id ?? '';
-      document.getElementById(id)?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
+      tab.addEventListener('click', () => {
+        const id = tab.dataset.h2Id ?? '';
+        document.getElementById(id)?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
       });
     });
-  });
 
-  // 找到 .prose 容器（SectionProgress 在 .prose 内部）
-  const prose = el.closest<HTMLElement>('.prose');
-  if (!prose) throw new Error('SectionProgress: .prose not found');
+    // 找到 .prose 容器（SectionProgress 在 .prose 内部）
+    const prose = el.closest<HTMLElement>('.prose');
+    if (!prose) {
+      console.warn('SectionProgress: .prose not found');
+      return;
+    }
 
-  if (hasH2) {
-    // 在每个 H2 末尾（下一个 H2 之前，或 prose 末尾）注入 sentinel
-    const h2Elements = Array.from(prose.querySelectorAll<HTMLElement>('h2'));
+    if (hasH2) {
+      const h2Elements = Array.from(prose.querySelectorAll<HTMLElement>('h2'));
 
-    h2Elements.forEach((h2, i) => {
-      const sentinel = document.createElement('div');
-      sentinel.className = 'sp-sentinel';
-      sentinel.dataset.sectionText = h2.textContent?.trim() ?? '';
+      h2Elements.forEach((h2, i) => {
+        const sentinel = document.createElement('div');
+        sentinel.className = 'sp-sentinel';
+        // 用对应 tab 的 data-h2-text，与 markSectionRead 写入的 key 保持一致
+        sentinel.dataset.sectionText = tabs[i]?.dataset.h2Text ?? h2.textContent?.trim() ?? '';
 
-      const nextH2 = h2Elements[i + 1];
-      if (nextH2) {
-        prose.insertBefore(sentinel, nextH2);
-      } else {
-        prose.appendChild(sentinel);
-      }
-    });
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const text = (entry.target as HTMLElement).dataset.sectionText ?? '';
-            if (text) {
-              markSectionRead(articleSlug, text);
-              refreshTabs();
-            }
-          }
-        });
-      },
-      { rootMargin: '0px 0px -15% 0px' }
-    );
-
-    prose
-      .querySelectorAll<HTMLElement>('.sp-sentinel')
-      .forEach((s) => observer.observe(s));
-  } else {
-    // 无 H2：滚动到页面底部时标记整篇完成
-    const endSentinel = document.createElement('div');
-    endSentinel.className = 'sp-sentinel';
-    prose.appendChild(endSentinel);
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) {
-          markArticleComplete(articleSlug);
+        const nextH2 = h2Elements[i + 1];
+        if (nextH2) {
+          prose.insertBefore(sentinel, nextH2);
+        } else {
+          prose.appendChild(sentinel);
         }
-      },
-      { threshold: 0.1 }
-    );
+      });
 
-    observer.observe(endSentinel);
-  }
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const text = (entry.target as HTMLElement).dataset.sectionText ?? '';
+              if (text) {
+                markSectionRead(articleSlug, text);
+                // 不直接调用 refreshTabs()，由 markSectionRead 内的 progress-updated 事件驱动
+              }
+            }
+          });
+        },
+        { rootMargin: '0px 0px -15% 0px' }
+      );
+
+      prose
+        .querySelectorAll<HTMLElement>('.sp-sentinel')
+        .forEach((s) => observer.observe(s));
+    } else {
+      const endSentinel = document.createElement('div');
+      endSentinel.className = 'sp-sentinel';
+      prose.appendChild(endSentinel);
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0]?.isIntersecting) {
+            markArticleComplete(articleSlug);
+          }
+        },
+        { threshold: 0.1 }
+      );
+
+      observer.observe(endSentinel);
+    }
+  })();
 </script>
 
 <style>
