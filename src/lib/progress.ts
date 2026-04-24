@@ -114,24 +114,28 @@ export function markExerciseComplete(id: string, attempts: number): void {
   const store = load();
   store.exercises[id] = { completed: true, attempts };
   save(store);
+  window.dispatchEvent(new CustomEvent('progress-updated'));
 }
 
 export function saveQuizResult(slug: string, score: number): void {
   const store = load();
   store.quizzes[slug] = { score, completedAt: new Date().toISOString() };
   save(store);
+  window.dispatchEvent(new CustomEvent('progress-updated'));
 }
 
 export function resetExercise(id: string): void {
   const store = load();
   delete store.exercises[id];
   save(store);
+  window.dispatchEvent(new CustomEvent('progress-updated'));
 }
 
 export function resetQuiz(slug: string): void {
   const store = load();
   delete store.quizzes[slug];
   save(store);
+  window.dispatchEvent(new CustomEvent('progress-updated'));
 }
 
 // ── 进度计算 ─────────────────────────────────────────────
