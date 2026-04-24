@@ -103,6 +103,7 @@ export function resetChapter(chapterKey: string): void {
 export function resetAll(): void {
   const prev = load();
   const fresh = empty();
+  // 重置进度时保留证书，避免用户重新填写姓名
   fresh.certificate = prev.certificate;
   save(fresh);
   window.dispatchEvent(new CustomEvent('progress-updated'));
