@@ -1,9 +1,10 @@
 ---
 interface Props {
   firstChapterHref?: string;
+  totalArticles?: number;
 }
 
-const { firstChapterHref = '/chapters' } = Astro.props;
+const { firstChapterHref = '/chapters', totalArticles = 0 } = Astro.props;
 const currentPath = Astro.url.pathname;
 ---
 
@@ -28,7 +29,7 @@ const currentPath = Astro.url.pathname;
         教程
       </a>
     </nav>
-    <div class="nav-progress" id="nav-progress">⏱ 0%</div>
+    <div class="nav-progress" id="nav-progress" data-total={totalArticles}>⏱ 0%</div>
   </div>
 </header>
 
@@ -38,6 +39,35 @@ const currentPath = Astro.url.pathname;
     const link = document.getElementById('tutorial-nav-link');
     if (link) link.href = last;
   }
+</script>
+
+<script>
+  (function refreshNavProgress() {
+    const el = document.getElementById('nav-progress');
+    if (!el) return;
+    const total = parseInt((el as HTMLElement).dataset['total'] ?? '0', 10);
+    if (total === 0) return;
+
+    function update() {
+      try {
+        const raw = localStorage.getItem('rust-tutorial-progress');
+        if (!raw) return;
+        const store = JSON.parse(raw) as {
+          articles?: Record<string, { status: string }>;
+        };
+        const completed = Object.values(store.articles ?? {}).filter(
+          (a) => a.status === 'completed'
+        ).length;
+        const pct = Math.round((completed / total) * 100);
+        (el as HTMLElement).textContent = `⏱ ${pct}%`;
+      } catch {
+        // ignore
+      }
+    }
+
+    update();
+    window.addEventListener('progress-updated', update);
+  })();
 </script>
 
 <style>
