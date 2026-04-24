@@ -99,6 +99,17 @@
     if (e.key === 'Escape' && !overlayEl.hidden) close();
   });
 
+  // 通过自定义事件接收打开请求，避免依赖 window.openConfirmDialog 的挂载顺序
+  window.addEventListener('confirm-dialog:open', (e: Event) => {
+    const detail = (e as CustomEvent<{
+      message: string;
+      confirmText: string;
+      onConfirm: () => void;
+    }>).detail;
+    if (detail) open(detail);
+  });
+
+  // 保留 window.openConfirmDialog 作为兼容接口
   (
     window as typeof window & {
       openConfirmDialog: typeof open;

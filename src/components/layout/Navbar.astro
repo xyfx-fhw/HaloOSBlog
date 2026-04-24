@@ -42,6 +42,8 @@ const currentPath = Astro.url.pathname;
 </script>
 
 <script>
+  import { getOverallProgress } from '../../lib/progress';
+
   (function refreshNavProgress() {
     const el = document.getElementById('nav-progress') as HTMLElement | null;
     if (!el) return;
@@ -50,20 +52,8 @@ const currentPath = Astro.url.pathname;
 
     function update() {
       if (!el) return;
-      try {
-        const raw = localStorage.getItem('rust-tutorial-progress');
-        if (!raw) return;
-        const store = JSON.parse(raw) as {
-          articles?: Record<string, { status: string }>;
-        };
-        const completed = Object.values(store.articles ?? {}).filter(
-          (a) => a.status === 'completed'
-        ).length;
-        const pct = Math.round((completed / total) * 100);
-        el.textContent = `⏱ ${pct}%`;
-      } catch {
-        // ignore
-      }
+      const pct = getOverallProgress(total);
+      el.textContent = `⏱ ${pct}%`;
     }
 
     update();
