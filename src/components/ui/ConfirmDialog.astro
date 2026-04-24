@@ -1,0 +1,168 @@
+---
+// ConfirmDialog.astro
+// 全局确认弹窗，通过 window.openConfirmDialog({ message, confirmText, onConfirm }) 调用。
+// 在需要的页面中 import 并渲染此组件一次即可使用。
+---
+
+<div
+  id="confirm-dialog-overlay"
+  class="cd-overlay"
+  hidden
+  aria-hidden="true"
+>
+  <div
+    class="cd-box"
+    role="alertdialog"
+    aria-modal="true"
+    aria-labelledby="cd-message"
+    aria-describedby="cd-hint"
+  >
+    <p id="cd-message" class="cd-message"></p>
+    <p id="cd-hint" class="cd-hint">
+      请输入 "<strong class="cd-required"></strong>" 来确认：
+    </p>
+    <input
+      type="text"
+      class="cd-input"
+      autocomplete="off"
+      spellcheck="false"
+    />
+    <div class="cd-actions">
+      <button type="button" class="btn-secondary cd-cancel">取消</button>
+      <button type="button" class="btn-primary cd-ok" disabled>确认</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const overlayEl = document.getElementById(
+    'confirm-dialog-overlay'
+  ) as HTMLElement | null;
+  if (!overlayEl) throw new Error('ConfirmDialog: overlay not found');
+
+  const msgEl = overlayEl.querySelector<HTMLElement>('#cd-message');
+  const requiredEl = overlayEl.querySelector<HTMLElement>('.cd-required');
+  const inputEl = overlayEl.querySelector<HTMLInputElement>('.cd-input');
+  const cancelBtn = overlayEl.querySelector<HTMLButtonElement>('.cd-cancel');
+  const okBtn = overlayEl.querySelector<HTMLButtonElement>('.cd-ok');
+
+  let currentCallback: (() => void) | null = null;
+  let requiredText = '';
+
+  function open(opts: {
+    message: string;
+    confirmText: string;
+    onConfirm: () => void;
+  }): void {
+    if (!msgEl || !requiredEl || !inputEl || !okBtn || !overlayEl) return;
+    msgEl.textContent = opts.message;
+    requiredEl.textContent = opts.confirmText;
+    requiredText = opts.confirmText;
+    currentCallback = opts.onConfirm;
+    inputEl.value = '';
+    okBtn.disabled = true;
+    overlayEl.hidden = false;
+    overlayEl.removeAttribute('aria-hidden');
+    inputEl.focus();
+  }
+
+  function close(): void {
+    if (!overlayEl) return;
+    overlayEl.hidden = true;
+    overlayEl.setAttribute('aria-hidden', 'true');
+    currentCallback = null;
+    requiredText = '';
+  }
+
+  inputEl?.addEventListener('input', () => {
+    if (okBtn) okBtn.disabled = inputEl.value !== requiredText;
+  });
+
+  cancelBtn?.addEventListener('click', close);
+
+  okBtn?.addEventListener('click', () => {
+    if (inputEl?.value === requiredText && currentCallback) {
+      currentCallback();
+      close();
+    }
+  });
+
+  // 点击遮罩关闭
+  overlayEl.addEventListener('click', (e) => {
+    if (e.target === overlayEl) close();
+  });
+
+  // ESC 关闭
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !overlayEl.hidden) close();
+  });
+
+  (
+    window as typeof window & {
+      openConfirmDialog: typeof open;
+    }
+  ).openConfirmDialog = open;
+</script>
+
+<style>
+  .cd-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.65);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .cd-box {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 1.75rem;
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .cd-message {
+    font-size: 0.9375rem;
+    color: var(--color-text);
+    line-height: 1.5;
+  }
+
+  .cd-hint {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+  }
+
+  .cd-required {
+    color: var(--color-error);
+  }
+
+  .cd-input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    background: var(--color-code-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    color: var(--color-text);
+    font-size: 0.9375rem;
+    font-family: var(--font-mono);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .cd-input:focus {
+    border-color: var(--color-accent);
+  }
+
+  .cd-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+  }
+</style>
