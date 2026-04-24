@@ -7,6 +7,7 @@ export interface ArticleProgress {
 
 interface ProgressStore {
   articles: Record<string, ArticleProgress>;
+  blocks: Record<string, 'pass' | 'fail'>;  // 新增：blockId → latest
   exercises: Record<string, { completed: boolean; attempts: number }>;
   quizzes: Record<string, { score: number; completedAt: string }>;
   certificate: { name: string; earnedAt: string } | null;
@@ -18,14 +19,22 @@ function load(): ProgressStore {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return empty();
-    return JSON.parse(raw) as ProgressStore;
+    const parsed = JSON.parse(raw) as Partial<ProgressStore>;
+    // 兼容旧数据：补齐缺失字段
+    return {
+      articles: parsed.articles ?? {},
+      blocks: parsed.blocks ?? {},
+      exercises: parsed.exercises ?? {},
+      quizzes: parsed.quizzes ?? {},
+      certificate: parsed.certificate ?? null,
+    };
   } catch {
     return empty();
   }
 }
 
 function empty(): ProgressStore {
-  return { articles: {}, exercises: {}, quizzes: {}, certificate: null };
+  return { articles: {}, blocks: {}, exercises: {}, quizzes: {}, certificate: null };
 }
 
 function save(store: ProgressStore): void {
@@ -97,6 +106,29 @@ export function markSectionRead(
   window.dispatchEvent(new CustomEvent('progress-updated'));
 }
 
+/**
+ * 双向设置某 section 完成状态：practice tab 的 recompute 需要把绿变灰。
+ * （markSectionRead 仅能 set true，不能 set false。）
+ */
+export function setSectionStatus(
+  articleSlug: string,
+  sectionTitle: string,
+  completed: boolean
+): void {
+  const store = load();
+  const ap: ArticleProgress = store.articles[articleSlug] ?? {
+    status: 'not-started',
+    sections: {},
+  };
+  const prev = ap.sections[sectionTitle] ?? false;
+  if (prev === completed) return;  // 未变化不触发事件
+  ap.sections[sectionTitle] = completed;
+  ap.status = deriveStatus(ap.sections);
+  store.articles[articleSlug] = ap;
+  save(store);
+  window.dispatchEvent(new CustomEvent('progress-updated'));
+}
+
 export function markArticleComplete(slug: string): void {
   const store = load();
   const ap: ArticleProgress = store.articles[slug] ?? {
@@ -112,6 +144,12 @@ export function markArticleComplete(slug: string): void {
 export function resetArticle(slug: string): void {
   const store = load();
   delete store.articles[slug];
+  // 清理该文章所有 block latest
+  for (const blockId of Object.keys(store.blocks)) {
+    if (blockId.startsWith(`${slug}#`)) {
+      delete store.blocks[blockId];
+    }
+  }
   save(store);
   window.dispatchEvent(new CustomEvent('progress-updated'));
 }
@@ -121,6 +159,11 @@ export function resetChapter(chapterKey: string): void {
   for (const slug of Object.keys(store.articles)) {
     if (slug.split('/')[0] === chapterKey) {
       delete store.articles[slug];
+    }
+  }
+  for (const blockId of Object.keys(store.blocks)) {
+    if (blockId.split('/')[0] === chapterKey) {
+      delete store.blocks[blockId];
     }
   }
   save(store);
@@ -157,6 +200,22 @@ export function resetExercise(id: string): void {
   delete store.exercises[id];
   save(store);
   window.dispatchEvent(new CustomEvent('progress-updated'));
+}
+
+// ── 互动块 latest（practice tab 完成判定用）──────────────
+
+export function markBlockResult(
+  blockId: string,
+  result: 'pass' | 'fail'
+): void {
+  const store = load();
+  store.blocks[blockId] = result;
+  save(store);
+  window.dispatchEvent(new CustomEvent('progress-updated'));
+}
+
+export function getBlockResult(blockId: string): 'pass' | 'fail' | null {
+  return load().blocks[blockId] ?? null;
 }
 
 export function resetQuiz(slug: string): void {
