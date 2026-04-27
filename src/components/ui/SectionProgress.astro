@@ -1,0 +1,464 @@
+---
+// SectionProgress.astro
+// 章节文档页内 H1 小节进度标签栏（真实 tab 切换版本）。
+// 放在 .prose 内、article-meta 之后，<Content /> 需包裹在 <div id="article-content"> 内。
+// 有 H1 时渲染 tab 栏并用客户端 JS 做内容切换；无 H1 时监听页面底部完成整篇。
+
+import type { MarkdownHeading } from 'astro';
+
+interface Props {
+  headings: MarkdownHeading[];
+  articleSlug: string;
+}
+
+const { headings, articleSlug } = Astro.props;
+const h1s = headings.filter((h) => h.depth === 1);
+const hasSections = h1s.length > 0;
+---
+
+<div
+  class="section-progress"
+  data-article-slug={articleSlug}
+  data-has-sections={String(hasSections)}
+>
+  {hasSections && (
+    <div class="sp-bar">
+      <button class="sp-arrow sp-arrow-left" aria-label="向左滚动" hidden>‹</button>
+      <div class="sp-scroll">
+        <div class="sp-tabs" role="tablist" aria-label="文章章节">
+          {h1s.map((h, i) => (
+            <button
+              class="sp-tab"
+              data-tab-idx={String(i)}
+              data-section-title={h.text}
+              role="tab"
+              type="button"
+              aria-label={h.text}
+            >
+              <span class="sp-dot"></span>
+              <span class="sp-label">{h.text}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+      <button class="sp-arrow sp-arrow-right" aria-label="向右滚动" hidden>›</button>
+    </div>
+  )}
+  <slot />
+</div>
+
+<script>
+  import {
+    markSectionRead,
+    markArticleComplete,
+    getSectionStatus,
+    getArticleStatus,
+    initArticleSections,
+    setSectionStatus,
+    getBlockResult,
+    resetArticle,
+  } from '../../lib/progress';
+
+  (function init() {
+    const el = document.querySelector<HTMLElement>('.section-progress');
+    if (!el) return;
+
+    const articleSlug = el.dataset.articleSlug ?? '';
+    const hasSections = el.dataset.hasSections === 'true';
+    const tabs = Array.from(el.querySelectorAll<HTMLButtonElement>('.sp-tab'));
+    const articleContent = document.getElementById('article-content');
+    if (!articleContent) return;
+
+    // ── 无 H1 段落 ─────────────────────────────────────────────
+    if (!hasSections) {
+      // 若整篇内有互动块，退化为单 practice tab：按 blocks 结果决定整篇 completed
+      const blockIds = Array.from(
+        articleContent.querySelectorAll<HTMLElement>(
+          '.quiz-choice[data-block-id], .code-editor[data-block-id]'
+        )
+      ).map((n) => n.dataset.blockId ?? '').filter(Boolean);
+
+      if (blockIds.length > 0) {
+        const recompute = () => {
+          const allPass = blockIds.every((b) => getBlockResult(b) === 'pass');
+          if (allPass) {
+            markArticleComplete(articleSlug);
+          } else if (getArticleStatus(articleSlug) === 'completed') {
+            // 原状态是 completed 才回退，避免重复无效写入
+            resetArticle(articleSlug);
+          }
+        };
+        recompute();
+        window.addEventListener('progress-updated', recompute);
+        return;
+      }
+
+      // 纯讲解型无 H1 → 沿用滚到底
+      const sentinel = document.createElement('div');
+      sentinel.className = 'sp-sentinel';
+      articleContent.appendChild(sentinel);
+      new IntersectionObserver(
+        (entries) => {
+          if (entries[0]?.isIntersecting) markArticleComplete(articleSlug);
+        },
+        { threshold: 0.1 }
+      ).observe(sentinel);
+      return;
+    }
+
+    // ── 有 H1 段落：预注册节段、创建 tab-panel、切换逻辑 ──
+    initArticleSections(
+      articleSlug,
+      tabs.map((t) => t.dataset.sectionTitle ?? '')
+    );
+
+    // 将 #article-content 内的 H1 包裹成独立 tab-panel
+    const h1Els = Array.from(articleContent.querySelectorAll<HTMLElement>('h1'));
+    const panels: HTMLElement[] = [];
+
+    h1Els.forEach((h1, i) => {
+      const panel = document.createElement('div');
+      panel.className = 'tab-panel';
+      panel.dataset.tabIdx = String(i);
+      panel.dataset.sectionTitle = tabs[i]?.dataset.sectionTitle ?? '';
+
+      // 收集从当前 h1 到下一个 h1（不含）之间的所有节点
+      const nextH1 = h1Els[i + 1] ?? null;
+      const nodes: Node[] = [];
+      let node: Node | null = h1;
+      while (node && node !== nextH1) {
+        nodes.push(node);
+        node = node.nextSibling;
+      }
+
+      h1.parentElement!.insertBefore(panel, h1);
+      nodes.forEach((n) => panel.appendChild(n));
+
+      // 在 panel 末尾加哨兵，用于检测「已滚动到底部」
+      const sentinel = document.createElement('div');
+      sentinel.className = 'sp-sentinel';
+      panel.appendChild(sentinel);
+
+      if (i > 0) panel.hidden = true;
+      panels.push(panel);
+    });
+
+    // 每个 panel 的互动块 blockId 列表。长度为 0 表示普通 tab（滚到底判定）。
+    const panelBlockIds: string[][] = panels.map((panel) =>
+      Array.from(
+        panel.querySelectorAll<HTMLElement>(
+          '.quiz-choice[data-block-id], .code-editor[data-block-id]'
+        )
+      ).map((n) => n.dataset.blockId ?? '').filter(Boolean)
+    );
+
+    const isPracticeTab = (idx: number) => panelBlockIds[idx].length > 0;
+
+    function recomputePracticeTab(idx: number): void {
+      if (!isPracticeTab(idx)) return;
+      const title = panels[idx].dataset.sectionTitle ?? '';
+      const allPass = panelBlockIds[idx].every(
+        (bid) => getBlockResult(bid) === 'pass'
+      );
+      setSectionStatus(articleSlug, title, allPass);
+    }
+
+    function recomputeAllPracticeTabs(): void {
+      panels.forEach((_, i) => recomputePracticeTab(i));
+    }
+
+    let currentObserver: IntersectionObserver | null = null;
+
+    function setupSentinelObserver(idx: number) {
+      currentObserver?.disconnect();
+      // practice tab 不靠滚到底，由 blocks 结果决定完成
+      if (isPracticeTab(idx)) {
+        currentObserver = null;
+        return;
+      }
+      const sentinel = panels[idx]?.querySelector<HTMLElement>('.sp-sentinel');
+      if (!sentinel) return;
+      const title = panels[idx].dataset.sectionTitle ?? '';
+      currentObserver = new IntersectionObserver(
+        (entries) => {
+          if (entries[0]?.isIntersecting) {
+            markSectionRead(articleSlug, title);
+            currentObserver?.disconnect();
+          }
+        },
+        { rootMargin: '0px 0px -10% 0px' }
+      );
+      currentObserver.observe(sentinel);
+    }
+
+    let navUpdateFn: (idx: number) => void = () => {};
+    let tabInitialized = false;
+
+    function switchTab(idx: number) {
+      panels.forEach((p, i) => {
+        p.hidden = i !== idx;
+      });
+      tabs.forEach((t, i) => t.classList.toggle('active', i === idx));
+      setupSentinelObserver(idx);
+      navUpdateFn(idx);
+      if (tabInitialized) {
+        const navH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--navbar-height')) || 60;
+        const contentTop = el!.getBoundingClientRect().top + window.scrollY - navH;
+        if (window.scrollY > contentTop + 10) {
+          window.scrollTo({ top: contentTop, behavior: 'instant' });
+        }
+      }
+    }
+
+    function refreshTabs(): void {
+      const sections = getSectionStatus(articleSlug);
+      tabs.forEach((tab) => {
+        const title = tab.dataset.sectionTitle ?? '';
+        tab.dataset.completed = String(sections[title] === true);
+      });
+    }
+
+    refreshTabs();
+    recomputeAllPracticeTabs();  // 首次加载时按 blocks 派生 sections 状态
+    window.addEventListener('progress-updated', () => {
+      recomputeAllPracticeTabs();
+      refreshTabs();
+    });
+    tabs.forEach((tab, i) => tab.addEventListener('click', () => switchTab(i)));
+
+    // ── 接管 article-nav，按 tab 位置显示标签页/文章级跳转 ──
+    const navEl = document.querySelector<HTMLElement>('.article-nav');
+    if (navEl) {
+      const prevContainer = navEl.querySelector<HTMLElement>('.article-nav-prev');
+      const nextContainer = navEl.querySelector<HTMLElement>('.article-nav-next');
+      const origPrevHTML = prevContainer?.innerHTML ?? '';
+      const origNextHTML = nextContainer?.innerHTML ?? '';
+
+      function makeTabBtn(toIdx: number, label: string): string {
+        const title = tabs[toIdx]?.dataset.sectionTitle ?? '';
+        return `<button class="sp-tab-nav" type="button">
+          <span class="nav-label">${label}</span>
+          <span class="nav-title">${title}</span>
+        </button>`;
+      }
+
+      function updateNav(idx: number) {
+        if (!prevContainer || !nextContainer) return;
+        if (idx > 0) {
+          prevContainer.innerHTML = makeTabBtn(idx - 1, '← 上一节');
+          prevContainer.querySelector('.sp-tab-nav')?.addEventListener('click', () => switchTab(idx - 1));
+        } else {
+          prevContainer.innerHTML = origPrevHTML;
+        }
+        if (idx < tabs.length - 1) {
+          nextContainer.innerHTML = makeTabBtn(idx + 1, '下一节 →');
+          nextContainer.querySelector('.sp-tab-nav')?.addEventListener('click', () => switchTab(idx + 1));
+        } else {
+          nextContainer.innerHTML = origNextHTML;
+        }
+      }
+
+      navUpdateFn = updateNav;
+    }
+
+    // 初始化第一个 tab
+    switchTab(0);
+    tabInitialized = true;
+
+    // 溢出箭头：监听标签栏滚动位置
+    const scrollEl = el.querySelector<HTMLElement>('.sp-scroll');
+    const arrowLeft = el.querySelector<HTMLButtonElement>('.sp-arrow-left');
+    const arrowRight = el.querySelector<HTMLButtonElement>('.sp-arrow-right');
+
+    function updateArrows(): void {
+      if (!scrollEl) return;
+      const { scrollLeft, scrollWidth, clientWidth } = scrollEl;
+      if (arrowLeft) arrowLeft.hidden = scrollLeft <= 2;
+      if (arrowRight) arrowRight.hidden = scrollLeft + clientWidth >= scrollWidth - 2;
+    }
+
+    arrowLeft?.addEventListener('click', () => {
+      scrollEl?.scrollBy({ left: -160, behavior: 'smooth' });
+    });
+    arrowRight?.addEventListener('click', () => {
+      scrollEl?.scrollBy({ left: 160, behavior: 'smooth' });
+    });
+
+    if (scrollEl) {
+      scrollEl.addEventListener('scroll', updateArrows, { passive: true });
+      window.addEventListener('resize', updateArrows);
+      updateArrows();
+    }
+
+    // 接收来自 TOC 的跨标签跳转请求
+    window.addEventListener('sp-switch-tab', (e: Event) => {
+      const idx = (e as CustomEvent<{ tabIdx: number }>).detail.tabIdx;
+      switchTab(idx);
+    });
+  })();
+</script>
+
+<style>
+  .section-progress {
+    /* 标签栏本身通过 .sp-bar sticky 吸顶，外层不需要额外 margin */
+  }
+
+  /* 吸顶标签栏容器 */
+  .sp-bar {
+    position: sticky;
+    top: var(--navbar-height);
+    z-index: 10;
+    background: transparent;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--color-border);
+    margin: 0 -2rem 2rem;
+  }
+
+  /* 实际滚动容器，撑满整个 sp-bar 宽度 */
+  .sp-scroll {
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 0 2rem;
+  }
+
+  .sp-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* 箭头按钮：绝对定位，叠在滚动区边缘，渐变覆盖标签内容 */
+  .sp-arrow {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 3.5rem;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text-muted);
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    padding: 0;
+    z-index: 2;
+    transition: color 0.15s;
+  }
+
+  .sp-arrow:hover {
+    color: var(--color-text);
+  }
+
+  .sp-arrow-left {
+    left: 0;
+    background: linear-gradient(to right, #0D0D0F 20%, transparent);
+    justify-content: flex-start;
+    padding-left: 0.4rem;
+  }
+
+  .sp-arrow-right {
+    right: 0;
+    background: linear-gradient(to left, #0D0D0F 20%, transparent);
+    justify-content: flex-end;
+    padding-right: 0.4rem;
+  }
+
+  .sp-tabs {
+    display: flex;
+    min-width: max-content;
+  }
+
+  .sp-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.875rem;
+    font-family: var(--font-sans);
+    color: var(--color-text-muted);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    /* margin-bottom: -1px 使 active 的下划线覆盖 .sp-bar 的 border-bottom */
+    margin-bottom: -1px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.15s, border-color 0.15s;
+    line-height: 1.4;
+  }
+
+  .sp-tab:hover {
+    color: var(--color-text);
+  }
+
+  .sp-tab.active {
+    color: var(--color-text);
+    border-bottom-color: var(--color-accent);
+  }
+
+  .sp-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--color-border);
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+
+  /* 已完成：绿色 */
+  .sp-tab[data-completed='true'] .sp-dot {
+    background: var(--color-success);
+  }
+
+  /* active 且未完成：橙色 */
+  .sp-tab.active:not([data-completed='true']) .sp-dot {
+    background: var(--color-accent);
+  }
+
+  /* sentinel 不占空间 */
+  :global(.sp-sentinel) {
+    height: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  :global(.tab-panel > h1) {
+    display: none;
+  }
+
+  /* tab-panel 内所有标题需为 navbar + tab 栏留出 scroll-margin */
+  :global(.tab-panel h2),
+  :global(.tab-panel h3),
+  :global(.tab-panel h4) {
+    scroll-margin-top: calc(var(--navbar-height) + 3.5rem);
+  }
+
+  /* 标签页级上一节/下一节按钮（动态注入，需 global 覆盖 ChapterLayout 作用域） */
+  :global(.sp-tab-nav) {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.875rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    max-width: 100%;
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  :global(.sp-tab-nav:hover) {
+    border-color: var(--color-accent);
+    background: rgba(206, 65, 43, 0.04);
+  }
+
+  :global(.sp-tab-nav .nav-label) {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+  }
+
+  :global(.sp-tab-nav .nav-title) {
+    font-size: 0.9375rem;
+    color: var(--color-text);
+    font-weight: 500;
+  }
+</style>

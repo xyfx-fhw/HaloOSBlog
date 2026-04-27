@@ -2,7 +2,7 @@
 import '../../styles/global.css';
 import Navbar from './Navbar.astro';
 import Footer from './Footer.astro';
-import { buildNavTree } from '../../lib/content';
+import { buildNavTree, getFlatArticleList } from '../../lib/content';
 
 interface Props {
   title: string;
@@ -16,6 +16,8 @@ const {
 
 const navTree = await buildNavTree();
 const firstChapterHref = navTree[0]?.href ?? '/chapters';
+const flatList = await getFlatArticleList(navTree);
+const totalArticles = flatList.length;
 ---
 
 <!doctype html>
@@ -26,6 +28,7 @@ const firstChapterHref = navTree[0]?.href ?? '/chapters';
     <meta name="description" content={description} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title} — RUST 互动教程</title>
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
   </head>
   <body>
     <div class="page-bg" aria-hidden="true">
@@ -33,7 +36,7 @@ const firstChapterHref = navTree[0]?.href ?? '/chapters';
       <div class="orb orb-2"></div>
       <div class="orb orb-3"></div>
     </div>
-    <Navbar firstChapterHref={firstChapterHref} />
+    <Navbar firstChapterHref={firstChapterHref} totalArticles={totalArticles} />
     <main>
       <slot />
     </main>

@@ -1,0 +1,536 @@
+---
+// CodeEditor.astro
+// 无 props、无服务端渲染内容。
+// 客户端扫描所有 <div class="code-editor">，读取 data-starter-code，懒加载 Monaco 并挂载编辑器。
+// 工具栏布局与 CodeRunner 对齐：[状态区] [▶ 运行] [重置] [复制]
+---
+
+<script>
+  import { executeCode } from '../../lib/rust-playground';
+  import { markBlockResult, getBlockResult } from '../../lib/progress';
+
+  // ── Monaco 懒加载 ────────────────────────────────────────────────────────
+  // 使用 jsdelivr 的 AMD loader（monaco 官方推荐的 CDN 方式）。
+  // 第一个 CodeEditor 出现时触发加载；之后共享 Promise。
+
+  const MONACO_VERSION = '0.45.0';
+  const MONACO_BASE = `https://cdn.jsdelivr.net/npm/monaco-editor@${MONACO_VERSION}/min/vs`;
+
+  let monacoPromise: Promise<unknown> | null = null;
+
+  function loadMonaco(): Promise<unknown> {
+    if (monacoPromise) return monacoPromise;
+
+    monacoPromise = new Promise((resolve, reject) => {
+      // 注入 loader 脚本
+      const loaderScript = document.createElement('script');
+      loaderScript.src = `${MONACO_BASE}/loader.min.js`;
+      loaderScript.onerror = () => reject(new Error('Monaco loader 加载失败'));
+      loaderScript.onload = () => {
+        const w = window as unknown as {
+          require: {
+            config: (cfg: Record<string, unknown>) => void;
+            (deps: string[], cb: (m: unknown) => void): void;
+          };
+          MonacoEnvironment?: { getWorkerUrl: (moduleId: string, label: string) => string };
+        };
+
+        // 跨域 worker：用一个 blob 包装 importScripts，规避 CORS 限制
+        w.MonacoEnvironment = {
+          getWorkerUrl: function () {
+            return `data:text/javascript;charset=utf-8,${encodeURIComponent(`
+              self.MonacoEnvironment = { baseUrl: '${MONACO_BASE}/' };
+              importScripts('${MONACO_BASE}/base/worker/workerMain.js');
+            `)}`;
+          },
+        };
+
+        w.require.config({ paths: { vs: MONACO_BASE } });
+        w.require(['vs/editor/editor.main'], (m: unknown) => {
+          resolve((window as unknown as { monaco: unknown }).monaco ?? m);
+        });
+      };
+      document.head.appendChild(loaderScript);
+    });
+
+    return monacoPromise;
+  }
+
+  function escapeHtml(s: string): string {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  interface MonacoLike {
+    editor: {
+      create: (el: HTMLElement, opts: Record<string, unknown>) => {
+        getValue: () => string;
+        setValue: (v: string) => void;
+        dispose: () => void;
+        layout: () => void;
+        getContentHeight: () => number;
+      };
+    };
+  }
+
+  async function initCodeEditor(el: HTMLElement): Promise<void> {
+    const starterCode = decodeURIComponent(el.dataset.starterCode ?? '');
+    if (!starterCode) return;
+
+    // 读取 expect 配置（由 remark 插件写入 data-* 属性）
+    const blockId = el.dataset.blockId ?? '';
+    const expectMode = (el.dataset.expectMode ?? '') as '' | 'literal' | 'regex';
+    const expectPattern = el.dataset.expectPattern
+      ? decodeURIComponent(el.dataset.expectPattern)
+      : '';
+
+    // ── 工具栏 ─────────────────────────────────────────────────────────────
+    const toolbar = document.createElement('div');
+    toolbar.className = 'code-editor-toolbar';
+
+    // 题型徽章（与 QuizChoice 的单选/多选题徽章视觉对齐）
+    const badgeEl = document.createElement('span');
+    badgeEl.className = 'code-editor-badge';
+    badgeEl.textContent = '编程题';
+    toolbar.appendChild(badgeEl);
+
+    // 历史徽章（latest === 'pass' / 'fail' / null），紧跟题型徽章
+    const historyBadge = document.createElement('span');
+    historyBadge.className = 'ce-history-badge';
+    historyBadge.hidden = true;
+    toolbar.appendChild(historyBadge);
+
+    const statusEl = document.createElement('span');
+    statusEl.className = 'code-editor-status';
+    toolbar.appendChild(statusEl);
+
+    const runBtn = document.createElement('button');
+    runBtn.className = 'code-editor-btn code-editor-run';
+    runBtn.textContent = '▶ 运行';
+    runBtn.disabled = true;  // Monaco 挂载前禁用
+    toolbar.appendChild(runBtn);
+
+    const resetBtn = document.createElement('button');
+    resetBtn.className = 'code-editor-btn code-editor-reset';
+    resetBtn.textContent = '重置';
+    resetBtn.disabled = true;
+    toolbar.appendChild(resetBtn);
+
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'code-editor-btn code-editor-copy';
+    copyBtn.textContent = '复制';
+    toolbar.appendChild(copyBtn);
+
+    // ── 编辑器挂载容器 ────────────────────────────────────────────────────
+    const editorHost = document.createElement('div');
+    editorHost.className = 'code-editor-host';
+
+    // 挂载前的占位高度，避免布局抖动（按行数估算，最少 3 行避免过矮）
+    const lineCount = Math.max(starterCode.split('\n').length, 3);
+    editorHost.style.height = `${Math.min(lineCount * 20 + 24, 480)}px`;
+
+    // ── 输出区 ─────────────────────────────────────────────────────────────
+    const output = document.createElement('div');
+    output.className = 'code-editor-output';
+    output.hidden = true;
+
+    // 清空（移除 fallback <pre>），装入新结构
+    el.innerHTML = '';
+    el.appendChild(toolbar);
+    el.appendChild(editorHost);
+    el.appendChild(output);
+
+    // ── 复制按钮（无需 Monaco） ───────────────────────────────────────────
+    let currentCode = starterCode;  // 在 Monaco 加载前复制用 starterCode
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(currentCode).then(
+        () => {
+          copyBtn.textContent = '已复制';
+          setTimeout(() => (copyBtn.textContent = '复制'), 2000);
+        },
+        () => {
+          copyBtn.textContent = '复制失败';
+          setTimeout(() => (copyBtn.textContent = '复制'), 2000);
+        }
+      );
+    });
+
+    // ── 加载 Monaco 并挂载 ────────────────────────────────────────────────
+    statusEl.textContent = '加载编辑器中…';
+    statusEl.className = 'code-editor-status code-editor-status-running';
+
+    let editor: ReturnType<MonacoLike['editor']['create']>;
+    try {
+      const monaco = (await loadMonaco()) as MonacoLike;
+      editor = monaco.editor.create(editorHost, {
+        value: starterCode,
+        language: 'rust',
+        theme: 'vs-dark',
+        automaticLayout: true,
+        fontSize: 14,
+        fontFamily: "'JetBrains Mono', 'Courier New', monospace",
+        minimap: { enabled: false },
+        scrollBeyondLastLine: false,
+        padding: { top: 12, bottom: 12 },
+        tabSize: 4,
+      });
+      statusEl.textContent = '';
+      statusEl.className = 'code-editor-status';
+      runBtn.disabled = false;
+      resetBtn.disabled = false;
+
+      // Monaco 挂载后，按实际内容高度收紧容器，避免末尾出现空白行
+      const contentHeight = editor.getContentHeight();
+      if (contentHeight > 0) {
+        editorHost.style.height = `${Math.min(contentHeight, 480)}px`;
+        editor.layout();
+      }
+    } catch (e) {
+      statusEl.textContent = '✗ 编辑器加载失败';
+      statusEl.className = 'code-editor-status code-editor-status-error';
+      // 回退：普通 textarea
+      const ta = document.createElement('textarea');
+      ta.className = 'code-editor-fallback-input';
+      ta.value = starterCode;
+      ta.spellcheck = false;
+      editorHost.innerHTML = '';
+      editorHost.appendChild(ta);
+      const shim: ReturnType<MonacoLike['editor']['create']> = {
+        getValue: () => ta.value,
+        setValue: (v: string) => { ta.value = v; },
+        dispose: () => {},
+        layout: () => {},
+        getContentHeight: () => 0,
+      };
+      editor = shim;
+      runBtn.disabled = false;
+      resetBtn.disabled = false;
+    }
+
+    // ── 运行按钮 ───────────────────────────────────────────────────────────
+    /**
+     * 依据 expect 配置 + Playground 响应决定 pass/fail。
+     * - success=false：一律 fail
+     * - 无 expect：success 即 pass
+     * - literal：stdout.trim() === pattern
+     * - regex：new RegExp(pattern, 's').test(stdout.trim())；正则语法错或 RegExp 抛出 → fail
+     */
+    function judge(r: { success: boolean; stdout: string; stderr: string }):
+      { ok: boolean; label: string; detail?: string } {
+      if (!r.success) {
+        return { ok: false, label: '✗ 编译或运行失败' };
+      }
+      if (expectMode === '') {
+        return { ok: true, label: '✓ 编译运行通过' };
+      }
+      const out = (r.stdout ?? '').trim();
+      if (expectMode === 'literal') {
+        const ok = out === expectPattern;
+        return ok
+          ? { ok: true, label: '✓ 运行结果符合预期' }
+          : { ok: false, label: '✗ 运行结果与预期不符', detail: `期望：\n${expectPattern}\n\n实际：\n${out}` };
+      }
+      // regex 模式
+      try {
+        const re = new RegExp(expectPattern, 's');
+        const ok = re.test(out);
+        return ok
+          ? { ok: true, label: '✓ 运行结果符合预期' }
+          : { ok: false, label: '✗ 运行结果与预期不符', detail: `正则：${expectPattern}\n\n实际：\n${out}` };
+      } catch (e) {
+        console.warn('[CodeEditor] 正则语法错误', expectPattern, e);
+        return { ok: false, label: '✗ 预期正则语法错误' };
+      }
+    }
+
+    // 刷新工具栏历史徽章（反映 localStorage 中的 latest 值）
+    function refreshHistoryBadge(): void {
+      if (!blockId) { historyBadge.hidden = true; return; }
+      const latest = getBlockResult(blockId);
+      if (latest === 'pass') {
+        historyBadge.hidden = false;
+        historyBadge.textContent = '✓ 已通过';
+        historyBadge.className = 'ce-history-badge ce-history-badge-pass';
+      } else if (latest === 'fail') {
+        historyBadge.hidden = false;
+        historyBadge.textContent = '↻ 上次未通过';
+        historyBadge.className = 'ce-history-badge ce-history-badge-fail';
+      } else {
+        historyBadge.hidden = true;
+      }
+    }
+
+    // 水合时立即显示历史徽章
+    refreshHistoryBadge();
+
+    runBtn.addEventListener('click', async () => {
+      currentCode = editor.getValue();
+      runBtn.disabled = true;
+      runBtn.textContent = '运行中...';
+      statusEl.textContent = '⏳ 执行中...';
+      statusEl.className = 'code-editor-status code-editor-status-running';
+      output.hidden = true;
+
+      try {
+        const result = await executeCode(currentCode);
+        statusEl.textContent = '';
+        statusEl.className = 'code-editor-status';
+
+        // 判定 verdict
+        const verdict = judge(result);
+
+        // verdict 行 + 可选 detail + 原有 stdout/stderr
+        const parts: string[] = [];
+        parts.push(
+          `<div class="ce-verdict ${verdict.ok ? 'ce-verdict-pass' : 'ce-verdict-fail'}">` +
+          escapeHtml(verdict.label) +
+          `</div>`
+        );
+        if (verdict.detail) {
+          parts.push(`<pre class="ce-verdict-detail">${escapeHtml(verdict.detail)}</pre>`);
+        }
+        if (result.success) {
+          parts.push(
+            result.stdout
+              ? `<pre class="code-editor-stdout">${escapeHtml(result.stdout)}</pre>`
+              : '<span class="code-editor-stdout">（无输出）</span>'
+          );
+        } else {
+          parts.push(
+            result.stderr
+              ? `<pre class="code-editor-stderr">${escapeHtml(result.stderr)}</pre>`
+              : '<span class="code-editor-stderr">（编译失败，无错误信息）</span>'
+          );
+        }
+        output.hidden = false;
+        output.innerHTML = parts.join('');
+
+        // 记录 latest + 刷新徽章
+        if (blockId) {
+          markBlockResult(blockId, verdict.ok ? 'pass' : 'fail');
+          refreshHistoryBadge();
+        }
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        statusEl.textContent = '✗ 请求失败';
+        statusEl.className = 'code-editor-status code-editor-status-error';
+        output.hidden = false;
+        output.innerHTML =
+          `<div class="ce-verdict ce-verdict-fail">✗ 请求失败</div>` +
+          `<span class="code-editor-stderr">${escapeHtml(msg)}</span>`;
+        // 请求异常也视为 fail
+        if (blockId) {
+          markBlockResult(blockId, 'fail');
+          refreshHistoryBadge();
+        }
+      } finally {
+        runBtn.disabled = false;
+        runBtn.textContent = '▶ 运行';
+      }
+    });
+
+    // ── 重置按钮 ───────────────────────────────────────────────────────────
+    resetBtn.addEventListener('click', () => {
+      editor.setValue(starterCode);
+      currentCode = starterCode;
+      output.hidden = true;
+      output.innerHTML = '';
+    });
+  }
+
+  document.querySelectorAll<HTMLElement>('.code-editor').forEach((el) => {
+    initCodeEditor(el).catch((err) => {
+      console.error('CodeEditor 初始化失败：', err);
+    });
+  });
+</script>
+
+<style is:global>
+  .code-editor {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    margin: 1.5rem 0;
+    overflow: hidden;
+  }
+
+  .code-editor-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .code-editor-status {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .code-editor-status-running { color: var(--color-text-muted); }
+  .code-editor-status-error   { color: var(--color-error); }
+
+  .code-editor-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.625rem;
+    background: transparent;
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+    white-space: nowrap;
+  }
+
+  .code-editor-btn:hover:not(:disabled) {
+    color: var(--color-text);
+    border-color: var(--color-text-muted);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .code-editor-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .code-editor-run {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+
+  .code-editor-run:hover:not(:disabled) {
+    color: var(--color-text);
+    background: rgba(206, 65, 43, 0.12);
+  }
+
+  .code-editor-host {
+    /* Monaco 自己会填满该容器；初始 height 在脚本中按行数估算 */
+    min-height: 120px;
+    max-height: 480px;
+  }
+
+  /* 构建期 Shiki 高亮 fallback（Monaco 加载前短暂可见） */
+  .code-editor-fallback {
+    margin: 0 !important;
+    padding: 1rem 1.25rem !important;
+    background: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    overflow-x: auto;
+  }
+  .code-editor-fallback code {
+    background: none;
+    color: var(--color-code-text);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    line-height: 1.65;
+  }
+
+  /* Monaco 加载失败时的 textarea 兜底 */
+  .code-editor-fallback-input {
+    width: 100%;
+    min-height: 120px;
+    padding: 1rem 1.25rem;
+    background: var(--color-code-bg);
+    color: var(--color-code-text);
+    border: none;
+    outline: none;
+    resize: vertical;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    line-height: 1.65;
+  }
+
+  .code-editor-output {
+    border-top: 1px solid var(--color-border);
+    padding: 0.875rem 1.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    overflow-x: auto;
+  }
+
+  .code-editor-stdout { color: var(--color-text); }
+  .code-editor-stderr { color: var(--color-error); }
+
+  .code-editor-output pre {
+    margin: 0;
+    font-family: inherit;
+    font-size: inherit;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /* 题型徽章（与 quiz-badge 同款红底红字 pill） */
+  .code-editor .code-editor-badge {
+    flex-shrink: 0;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    color: var(--color-accent);
+    background: rgba(206, 65, 43, 0.1);
+    border: 1px solid rgba(206, 65, 43, 0.3);
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+
+  /* 历史徽章 */
+  .code-editor .ce-history-badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+  .code-editor .ce-history-badge-pass {
+    color: var(--color-success);
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+  }
+  .code-editor .ce-history-badge-fail {
+    color: var(--color-error);
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+  }
+
+  /* verdict 提示行 */
+  .code-editor .ce-verdict {
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+  .code-editor .ce-verdict-pass {
+    background: rgba(34, 197, 94, 0.1);
+    border-left: 3px solid var(--color-success);
+    color: var(--color-success);
+  }
+  .code-editor .ce-verdict-fail {
+    background: rgba(239, 68, 68, 0.1);
+    border-left: 3px solid var(--color-error);
+    color: var(--color-error);
+  }
+  .code-editor .ce-verdict-detail {
+    margin-top: 0.25rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--color-surface, #1A1A1E);
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    white-space: pre-wrap;
+    overflow-x: auto;
+  }
+</style>

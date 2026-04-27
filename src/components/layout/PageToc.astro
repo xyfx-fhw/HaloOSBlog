@@ -6,7 +6,7 @@ interface Props {
 }
 
 const { headings } = Astro.props;
-const tocHeadings = headings.filter(h => h.depth === 2 || h.depth === 3);
+const tocHeadings = headings.filter(h => h.depth >= 1 && h.depth <= 3);
 ---
 
 {tocHeadings.length > 0 && (
@@ -29,6 +29,7 @@ const tocHeadings = headings.filter(h => h.depth === 2 || h.depth === 3);
   const links = toc
     ? Array.from(toc.querySelectorAll<HTMLAnchorElement>('.toc-link'))
     : [];
+
   if (links.length > 0) {
     const headingEls = links.map(l => {
       const id = l.getAttribute('href')?.slice(1);
@@ -43,6 +44,8 @@ const tocHeadings = headings.filter(h => h.depth === 2 || h.depth === 3);
       links[activeIdx]?.classList.add('active');
     };
 
+    // IntersectionObserver 追踪当前可见标题
+    // hidden 的 tab-panel 内的元素不会 intersect，自动只高亮可见 tab 的标题
     const observer = new IntersectionObserver(
       entries => {
         entries.forEach(entry => {
@@ -56,6 +59,25 @@ const tocHeadings = headings.filter(h => h.depth === 2 || h.depth === 3);
     );
 
     headingEls.forEach(el => el && observer.observe(el));
+
+    // 拦截 TOC 链接点击，处理跨标签跳转
+    // 不阻止默认行为，让浏览器在 tab 切换后自动滚动到锚点
+    links.forEach(link => {
+      link.addEventListener('click', () => {
+        const href = link.getAttribute('href');
+        if (!href?.startsWith('#')) return;
+        const targetEl = document.getElementById(href.slice(1));
+        if (!targetEl) return;
+
+        const panel = targetEl.closest<HTMLElement>('.tab-panel');
+        if (!panel) return;
+
+        const tabIdx = parseInt(panel.dataset.tabIdx ?? '0', 10);
+        window.dispatchEvent(
+          new CustomEvent('sp-switch-tab', { detail: { tabIdx } })
+        );
+      });
+    });
   }
 </script>
 
@@ -91,8 +113,20 @@ const tocHeadings = headings.filter(h => h.depth === 2 || h.depth === 3);
     border-left: 1px solid var(--color-border);
   }
 
-  .toc-h3 {
+  /* H1：顶层，加粗 */
+  .toc-h1 .toc-link {
+    font-weight: 600;
+    font-size: 0.8125rem;
+  }
+
+  /* H2：一级缩进 */
+  .toc-h2 {
     padding-left: 0.875rem;
+  }
+
+  /* H3：二级缩进 */
+  .toc-h3 {
+    padding-left: 1.75rem;
   }
 
   .toc-link {

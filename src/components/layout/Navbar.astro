@@ -1,9 +1,10 @@
 ---
 interface Props {
   firstChapterHref?: string;
+  totalArticles?: number;
 }
 
-const { firstChapterHref = '/chapters' } = Astro.props;
+const { firstChapterHref = '/chapters', totalArticles = 0 } = Astro.props;
 const currentPath = Astro.url.pathname;
 ---
 
@@ -28,7 +29,10 @@ const currentPath = Astro.url.pathname;
         教程
       </a>
     </nav>
-    <div class="nav-progress" id="nav-progress">⏱ 0%</div>
+    <a href="/certificate" class="nav-progress" id="nav-progress" data-total={totalArticles}>
+      <span id="nav-progress-text">总进度：0%</span>
+      <span class="nav-progress-tip">100% 后可获得证书</span>
+    </a>
   </div>
 </header>
 
@@ -38,6 +42,36 @@ const currentPath = Astro.url.pathname;
     const link = document.getElementById('tutorial-nav-link');
     if (link) link.href = last;
   }
+</script>
+
+<script>
+  import { getOverallProgress } from '../../lib/progress';
+
+  (function refreshNavProgress() {
+    const el = document.getElementById('nav-progress') as HTMLElement | null;
+    if (!el) return;
+    const total = parseInt(el.dataset.total ?? '0', 10);
+    if (total === 0) return;
+
+    function update() {
+      if (!el) return;
+      const pct = getOverallProgress(total);
+      const textEl = document.getElementById('nav-progress-text');
+      const tipEl = el.querySelector('.nav-progress-tip') as HTMLElement | null;
+      if (pct >= 100) {
+        if (textEl) textEl.textContent = '🎓 证书已解锁';
+        el.classList.add('nav-progress--unlocked');
+        if (tipEl) tipEl.textContent = '点击领取你的学习证书';
+      } else {
+        if (textEl) textEl.textContent = `总进度：${pct}%`;
+        el.classList.remove('nav-progress--unlocked');
+        if (tipEl) tipEl.textContent = '100% 后可获得证书';
+      }
+    }
+
+    update();
+    window.addEventListener('progress-updated', update);
+  })();
 </script>
 
 <style>
@@ -119,9 +153,65 @@ const currentPath = Astro.url.pathname;
   }
 
   .nav-progress {
+    position: relative;
     font-size: 0.8125rem;
     color: var(--color-text-muted);
     white-space: nowrap;
     flex-shrink: 0;
+    text-decoration: none;
+    padding: 0.25rem 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: transparent;
+    transition: color 0.15s, border-color 0.15s, background 0.15s, transform 0.1s, box-shadow 0.1s;
+  }
+
+  .nav-progress:hover {
+    color: var(--color-text);
+    border-color: rgba(206, 65, 43, 0.4);
+    background: rgba(206, 65, 43, 0.06);
+    text-decoration: none;
+  }
+
+  .nav-progress:active {
+    transform: scale(0.96);
+    background: rgba(206, 65, 43, 0.1);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+
+  /* 100% 解锁状态 */
+  .nav-progress--unlocked {
+    color: var(--color-accent);
+    font-weight: 600;
+    border-color: rgba(206, 65, 43, 0.5);
+    background: rgba(206, 65, 43, 0.08);
+  }
+
+  .nav-progress--unlocked:hover {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+    background: rgba(206, 65, 43, 0.14);
+  }
+
+  .nav-progress-tip {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    padding: 0.3rem 0.625rem;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity 0.15s, transform 0.15s;
+  }
+
+  .nav-progress:hover .nav-progress-tip {
+    opacity: 1;
+    transform: translateY(0);
   }
 </style>

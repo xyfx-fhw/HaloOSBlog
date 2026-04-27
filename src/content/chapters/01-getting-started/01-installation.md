@@ -6,7 +6,9 @@ estimatedTime: 15
 keywords: ["安装", "rustup", "环境配置", "工具链"]
 ---
 
-## Rustup 简介
+# Rustup 简介
+
+## 什么是 Rustup
 
 `rustup` 是 Rust 官方的工具链版本管理器，负责：
 
@@ -14,19 +16,37 @@ keywords: ["安装", "rustup", "环境配置", "工具链"]
 - 管理多个 Rust 版本（stable、beta、nightly）
 - 安装标准库和工具组件
 
-## 安装步骤
+## 为什么用 Rustup
 
-**macOS / Linux：** 在终端中运行：
+与直接安装系统包相比，`rustup` 允许你随时切换 Rust 版本，并保持工具链与官方同步更新。
+
+# 安装步骤
+
+## macOS / Linux
+
+在终端中运行：
 
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
-安装程序会引导你完成安装，选择默认选项（按回车）即可。
+安装程序会引导你完成安装，选择默认选项（按回车）即可。安装完成后，**重新打开终端**或运行以下命令使环境变量生效：
 
-**Windows：** 访问 [rustup.rs](https://rustup.rs) 下载 `rustup-init.exe` 并运行。安装完成后打开新终端使环境变量生效。
+```bash
+source "$HOME/.cargo/env"
+```
 
-## 验证安装
+## Windows
+
+访问 [rustup.rs](https://rustup.rs) 下载 `rustup-init.exe` 并运行。安装完成后打开新终端使环境变量生效。
+
+> Windows 用户还需要安装 **Visual Studio C++ 构建工具**，rustup 安装向导会自动提示。
+
+# 验证安装
+
+## 检查版本
+
+安装完成后运行：
 
 ```bash
 rustc --version
@@ -51,3 +71,7 @@ fn main() {
     println!("Hello, Rust!");
 }
 ```
+# 1-----------
+# 24444444444444
+# 3555555555555
+# 46666666666666

@@ -4,3 +4,4 @@ dist/
 node_modules/.astro/
 .env
 .env.*
+.worktrees/

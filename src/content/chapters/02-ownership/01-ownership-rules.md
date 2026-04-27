@@ -6,7 +6,9 @@ estimatedTime: 20
 keywords: ["所有权规则", "移动", "Clone", "Copy"]
 ---
 
-## 三条基本规则
+# 三条基本规则
+
+## 规则回顾
 
 Rust 中的所有权遵循以下三条规则：
 
@@ -14,7 +16,23 @@ Rust 中的所有权遵循以下三条规则：
 2. 值在任一时刻只能有 **一个** 所有者
 3. 当所有者离开作用域，值将被自动丢弃
 
-## 移动语义
+## 作用域示例
+
+变量 `s` 在 `{` 进入作用域，在 `}` 离开作用域时自动被 drop：
+
+```rust runnable
+fn main() {
+    {
+        let s = String::from("hello");
+        println!("{}", s); // s 有效
+    } // s 在这里被 drop
+    // println!("{}", s); // 错误：s 已离开作用域
+}
+```
+
+# 移动语义
+
+## 什么是移动
 
 当你将一个变量赋值给另一个变量时，所有权会发生 **移动**（move）：
 
@@ -26,6 +44,8 @@ Rust 中的所有权遵循以下三条规则：
 # }
 ```
 
+## 移动后不可再用
+
 尝试在移动后使用 s1 会发生什么？
 
 ```rust runnable expect-error
@@ -36,17 +56,45 @@ Rust 中的所有权遵循以下三条规则：
 # }
 ```
 
-## Copy 类型
+## 深拷贝：Clone
+
+如果需要保留原变量，使用 `.clone()`：
+
+```rust runnable
+# fn main() {
+    let s1 = String::from("hello");
+    let s2 = s1.clone(); // 深拷贝堆上的数据
+    println!("s1 = {}, s2 = {}", s1, s2);
+# }
+```
+
+# Copy 类型
+
+## 什么是 Copy
 
 实现了 `Copy` trait 的类型（如整数、浮点数、bool）在赋值时会**复制**而非移动：
 
-```rust
-let x = 5;
-let y = x; // x 被复制，x 和 y 都有效
-println!("x = {}, y = {}", x, y);
+```rust runnable
+fn main() {
+    let x = 5;
+    let y = x; // x 被复制，x 和 y 都有效
+    println!("x = {}, y = {}", x, y);
+}
 ```
 
-## 函数与所有权
+## 哪些类型实现了 Copy
+
+| 类型 | 示例 |
+|------|------|
+| 整数类型 | `i32`, `u64`, `usize` |
+| 浮点类型 | `f32`, `f64` |
+| 布尔类型 | `bool` |
+| 字符类型 | `char` |
+| 元组（仅含 Copy 类型） | `(i32, f64)` |
+
+# 函数与所有权
+
+## 传参时的所有权转移
 
 将值传给函数时，所有权同样会发生移动或复制，规则与赋值完全相同：
 
@@ -67,5 +115,21 @@ fn takes_ownership(some_string: String) {
 
 fn makes_copy(some_integer: i32) {
     println!("{}", some_integer);
+}
+```
+
+## 返回值与所有权
+
+函数也可以通过返回值将所有权转移出来：
+
+```rust runnable
+fn main() {
+    let s1 = gives_ownership();       // 所有权从函数移入 s1
+    println!("{}", s1);
+}
+
+fn gives_ownership() -> String {
+    let s = String::from("yours");
+    s  // 所有权移出函数
 }
 ```
