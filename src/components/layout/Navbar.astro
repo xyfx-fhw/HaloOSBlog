@@ -29,7 +29,7 @@ const currentPath = Astro.url.pathname;
         教程
       </a>
     </nav>
-    <div class="nav-progress" id="nav-progress" data-total={totalArticles}>⏱ 0%</div>
+    <a href="/certificate" class="nav-progress" id="nav-progress" data-total={totalArticles} title="查看学习证书">⏱ 0%</a>
   </div>
 </header>
 
@@ -144,5 +144,12 @@ const currentPath = Astro.url.pathname;
     color: var(--color-text-muted);
     white-space: nowrap;
     flex-shrink: 0;
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+
+  .nav-progress:hover {
+    color: var(--color-accent);
+    text-decoration: none;
   }
 </style>
