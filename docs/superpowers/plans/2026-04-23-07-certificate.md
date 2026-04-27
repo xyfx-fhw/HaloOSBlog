@@ -1,6 +1,8 @@
 # 子计划 7：学习证书系统（jsPDF）实现计划
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **状态：✅ 已完结（2026-04-27）**
+>
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 >
 > ⚠️ **注意：** 此文件为范围定义版本，执行前需补充每个 Task 的完整代码步骤。
 
@@ -86,9 +88,9 @@ if (progress < 90) {
 
 ## 验收标准
 
-- [ ] 进度 < 90% 时访问 `/certificate`，显示"进度不足"提示
-- [ ] 进度 ≥ 90% 时（可在 localStorage 中手动设置测试），显示姓名填写表单
-- [ ] 填写姓名后显示证书卡片，样式与全站深色风格一致
-- [ ] 点击"下载 PDF"，生成浅色背景 PDF 并自动下载
-- [ ] `/progress` 页在高进度时显示"领取证书"按钮
-- [ ] `npx astro build` 0 errors
+- [x] 进度 < 90% 时访问 `/certificate`，显示"进度不足"提示
+- [x] 进度 ≥ 90% 时（可在 localStorage 中手动设置测试），显示姓名填写表单
+- [x] 填写姓名后显示证书卡片，样式与全站深色风格一致
+- [x] 点击"下载 PDF"，生成浅色背景 PDF 并自动下载
+- [x] `/progress` 页在高进度时显示"领取证书"按钮
+- [x] `npx astro build` 0 errors
