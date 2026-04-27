@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../components/layout/BaseLayout.astro';
 import ConfirmDialog from '../components/ui/ConfirmDialog.astro';
+import AuthorSection from '../components/home/AuthorSection.astro';
 import { getCollection } from 'astro:content';
 import { buildNavTree } from '../lib/content';
 
@@ -45,7 +46,6 @@ const totalArticles = navTree.reduce((sum, ch) => sum + 1 + ch.articles.length, 
       <div class="hero-actions">
         <a href={firstChapterHref} class="btn-primary" id="start-btn">开始学习 →</a>
       </div>
-      <p class="hero-author">作者：雪云飞星</p>
     </div>
   </section>
 
@@ -143,6 +143,8 @@ const totalArticles = navTree.reduce((sum, ch) => sum + 1 + ch.articles.length, 
       })}
     </div>
   </section>
+
+  <AuthorSection />
 </BaseLayout>
 
 <style>
@@ -252,13 +254,6 @@ const totalArticles = navTree.reduce((sum, ch) => sum + 1 + ch.articles.length, 
     gap: 1rem;
     justify-content: center;
     flex-wrap: wrap;
-  }
-
-  .hero-author {
-    margin-top: 1rem;
-    font-size: 0.8125rem;
-    color: var(--color-text-muted);
-    opacity: 0.55;
   }
 
   /* 课程大纲 */
