@@ -1,31 +1,538 @@
 ---
 import BaseLayout from '../components/layout/BaseLayout.astro';
+import { buildNavTree, getFlatArticleList } from '../lib/content';
+
+const navTree = await buildNavTree();
+const flatList = await getFlatArticleList(navTree);
+const totalArticles = flatList.length;
 ---
 
 <BaseLayout title="学习证书">
-  <div class="placeholder-page">
-    <h1>学习证书</h1>
-    <p>此功能将在子计划 7（证书系统）中实现。完成 90% 课程后可在此领取证书。</p>
-    <a href="/progress" class="btn-secondary">← 查看学习进度</a>
+  <div class="cert-page">
+
+    <!-- 状态一：进度不足 90% -->
+    <div class="state state-locked" style="display:none">
+      <div class="lock-icon">🔒</div>
+      <h1>证书尚未解锁</h1>
+      <p class="desc">
+        你当前完成了 <strong class="pct-text">0%</strong>，完成 <strong>90%</strong> 的课程内容后可领取证书。
+      </p>
+      <div class="progress-wrap">
+        <div class="progress-track">
+          <div class="progress-fill" style="width:0%"></div>
+        </div>
+        <span class="progress-label pct-text">0%</span>
+      </div>
+      <a href="/progress" class="btn-secondary">← 继续学习</a>
+    </div>
+
+    <!-- 状态二：填写姓名 -->
+    <div class="state state-name-form" style="display:none">
+      <div class="congrats-icon">🎉</div>
+      <h1>恭喜完成学习！</h1>
+      <p class="desc">请输入你的姓名，将显示在证书上：</p>
+      <form class="name-form" id="nameForm">
+        <input
+          type="text"
+          id="nameInput"
+          class="name-input"
+          placeholder="你的姓名"
+          maxlength="40"
+          autocomplete="name"
+        />
+        <button type="submit" class="btn-primary">领取证书</button>
+      </form>
+      <p class="form-error" id="formError" style="display:none">请输入有效的姓名。</p>
+    </div>
+
+    <!-- 状态三：展示证书 -->
+    <div class="state state-certificate" style="display:none">
+      <div class="cert-card" id="certCard">
+        <!-- 顶部装饰线 -->
+        <div class="cert-top-bar"></div>
+
+        <div class="cert-inner">
+          <!-- 标题区 -->
+          <div class="cert-header">
+            <div class="cert-title">RUST 互动教程</div>
+            <div class="cert-subtitle">学习证书</div>
+          </div>
+
+          <hr class="cert-divider" />
+
+          <!-- 正文 -->
+          <div class="cert-body">
+            <p class="cert-label">兹证明</p>
+            <p class="cert-name" id="certName">——</p>
+            <p class="cert-completion">
+              已完成本课程 <span class="cert-pct" id="certPct">0%</span> 的学习内容
+            </p>
+            <p class="cert-date" id="certDate">——</p>
+          </div>
+
+          <!-- 印章 -->
+          <div class="cert-stamp-row">
+            <div class="cert-stamp">
+              <span>✓</span>
+              <span>认证</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 操作按钮 -->
+      <div class="cert-actions">
+        <button class="btn-primary" id="downloadBtn">下载 PDF</button>
+        <button class="btn-secondary" id="renameBtn">重新填写姓名</button>
+      </div>
+    </div>
+
   </div>
 </BaseLayout>
 
+<script define:vars={{ totalArticles }} is:inline>
+  // ── 内联进度 localStorage 逻辑 ─────────────────────────
+  const STORAGE_KEY = 'rust-tutorial-progress';
+
+  function loadStore() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    } catch {
+      return {};
+    }
+  }
+
+  function getProgress(total) {
+    if (total === 0) return 0;
+    const store = loadStore();
+    const articles = store.articles || {};
+    let weight = 0;
+    for (const ap of Object.values(articles)) {
+      const vals = Object.values(ap.sections || {});
+      if (vals.length > 0) {
+        weight += vals.filter(Boolean).length / vals.length;
+      } else if (ap.status === 'completed') {
+        weight += 1;
+      }
+    }
+    return Math.round(weight / total * 100);
+  }
+
+  function getCert() {
+    return loadStore().certificate || null;
+  }
+
+  function saveName(name) {
+    const store = loadStore();
+    store.certificate = { name, earnedAt: new Date().toISOString() };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+  }
+
+  // ── 格式化日期 ─────────────────────────────────────────
+  function formatDate(isoStr) {
+    const d = new Date(isoStr);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}年${m}月${day}日`;
+  }
+
+  // ── 状态机：决定显示哪个区块 ──────────────────────────
+  function render() {
+    const progress = getProgress(totalArticles);
+    const cert = getCert();
+
+    // 隐藏全部
+    document.querySelectorAll('.state').forEach(el => {
+      el.style.display = 'none';
+    });
+
+    if (progress < 90) {
+      // 状态一
+      const el = document.querySelector('.state-locked');
+      el.style.display = 'block';
+      el.querySelectorAll('.pct-text').forEach(span => {
+        span.textContent = progress + '%';
+      });
+      el.querySelector('.progress-fill').style.width = progress + '%';
+    } else {
+      if (!cert || !cert.name) {
+        // 状态二
+        document.querySelector('.state-name-form').style.display = 'block';
+      } else {
+        // 状态三
+        const el = document.querySelector('.state-certificate');
+        el.style.display = 'block';
+        document.getElementById('certName').textContent = cert.name;
+        document.getElementById('certPct').textContent = progress + '%';
+        document.getElementById('certDate').textContent =
+          cert.earnedAt ? formatDate(cert.earnedAt) : '——';
+      }
+    }
+  }
+
+  // ── 表单提交 ───────────────────────────────────────────
+  document.getElementById('nameForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const input = document.getElementById('nameInput');
+    const name = input.value.trim();
+    const errEl = document.getElementById('formError');
+    if (!name) {
+      errEl.style.display = 'block';
+      input.focus();
+      return;
+    }
+    errEl.style.display = 'none';
+    saveName(name);
+    render();
+  });
+
+  // 隐藏错误提示当用户开始输入
+  document.getElementById('nameInput').addEventListener('input', function() {
+    document.getElementById('formError').style.display = 'none';
+  });
+
+  // ── 重新填写姓名 ───────────────────────────────────────
+  document.getElementById('renameBtn').addEventListener('click', function() {
+    saveName('');
+    document.getElementById('nameInput').value = '';
+    render();
+  });
+
+  // ── 下载 PDF ───────────────────────────────────────────
+  document.getElementById('downloadBtn').addEventListener('click', async function() {
+    const btn = this;
+    btn.disabled = true;
+    btn.textContent = '生成中…';
+
+    try {
+      // 动态加载 jsPDF
+      const { jsPDF } = await import('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/+esm');
+      const cert = getCert();
+      const progress = getProgress(totalArticles);
+
+      const doc = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      const W = 297;
+      const H = 210;
+
+      // 背景色
+      doc.setFillColor(17, 17, 20);
+      doc.rect(0, 0, W, H, 'F');
+
+      // 顶部橙色装饰条
+      doc.setFillColor(206, 65, 43);
+      doc.rect(0, 0, W, 6, 'F');
+
+      // 橙色边框
+      doc.setDrawColor(206, 65, 43);
+      doc.setLineWidth(1);
+      doc.rect(10, 10, W - 20, H - 20, 'S');
+
+      // 内部次级边框
+      doc.setDrawColor(42, 42, 47);
+      doc.setLineWidth(0.3);
+      doc.rect(14, 14, W - 28, H - 28, 'S');
+
+      // 标题
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(28);
+      doc.setTextColor(206, 65, 43);
+      doc.text('RUST 互动教程', W / 2, 45, { align: 'center' });
+
+      doc.setFontSize(16);
+      doc.setTextColor(232, 232, 232);
+      doc.text('学习证书', W / 2, 58, { align: 'center' });
+
+      // 分隔线
+      doc.setDrawColor(42, 42, 47);
+      doc.setLineWidth(0.5);
+      doc.line(50, 66, W - 50, 66);
+
+      // 兹证明
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(12);
+      doc.setTextColor(136, 136, 144);
+      doc.text('兹证明', W / 2, 80, { align: 'center' });
+
+      // 姓名
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(32);
+      doc.setTextColor(232, 232, 232);
+      const nameText = cert?.name || '';
+      doc.text(nameText, W / 2, 100, { align: 'center' });
+
+      // 完成说明
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(12);
+      doc.setTextColor(136, 136, 144);
+      doc.text(
+        '已完成本课程 ' + progress + '% 的学习内容',
+        W / 2, 115, { align: 'center' }
+      );
+
+      // 日期
+      const dateStr = cert?.earnedAt ? formatDate(cert.earnedAt) : '';
+      doc.setFontSize(11);
+      doc.setTextColor(136, 136, 144);
+      doc.text(dateStr, W / 2, 128, { align: 'center' });
+
+      // 印章圆圈
+      doc.setDrawColor(206, 65, 43);
+      doc.setLineWidth(1.5);
+      doc.circle(W / 2, 158, 18, 'S');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(206, 65, 43);
+      doc.text('✓ 认证', W / 2, 162, { align: 'center' });
+
+      doc.save('rust-tutorial-certificate.pdf');
+    } catch (err) {
+      console.error('PDF 生成失败：', err);
+      alert('PDF 生成失败，请稍后重试。');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '下载 PDF';
+    }
+  });
+
+  // ── 初始渲染 ───────────────────────────────────────────
+  render();
+</script>
+
 <style>
-  .placeholder-page {
-    max-width: var(--content-max-width);
-    margin: 5rem auto;
-    padding: 0 1.5rem;
+  /* ── 页面容器 ───────────────────────────────────────── */
+  .cert-page {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 6rem 1.5rem 4rem;
+  }
+
+  /* ── 三个状态块的公共样式 ──────────────────────────── */
+  .state {
     text-align: center;
   }
 
-  .placeholder-page h1 {
-    font-size: 1.75rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
+  /* ── 状态一：锁定 ─────────────────────────────────── */
+  .lock-icon,
+  .congrats-icon {
+    font-size: 3rem;
+    margin-bottom: 1.25rem;
+    line-height: 1;
   }
 
-  .placeholder-page p {
+  .state-locked h1,
+  .state-name-form h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+  }
+
+  .desc {
     color: var(--color-text-muted);
+    margin-bottom: 1.75rem;
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .desc strong {
+    color: var(--color-text);
+  }
+
+  /* 进度条 */
+  .progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
     margin-bottom: 2rem;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 3px;
+    background: var(--color-border);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--color-accent);
+    border-radius: 999px;
+    transition: width 0.4s ease;
+  }
+
+  .progress-label {
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+    min-width: 2.5rem;
+    text-align: right;
+  }
+
+  /* ── 状态二：姓名表单 ─────────────────────────────── */
+  .name-form {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+  }
+
+  .name-input {
+    padding: 0.625rem 1rem;
+    background: var(--color-surface);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    font-size: 0.9375rem;
+    font-family: var(--font-body);
+    min-width: 200px;
+    flex: 1 1 200px;
+    max-width: 320px;
+    transition: border-color 0.15s;
+  }
+
+  .name-input:focus {
+    outline: none;
+    border-color: var(--color-accent);
+  }
+
+  .name-input::placeholder {
+    color: var(--color-text-muted);
+  }
+
+  .form-error {
+    color: var(--color-error);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+  }
+
+  /* ── 状态三：证书卡片 ─────────────────────────────── */
+  .state-certificate {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.75rem;
+  }
+
+  .cert-card {
+    width: 100%;
+    background: var(--color-surface);
+    border: 2px solid var(--color-accent);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow:
+      0 0 40px rgba(206, 65, 43, 0.12),
+      0 8px 32px rgba(0, 0, 0, 0.6);
+  }
+
+  .cert-top-bar {
+    height: 5px;
+    background: var(--color-accent);
+  }
+
+  .cert-inner {
+    padding: 3rem 2.5rem;
+  }
+
+  /* 证书标题 */
+  .cert-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .cert-title {
+    font-size: 1.625rem;
+    font-weight: 700;
+    color: var(--color-accent);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 0.375rem;
+  }
+
+  .cert-subtitle {
+    font-size: 1rem;
+    color: var(--color-text-muted);
+    letter-spacing: 0.06em;
+  }
+
+  .cert-divider {
+    border: none;
+    border-top: 1px solid var(--color-border);
+    margin: 0 0 1.75rem;
+  }
+
+  /* 证书正文 */
+  .cert-body {
+    margin-bottom: 2rem;
+  }
+
+  .cert-label {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.04em;
+  }
+
+  .cert-name {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 0.75rem;
+    word-break: break-word;
+  }
+
+  .cert-completion {
+    font-size: 0.9375rem;
+    color: var(--color-text-muted);
+    margin-bottom: 0.5rem;
+  }
+
+  .cert-pct {
+    color: var(--color-accent);
+    font-weight: 600;
+  }
+
+  .cert-date {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+  }
+
+  /* 印章 */
+  .cert-stamp-row {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .cert-stamp {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 2px solid var(--color-accent);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    color: var(--color-accent);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    box-shadow: 0 0 12px rgba(206, 65, 43, 0.25);
+  }
+
+  .cert-stamp span:first-child {
+    font-size: 1.125rem;
+  }
+
+  /* 操作按钮行 */
+  .cert-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 </style>
