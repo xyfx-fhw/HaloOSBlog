@@ -26,9 +26,10 @@ const currentChapter = navTree.find(
   ch => ch.indexSlug === entry.slug || ch.articles.some(a => a.slug === entry.slug)
 );
 
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const isChapterIndex = currentChapter?.indexSlug === entry.slug;
 const breadcrumb: BreadcrumbItem[] = [
-  { label: '课程', href: '/' },
+  { label: '课程', href: base || '/' },
   ...(currentChapter && !isChapterIndex
     ? [{ label: currentChapter.title, href: currentChapter.href }]
     : []),

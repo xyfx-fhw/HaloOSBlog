@@ -21,7 +21,8 @@ const difficultyColor: Record<string, string> = {
   advanced: 'var(--color-error)',
 };
 
-const firstChapterHref = navTree[0]?.href ?? '/chapters';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const firstChapterHref = navTree[0]?.href ?? `${base}/chapters`;
 const totalArticles = navTree.reduce((sum, ch) => sum + 1 + ch.articles.length, 0);
 ---
 

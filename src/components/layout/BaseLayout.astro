@@ -14,11 +14,11 @@ const {
   description = 'RUST 互动教程 — 零基础系统学习 Rust 语言',
 } = Astro.props;
 
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const navTree = await buildNavTree();
-const firstChapterHref = navTree[0]?.href ?? '/chapters';
+const firstChapterHref = navTree[0]?.href ?? `${base}/chapters`;
 const flatList = await getFlatArticleList(navTree);
 const totalArticles = flatList.length;
-const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
 <!doctype html>
