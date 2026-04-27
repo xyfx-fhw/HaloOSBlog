@@ -4,32 +4,33 @@ interface Props {
   totalArticles?: number;
 }
 
-const { firstChapterHref = '/chapters', totalArticles = 0 } = Astro.props;
+const { firstChapterHref = `${import.meta.env.BASE_URL}chapters`, totalArticles = 0 } = Astro.props;
 const currentPath = Astro.url.pathname;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
 <header class="navbar">
   <div class="navbar-inner">
-    <a href="/" class="logo">
+    <a href={import.meta.env.BASE_URL} class="logo">
       <span class="logo-rust">RUST</span> 互动教程
     </a>
     <nav class="nav-links">
       <a
-        href="/"
-        class:list={['nav-link', { active: currentPath === '/' }]}
-        aria-current={currentPath === '/' ? 'page' : undefined}
+        href={import.meta.env.BASE_URL}
+        class:list={['nav-link', { active: currentPath === base + '/' || currentPath === base }]}
+        aria-current={(currentPath === base + '/' || currentPath === base) ? 'page' : undefined}
       >
         首页
       </a>
       <a
         href={firstChapterHref}
         id="tutorial-nav-link"
-        class:list={['nav-link', { active: currentPath.startsWith('/chapters') }]}
+        class:list={['nav-link', { active: currentPath.startsWith(base + '/chapters') }]}
       >
         教程
       </a>
     </nav>
-    <a href="/certificate" class="nav-progress" id="nav-progress" data-total={totalArticles}>
+    <a href={`${base}/certificate`} class="nav-progress" id="nav-progress" data-total={totalArticles}>
       <span id="nav-progress-text">总进度：0%</span>
       <span class="nav-progress-tip">100% 后可获得证书</span>
     </a>

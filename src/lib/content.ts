@@ -20,6 +20,8 @@ export interface BreadcrumbItem {
   href?: string;
 }
 
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
 export async function buildNavTree(): Promise<NavChapter[]> {
   const allEntries = await getCollection('chapters');
   const chapterMap = new Map<string, CollectionEntry<'chapters'>[]>();
@@ -53,11 +55,11 @@ export async function buildNavTree(): Promise<NavChapter[]> {
       key,
       title: indexEntry?.data.title ?? key,
       indexSlug: indexEntry?.slug ?? `${key}/00-index`,
-      href: `/chapters/${indexEntry?.slug ?? key}`,
+      href: `${base}/chapters/${indexEntry?.slug ?? key}`,
       articles: childEntries.map(e => ({
         slug: e.slug,
         title: e.data.title,
-        href: `/chapters/${e.slug}`,
+        href: `${base}/chapters/${e.slug}`,
       })),
       chapterNumber,
     };
