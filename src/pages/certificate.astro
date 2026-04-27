@@ -124,7 +124,11 @@ const totalArticles = flatList.length;
 
   function saveName(name) {
     const store = loadStore();
-    store.certificate = { name, earnedAt: new Date().toISOString() };
+    const existing = store.certificate;
+    store.certificate = {
+      name,
+      earnedAt: (existing && existing.earnedAt) ? existing.earnedAt : new Date().toISOString(),
+    };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
   }
 
@@ -211,86 +215,86 @@ const totalArticles = flatList.length;
       const cert = getCert();
       const progress = getProgress(totalArticles);
 
+      // A4 竖版：210×297mm
       const doc = new jsPDF({
-        orientation: 'landscape',
+        orientation: 'portrait',
         unit: 'mm',
         format: 'a4',
       });
 
-      const W = 297;
-      const H = 210;
+      const W = 210;
+      const H = 297;
 
-      // 背景色
-      doc.setFillColor(17, 17, 20);
+      // 白色背景
+      doc.setFillColor(255, 255, 255);
       doc.rect(0, 0, W, H, 'F');
 
-      // 顶部橙色装饰条
+      // 顶部橙色横条
       doc.setFillColor(206, 65, 43);
-      doc.rect(0, 0, W, 6, 'F');
-
-      // 橙色边框
-      doc.setDrawColor(206, 65, 43);
-      doc.setLineWidth(1);
-      doc.rect(10, 10, W - 20, H - 20, 'S');
-
-      // 内部次级边框
-      doc.setDrawColor(42, 42, 47);
-      doc.setLineWidth(0.3);
-      doc.rect(14, 14, W - 28, H - 28, 'S');
+      doc.rect(0, 0, W, 8, 'F');
 
       // 标题
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(28);
+      doc.setFontSize(22);
       doc.setTextColor(206, 65, 43);
-      doc.text('RUST 互动教程', W / 2, 45, { align: 'center' });
+      doc.text('RUST Interactive Tutorial', W / 2, 40, { align: 'center' });
 
-      doc.setFontSize(16);
-      doc.setTextColor(232, 232, 232);
-      doc.text('学习证书', W / 2, 58, { align: 'center' });
+      doc.setFontSize(14);
+      doc.setTextColor(30, 30, 30);
+      doc.text('Certificate of Completion', W / 2, 52, { align: 'center' });
 
-      // 分隔线
-      doc.setDrawColor(42, 42, 47);
-      doc.setLineWidth(0.5);
-      doc.line(50, 66, W - 50, 66);
-
-      // 兹证明
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(12);
-      doc.setTextColor(136, 136, 144);
-      doc.text('兹证明', W / 2, 80, { align: 'center' });
-
-      // 姓名
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(32);
-      doc.setTextColor(232, 232, 232);
-      const nameText = cert?.name || '';
-      doc.text(nameText, W / 2, 100, { align: 'center' });
-
-      // 完成说明
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(12);
-      doc.setTextColor(136, 136, 144);
-      doc.text(
-        '已完成本课程 ' + progress + '% 的学习内容',
-        W / 2, 115, { align: 'center' }
-      );
-
-      // 日期
-      const dateStr = cert?.earnedAt ? formatDate(cert.earnedAt) : '';
-      doc.setFontSize(11);
-      doc.setTextColor(136, 136, 144);
-      doc.text(dateStr, W / 2, 128, { align: 'center' });
-
-      // 印章圆圈
+      // 橙色分隔线
       doc.setDrawColor(206, 65, 43);
-      doc.setLineWidth(1.5);
-      doc.circle(W / 2, 158, 18, 'S');
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(11);
-      doc.setTextColor(206, 65, 43);
-      doc.text('✓ 认证', W / 2, 162, { align: 'center' });
+      doc.setLineWidth(0.8);
+      doc.line(30, 60, W - 30, 60);
 
-      doc.save('rust-tutorial-certificate.pdf');
+      // "This certifies that"
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(11);
+      doc.setTextColor(30, 30, 30);
+      doc.text('This certifies that', W / 2, 80, { align: 'center' });
+
+      // 用户姓名（保留原样，可能含中文）
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(20);
+      doc.setTextColor(30, 30, 30);
+      const nameText = cert?.name || '';
+      doc.text(nameText, W / 2, 96, { align: 'center' });
+
+      // "has successfully completed"
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(11);
+      doc.setTextColor(30, 30, 30);
+      doc.text('has successfully completed', W / 2, 112, { align: 'center' });
+
+      // 完成百分比
+      doc.setFontSize(13);
+      doc.setTextColor(206, 65, 43);
+      doc.text(progress + '% of the course content', W / 2, 124, { align: 'center' });
+
+      // 完成日期（格式：YYYY-MM-DD）
+      const dateIso = cert?.earnedAt ? cert.earnedAt.slice(0, 10) : '';
+      doc.setFontSize(10);
+      doc.setTextColor(30, 30, 30);
+      doc.text('Completed on: ' + dateIso, W / 2, 150, { align: 'center' });
+
+      // 橙色圆形印章
+      doc.setDrawColor(206, 65, 43);
+      doc.setFillColor(255, 255, 255);
+      doc.setLineWidth(1.5);
+      doc.circle(W / 2, 200, 20, 'FD');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(206, 65, 43);
+      doc.text('CERTIFIED', W / 2, 204, { align: 'center' });
+
+      // 底部橙色横条
+      doc.setFillColor(206, 65, 43);
+      doc.rect(0, H - 6, W, 6, 'F');
+
+      // 保存文件名含姓名
+      const safeName = (cert?.name || 'unnamed').replace(/\s+/g, '-');
+      doc.save('rust-tutorial-certificate-' + safeName + '.pdf');
     } catch (err) {
       console.error('PDF 生成失败：', err);
       alert('PDF 生成失败，请稍后重试。');
