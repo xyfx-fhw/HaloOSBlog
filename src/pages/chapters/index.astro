@@ -1,4 +1,4 @@
 ---
-// 课程目录已合并至首页
-return Astro.redirect('/#outline', 301);
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+return Astro.redirect(`${base}/#outline`, 301);
 ---
