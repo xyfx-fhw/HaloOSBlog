@@ -2,6 +2,9 @@
 import BaseLayout from '../components/layout/BaseLayout.astro';
 import { buildNavTree, getFlatArticleList } from '../lib/content';
 
+// 开关：true = 正常开放证书；false = 课程更新中，暂不开放
+const CERTIFICATE_ENABLED = false;
+
 const navTree = await buildNavTree();
 const flatList = await getFlatArticleList(navTree);
 const totalArticles = flatList.length;
@@ -10,9 +13,11 @@ const totalArticles = flatList.length;
 <BaseLayout title="学习证书">
   <div class="cert-page">
 
-    <!-- 状态一：进度不足 90% -->
-    <div class="state state-locked" style="display:none">
-      <div class="lock-icon">🔒</div>
+    {CERTIFICATE_ENABLED ? (
+      <Fragment>
+        <!-- 状态一：进度不足 -->
+        <div class="state state-locked" style="display:none">
+          <div class="lock-icon">🔒</div>
       <h1>证书尚未解锁</h1>
       <p class="desc">
         你当前完成了 <strong class="pct-text">0%</strong>，完成 <strong>100%</strong> 的课程内容后可领取证书。
@@ -89,6 +94,19 @@ const totalArticles = flatList.length;
         <button class="btn-secondary" id="renameBtn">重新填写姓名</button>
       </div>
     </div>
+    </Fragment>
+    ) : (
+    <!-- 证书功能未开放 -->
+    <div class="state state-pending">
+      <div class="pending-icon">🔜</div>
+      <h1>证书功能即将开放</h1>
+      <p class="desc">
+        课程内容持续更新完善中，待所有章节发布后即可开放证书领取。<br />
+        请保持关注，感谢你的耐心等待！
+      </p>
+      <a href={`${import.meta.env.BASE_URL.replace(/\/$/, '')}/chapters`} class="btn-primary">继续学习 →</a>
+    </div>
+    )}
 
   </div>
 </BaseLayout>
@@ -504,5 +522,23 @@ const totalArticles = flatList.length;
     display: flex;
     justify-content: center;
     margin-top: 1rem;
+  }
+
+  /* 证书未开放状态 */
+  .state-pending {
+    text-align: center;
+    padding-top: 2rem;
+  }
+
+  .pending-icon {
+    font-size: 3rem;
+    margin-bottom: 1.25rem;
+    line-height: 1;
+  }
+
+  .state-pending h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
   }
 </style>
