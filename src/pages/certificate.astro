@@ -15,7 +15,7 @@ const totalArticles = flatList.length;
       <div class="lock-icon">🔒</div>
       <h1>证书尚未解锁</h1>
       <p class="desc">
-        你当前完成了 <strong class="pct-text">0%</strong>，完成 <strong>90%</strong> 的课程内容后可领取证书。
+        你当前完成了 <strong class="pct-text">0%</strong>，完成 <strong>100%</strong> 的课程内容后可领取证书。
       </p>
       <div class="progress-wrap">
         <div class="progress-track">
@@ -23,7 +23,7 @@ const totalArticles = flatList.length;
         </div>
         <span class="progress-label pct-text">0%</span>
       </div>
-      <a href="/progress" class="btn-secondary">← 继续学习</a>
+      <a href="/chapters" class="btn-secondary">← 继续学习</a>
     </div>
 
     <!-- 状态二：填写姓名 -->
@@ -48,33 +48,37 @@ const totalArticles = flatList.length;
     <!-- 状态三：展示证书 -->
     <div class="state state-certificate" style="display:none">
       <div class="cert-card" id="certCard">
-        <!-- 顶部装饰线 -->
         <div class="cert-top-bar"></div>
-
         <div class="cert-inner">
-          <!-- 标题区 -->
           <div class="cert-header">
             <div class="cert-title">RUST 互动教程</div>
-            <div class="cert-subtitle">学习证书</div>
+            <div class="cert-subtitle">学 习 证 书</div>
           </div>
 
-          <hr class="cert-divider" />
+          <div class="cert-divider-wrap">
+            <span class="cert-divider-line"></span>
+            <span class="cert-divider-diamond">◆</span>
+            <span class="cert-divider-line"></span>
+          </div>
 
-          <!-- 正文 -->
           <div class="cert-body">
-            <p class="cert-label">兹证明</p>
+            <p class="cert-label">兹 证 明</p>
             <p class="cert-name" id="certName">——</p>
             <p class="cert-completion">
-              已完成本课程 <span class="cert-pct" id="certPct">0%</span> 的学习内容
+              已完成《RUST互动教程》（本课程）<span class="cert-pct" id="certPct">0%</span> 的学习内容，<br>并通过了所有的测验
             </p>
             <p class="cert-date" id="certDate">——</p>
           </div>
 
-          <!-- 印章 -->
-          <div class="cert-stamp-row">
+          <div class="cert-footer-row">
+            <div class="cert-sig">
+              <span class="cert-sig-line"></span>
+              <span class="cert-sig-label">作者 · 雪云飞星</span>
+              <span class="cert-no" id="certNo">No. ——</span>
+            </div>
             <div class="cert-stamp">
-              <span>✓</span>
-              <span>认证</span>
+              <span class="cert-stamp-check">✓</span>
+              <span>认 证</span>
             </div>
           </div>
         </div>
@@ -82,7 +86,6 @@ const totalArticles = flatList.length;
 
       <!-- 操作按钮 -->
       <div class="cert-actions">
-        <button class="btn-primary" id="downloadBtn">下载 PDF</button>
         <button class="btn-secondary" id="renameBtn">重新填写姓名</button>
       </div>
     </div>
@@ -125,11 +128,18 @@ const totalArticles = flatList.length;
   function saveName(name) {
     const store = loadStore();
     const existing = store.certificate;
-    store.certificate = {
-      name,
-      earnedAt: (existing && existing.earnedAt) ? existing.earnedAt : new Date().toISOString(),
-    };
+    const earnedAt = (existing && existing.earnedAt) ? existing.earnedAt : new Date().toISOString();
+    const certNo = (existing && existing.certNo) ? existing.certNo : generateCertNo(earnedAt);
+    store.certificate = { name, earnedAt, certNo };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+  }
+
+  // 从 earnedAt 确定性生成证书编号，改名不影响编号
+  function generateCertNo(earnedAt) {
+    const d = new Date(earnedAt);
+    const ymd = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+    const suffix = String(d.getTime() % 100000).padStart(5, '0');
+    return `RUST-${ymd}-${suffix}`;
   }
 
   // ── 格式化日期 ─────────────────────────────────────────
@@ -151,7 +161,7 @@ const totalArticles = flatList.length;
       el.style.display = 'none';
     });
 
-    if (progress < 90) {
+    if (progress < 100) {
       // 状态一
       const el = document.querySelector('.state-locked');
       el.style.display = 'block';
@@ -171,6 +181,8 @@ const totalArticles = flatList.length;
         document.getElementById('certPct').textContent = progress + '%';
         document.getElementById('certDate').textContent =
           cert.earnedAt ? formatDate(cert.earnedAt) : '——';
+        document.getElementById('certNo').textContent =
+          'No. ' + (cert.certNo || generateCertNo(cert.earnedAt || new Date().toISOString()));
       }
     }
   }
@@ -203,107 +215,6 @@ const totalArticles = flatList.length;
     render();
   });
 
-  // ── 下载 PDF ───────────────────────────────────────────
-  document.getElementById('downloadBtn').addEventListener('click', async function() {
-    const btn = this;
-    btn.disabled = true;
-    btn.textContent = '生成中…';
-
-    try {
-      // 动态加载 jsPDF
-      const { jsPDF } = await import('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/+esm');
-      const cert = getCert();
-      const progress = getProgress(totalArticles);
-
-      // A4 竖版：210×297mm
-      const doc = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-      });
-
-      const W = 210;
-      const H = 297;
-
-      // 白色背景
-      doc.setFillColor(255, 255, 255);
-      doc.rect(0, 0, W, H, 'F');
-
-      // 顶部橙色横条
-      doc.setFillColor(206, 65, 43);
-      doc.rect(0, 0, W, 8, 'F');
-
-      // 标题
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(22);
-      doc.setTextColor(206, 65, 43);
-      doc.text('RUST Interactive Tutorial', W / 2, 40, { align: 'center' });
-
-      doc.setFontSize(14);
-      doc.setTextColor(30, 30, 30);
-      doc.text('Certificate of Completion', W / 2, 52, { align: 'center' });
-
-      // 橙色分隔线
-      doc.setDrawColor(206, 65, 43);
-      doc.setLineWidth(0.8);
-      doc.line(30, 60, W - 30, 60);
-
-      // "This certifies that"
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(11);
-      doc.setTextColor(30, 30, 30);
-      doc.text('This certifies that', W / 2, 80, { align: 'center' });
-
-      // 用户姓名（保留原样，可能含中文）
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(20);
-      doc.setTextColor(30, 30, 30);
-      const nameText = cert?.name || '';
-      doc.text(nameText, W / 2, 96, { align: 'center' });
-
-      // "has successfully completed"
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(11);
-      doc.setTextColor(30, 30, 30);
-      doc.text('has successfully completed', W / 2, 112, { align: 'center' });
-
-      // 完成百分比
-      doc.setFontSize(13);
-      doc.setTextColor(206, 65, 43);
-      doc.text(progress + '% of the course content', W / 2, 124, { align: 'center' });
-
-      // 完成日期（格式：YYYY-MM-DD）
-      const dateIso = cert?.earnedAt ? cert.earnedAt.slice(0, 10) : '';
-      doc.setFontSize(10);
-      doc.setTextColor(30, 30, 30);
-      doc.text('Completed on: ' + dateIso, W / 2, 150, { align: 'center' });
-
-      // 橙色圆形印章
-      doc.setDrawColor(206, 65, 43);
-      doc.setFillColor(255, 255, 255);
-      doc.setLineWidth(1.5);
-      doc.circle(W / 2, 200, 20, 'FD');
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(9);
-      doc.setTextColor(206, 65, 43);
-      doc.text('CERTIFIED', W / 2, 204, { align: 'center' });
-
-      // 底部橙色横条
-      doc.setFillColor(206, 65, 43);
-      doc.rect(0, H - 6, W, 6, 'F');
-
-      // 保存文件名含姓名
-      const safeName = (cert?.name || 'unnamed').replace(/\s+/g, '-');
-      doc.save('rust-tutorial-certificate-' + safeName + '.pdf');
-    } catch (err) {
-      console.error('PDF 生成失败：', err);
-      alert('PDF 生成失败，请稍后重试。');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = '下载 PDF';
-    }
-  });
-
   // ── 初始渲染 ───────────────────────────────────────────
   render();
 </script>
@@ -314,6 +225,7 @@ const totalArticles = flatList.length;
     max-width: 700px;
     margin: 0 auto;
     padding: 6rem 1.5rem 4rem;
+    min-height: calc(100vh - var(--navbar-height) - 80px);
   }
 
   /* ── 三个状态块的公共样式 ──────────────────────────── */
@@ -426,73 +338,92 @@ const totalArticles = flatList.length;
   .cert-card {
     width: 100%;
     background: var(--color-surface);
-    border: 2px solid var(--color-accent);
+    border: 1.5px solid rgba(206, 65, 43, 0.5);
     border-radius: 12px;
     overflow: hidden;
     box-shadow:
-      0 0 40px rgba(206, 65, 43, 0.12),
-      0 8px 32px rgba(0, 0, 0, 0.6);
+      0 0 60px rgba(206, 65, 43, 0.08),
+      0 8px 32px rgba(0, 0, 0, 0.5);
   }
 
   .cert-top-bar {
-    height: 5px;
-    background: var(--color-accent);
+    height: 4px;
+    background: linear-gradient(90deg, var(--color-accent), rgba(206, 65, 43, 0.4));
   }
 
   .cert-inner {
-    padding: 3rem 2.5rem;
+    padding: 3rem 3rem 2.5rem;
+    text-align: center;
   }
 
-  /* 证书标题 */
+  /* 标题区 */
   .cert-header {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.75rem;
   }
 
   .cert-title {
-    font-size: 1.625rem;
+    font-size: 1.375rem;
     font-weight: 700;
     color: var(--color-accent);
-    letter-spacing: 0.04em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    margin-bottom: 0.375rem;
+    margin-bottom: 0.5rem;
   }
 
   .cert-subtitle {
-    font-size: 1rem;
-    color: var(--color-text-muted);
-    letter-spacing: 0.06em;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-text);
+    letter-spacing: 0.25em;
   }
 
-  .cert-divider {
-    border: none;
-    border-top: 1px solid var(--color-border);
-    margin: 0 0 1.75rem;
-  }
-
-  /* 证书正文 */
-  .cert-body {
+  /* 装饰分隔 */
+  .cert-divider-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
     margin-bottom: 2rem;
   }
 
+  .cert-divider-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--color-border), transparent);
+  }
+
+  .cert-divider-diamond {
+    font-size: 0.5rem;
+    color: var(--color-accent);
+    opacity: 0.7;
+    line-height: 1;
+  }
+
+  /* 正文 */
+  .cert-body {
+    margin-bottom: 2.5rem;
+  }
+
   .cert-label {
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     color: var(--color-text-muted);
-    margin-bottom: 0.5rem;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.2em;
+    margin-bottom: 0.875rem;
   }
 
   .cert-name {
-    font-size: 2rem;
+    font-size: 2.25rem;
     font-weight: 700;
     color: var(--color-text);
-    margin-bottom: 0.75rem;
+    margin-bottom: 1.25rem;
+    line-height: 1.2;
     word-break: break-word;
   }
 
   .cert-completion {
     font-size: 0.9375rem;
     color: var(--color-text-muted);
-    margin-bottom: 0.5rem;
+    line-height: 1.8;
+    margin-bottom: 1.25rem;
   }
 
   .cert-pct {
@@ -503,40 +434,75 @@ const totalArticles = flatList.length;
   .cert-date {
     font-size: 0.875rem;
     color: var(--color-text-muted);
+    opacity: 0.7;
+    letter-spacing: 0.04em;
   }
 
-  /* 印章 */
-  .cert-stamp-row {
+  /* 底部：签名 + 印章 */
+  .cert-footer-row {
     display: flex;
-    justify-content: flex-end;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .cert-sig {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.375rem;
+  }
+
+  .cert-sig-line {
+    display: block;
+    width: 100px;
+    height: 1px;
+    background: var(--color-border);
+  }
+
+  .cert-sig-label {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    letter-spacing: 0.06em;
+  }
+
+  .cert-no {
+    font-size: 0.6875rem;
+    color: var(--color-text-muted);
+    opacity: 0.5;
+    font-family: var(--font-mono);
+    letter-spacing: 0.04em;
+    margin-top: 0.125rem;
   }
 
   .cert-stamp {
-    width: 72px;
-    height: 72px;
+    width: 68px;
+    height: 68px;
     border-radius: 50%;
     border: 2px solid var(--color-accent);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
+    gap: 1px;
     color: var(--color-accent);
-    font-size: 0.8125rem;
+    font-size: 0.6875rem;
     font-weight: 700;
-    letter-spacing: 0.04em;
-    box-shadow: 0 0 12px rgba(206, 65, 43, 0.25);
+    letter-spacing: 0.08em;
+    box-shadow: 0 0 16px rgba(206, 65, 43, 0.2);
+    flex-shrink: 0;
   }
 
-  .cert-stamp span:first-child {
-    font-size: 1.125rem;
+  .cert-stamp-check {
+    font-size: 1.25rem;
+    line-height: 1;
   }
 
   /* 操作按钮行 */
   .cert-actions {
     display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
     justify-content: center;
+    margin-top: 1rem;
   }
 </style>
