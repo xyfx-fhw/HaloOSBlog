@@ -67,6 +67,7 @@
         setValue: (v: string) => void;
         dispose: () => void;
         layout: () => void;
+        getContentHeight: () => number;
       };
     };
   }
@@ -85,6 +86,18 @@
     // ── 工具栏 ─────────────────────────────────────────────────────────────
     const toolbar = document.createElement('div');
     toolbar.className = 'code-editor-toolbar';
+
+    // 题型徽章（与 QuizChoice 的单选/多选题徽章视觉对齐）
+    const badgeEl = document.createElement('span');
+    badgeEl.className = 'code-editor-badge';
+    badgeEl.textContent = '编程题';
+    toolbar.appendChild(badgeEl);
+
+    // 历史徽章（latest === 'pass' / 'fail' / null），紧跟题型徽章
+    const historyBadge = document.createElement('span');
+    historyBadge.className = 'ce-history-badge';
+    historyBadge.hidden = true;
+    toolbar.appendChild(historyBadge);
 
     const statusEl = document.createElement('span');
     statusEl.className = 'code-editor-status';
@@ -107,18 +120,12 @@
     copyBtn.textContent = '复制';
     toolbar.appendChild(copyBtn);
 
-    // 历史徽章（latest === 'pass' / 'fail' / null）
-    const historyBadge = document.createElement('span');
-    historyBadge.className = 'ce-history-badge';
-    historyBadge.hidden = true;
-    toolbar.appendChild(historyBadge);
-
     // ── 编辑器挂载容器 ────────────────────────────────────────────────────
     const editorHost = document.createElement('div');
     editorHost.className = 'code-editor-host';
 
-    // 挂载前的占位高度，避免布局抖动（按行数估算，最小 120px）
-    const lineCount = Math.max(starterCode.split('\n').length, 5);
+    // 挂载前的占位高度，避免布局抖动（按行数估算，最少 3 行避免过矮）
+    const lineCount = Math.max(starterCode.split('\n').length, 3);
     editorHost.style.height = `${Math.min(lineCount * 20 + 24, 480)}px`;
 
     // ── 输出区 ─────────────────────────────────────────────────────────────
@@ -170,6 +177,13 @@
       statusEl.className = 'code-editor-status';
       runBtn.disabled = false;
       resetBtn.disabled = false;
+
+      // Monaco 挂载后，按实际内容高度收紧容器，避免末尾出现空白行
+      const contentHeight = editor.getContentHeight();
+      if (contentHeight > 0) {
+        editorHost.style.height = `${Math.min(contentHeight, 480)}px`;
+        editor.layout();
+      }
     } catch (e) {
       statusEl.textContent = '✗ 编辑器加载失败';
       statusEl.className = 'code-editor-status code-editor-status-error';
@@ -185,6 +199,7 @@
         setValue: (v: string) => { ta.value = v; },
         dispose: () => {},
         layout: () => {},
+        getContentHeight: () => 0,
       };
       editor = shim;
       runBtn.disabled = false;
@@ -331,7 +346,7 @@
 
 <style is:global>
   .code-editor {
-    background: var(--color-code-bg);
+    background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: 8px;
     margin: 1.5rem 0;
@@ -453,6 +468,20 @@
     font-size: inherit;
     white-space: pre-wrap;
     word-break: break-word;
+  }
+
+  /* 题型徽章（与 quiz-badge 同款红底红字 pill） */
+  .code-editor .code-editor-badge {
+    flex-shrink: 0;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    color: var(--color-accent);
+    background: rgba(206, 65, 43, 0.1);
+    border: 1px solid rgba(206, 65, 43, 0.3);
+    line-height: 1.4;
+    white-space: nowrap;
   }
 
   /* 历史徽章 */
