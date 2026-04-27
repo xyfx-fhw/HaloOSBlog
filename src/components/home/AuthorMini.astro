@@ -1,0 +1,35 @@
+---
+const AVATAR = '/images/logo.svg';
+const DISPLAY_NAME = '雪云飞星';
+const AUTHOR_TITLE = '汽车嵌入式软件高级架构师';
+---
+
+<div class="author-mini">
+  <img src={AVATAR} alt={DISPLAY_NAME} class="mini-avatar" width="28" height="28" />
+  <span class="mini-text">{DISPLAY_NAME} · {AUTHOR_TITLE}</span>
+</div>
+
+<style>
+  .author-mini {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.875rem 0;
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+    margin: 2rem 0 0;
+  }
+
+  .mini-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .mini-text {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+</style>
