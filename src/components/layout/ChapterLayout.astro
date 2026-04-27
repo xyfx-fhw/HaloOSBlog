@@ -6,7 +6,6 @@ import PageToc from './PageToc.astro';
 import CodeRunner from '../code/CodeRunner.astro';
 import QuizChoice from '../quiz/QuizChoice.astro';
 import CodeEditor from '../code/CodeEditor.astro';
-import AuthorMini from '../home/AuthorMini.astro';
 import type { NavChapter, NavArticle, BreadcrumbItem } from '../../lib/content';
 
 interface Props {
@@ -51,8 +50,6 @@ const {
       <main class="chapter-main">
         <slot />
       </main>
-
-      <AuthorMini />
 
       {(prevArticle || nextArticle) && (
       <nav class="article-nav" aria-label="文章导航">
