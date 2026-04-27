@@ -1,0 +1,93 @@
+---
+const AUTHOR = {
+  displayName: '雪云飞星',
+  realName: '付皓文',
+  title: '汽车嵌入式软件高级架构师',
+  bio: '专注嵌入式系统安全与 Rust 工程实践，这套教程是对 Rust 在工业领域落地的一次尝试。',
+  avatar: '/images/logo.svg',
+};
+---
+
+<section class="author-section">
+  <div class="author-inner">
+    <img src={AUTHOR.avatar} alt={AUTHOR.displayName} class="author-avatar" width="80" height="80" />
+    <div class="author-info">
+      <div class="author-names">
+        <span class="author-display-name">{AUTHOR.displayName}</span>
+        <span class="author-real-name">{AUTHOR.realName}</span>
+      </div>
+      <p class="author-title">{AUTHOR.title}</p>
+      <p class="author-bio">{AUTHOR.bio}</p>
+      <p id="busuanzi_container_site_pv" class="author-pv">
+        本站累计访问 · <span id="busuanzi_value_site_pv"></span> 次
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .author-section {
+    padding: 4rem 1.5rem 3rem;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .author-inner {
+    max-width: 860px;
+    margin: 0 auto;
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+
+  .author-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 1px solid var(--color-border);
+    flex-shrink: 0;
+  }
+
+  .author-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .author-names {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .author-display-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .author-real-name {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+
+  .author-title {
+    font-size: 0.85rem;
+    color: var(--color-accent);
+    margin: 0 0 0.5rem;
+  }
+
+  .author-bio {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    line-height: 1.7;
+    margin: 0 0 0.75rem;
+  }
+
+  .author-pv {
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+    opacity: 0.45;
+    margin: 0;
+    font-family: var(--font-mono);
+  }
+</style>
