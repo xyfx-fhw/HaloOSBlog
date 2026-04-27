@@ -1,5 +1,6 @@
 ---
 const year = new Date().getFullYear();
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
 <footer class="footer">
@@ -9,7 +10,7 @@ const year = new Date().getFullYear();
     </div>
     <div class="footer-center">
       <span class="footer-meta">
-        <img src={`${import.meta.env.BASE_URL}images/logo.svg`} alt="雪云飞星" class="footer-avatar" width="16" height="16" loading="lazy" />
+        <img src={`${base}/images/logo.svg`} alt="雪云飞星" class="footer-avatar" width="16" height="16" loading="lazy" />
         作者：雪云飞星
       </span>
     </div>
