@@ -9,6 +9,12 @@ description: Use when given a URL (usually Rust official docs or The Book) and a
 
 本 skill 专用于 `rust_course_web` Astro 教程项目。文章放在 `src/content/chapters/`，图片放在 `public/diagrams/`，完整语法参考见 `docs/内容编写指南.md`，示例文章在 `docs/examples/chapters/`。
 
+## Markdown 格式约定
+
+- **加粗**：新写内容统一使用 `**bold**`，不使用 `__bold__`。注意：不要去修改已有文章中的 `__bold__`，那是作者有意为之的保留用法。
+- **斜体**：使用 `*italic*`
+- **代码块**：必须标注语言（`rust`、`bash`、`text` 等），不写裸 ` ``` `
+
 ## 流程
 
 **第一件事：询问文件位置（见第零步）。**

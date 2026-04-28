@@ -245,7 +245,7 @@ export function getOverallProgress(totalArticles: number): number {
     }
   }
 
-  return Math.round((completedWeight / totalArticles) * 100);
+  return Math.min(100, Math.round((completedWeight / totalArticles) * 100));
 }
 
 /**

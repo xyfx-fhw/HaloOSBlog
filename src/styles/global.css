@@ -8,6 +8,8 @@
   --color-code-bg: #1A1A1E;
   --color-accent: #CE412B;
   --color-accent-hover: #b8351f;
+  --color-link: #6ba3f5;
+  --color-link-hover: #90bbf8;
   --color-text: #E8E8E8;
   --color-text-muted: #888890;
   --color-border: #2A2A2F;
@@ -53,11 +55,12 @@ body {
 }
 
 a {
-  color: var(--color-accent);
+  color: var(--color-link);
   text-decoration: none;
 }
 
 a:hover {
+  color: var(--color-link-hover);
   text-decoration: underline;
 }
 
@@ -179,10 +182,10 @@ a:hover {
 
 .prose blockquote {
   border-left: 3px solid var(--color-accent);
-  background: rgba(206, 65, 43, 0.06);
+  background: rgba(206, 65, 43, 0.08);
   padding: 0.75rem 1rem 0.75rem 1.25rem;
   border-radius: 0 6px 6px 0;
-  color: var(--color-text-muted);
+  color: #d8dce8;
   margin-bottom: 1.25rem;
   font-style: italic;
 }
@@ -248,9 +251,13 @@ a:hover {
 }
 
 .prose a {
-  color: var(--color-accent);
+  color: var(--color-link);
   text-decoration: underline;
   text-underline-offset: 2px;
+}
+
+.prose a:hover {
+  color: var(--color-link-hover);
 }
 
 /* 通用按钮 */
