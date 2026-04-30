@@ -6,9 +6,9 @@ estimatedTime: 25
 keywords: ["Cargo", "cargo new", "cargo build", "cargo run", "cargo check", "Cargo.toml"]
 ---
 
-用 `rustc` 直接编译文件，对一两个文件的小程序没问题。但真实项目往往有几十个源文件、十几个外部依赖——这时候手动调用 `rustc` 就变成了噩梦。**Cargo** 是 Rust 官方给出的答案，也是你日后每天都会用到的工具。
-
 # Cargo: Rust 的项目管理神器
+
+用 `rustc` 直接编译文件，对一两个文件的小程序没问题。但真实项目往往有几十个源文件、十几个外部依赖——这时候手动调用 `rustc` 就变成了噩梦。**Cargo** 是 Rust 官方给出的答案，也是你日后每天都会用到的工具。
 
 ## 什么是 Cargo？
 
@@ -169,7 +169,8 @@ cargo build --release
 
 | 命令 | 用途 |
 |------|------|
-| `cargo new <name>` | 创建新项目 |
+| `cargo new <name>` | 创建新项目（在当前目录下新建项目目录） |
+| `cargo init` | 将当前目录创建为新项目 |
 | `cargo build` | 编译（开发模式） |
 | `cargo run` | 编译 + 运行（最常用） |
 | `cargo check` | 只检查语法，不生成文件（最快） |
