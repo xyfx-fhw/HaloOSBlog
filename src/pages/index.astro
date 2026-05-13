@@ -175,6 +175,19 @@ const totalArticles = navTree.reduce((sum, ch) => sum + 1 + ch.articles.length, 
     pointer-events: none;
   }
 
+  /* 底部渐变淡出，消除与下方黑色区域的硬断层 */
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 140px;
+    background: linear-gradient(to bottom, transparent, var(--color-bg));
+    pointer-events: none;
+    z-index: 0;
+  }
+
   .orb {
     position: absolute;
     border-radius: 50%;
@@ -202,8 +215,8 @@ const totalArticles = navTree.reduce((sum, ch) => sum + 1 + ch.articles.length, 
   .orb-3 {
     width: 300px;
     height: 240px;
-    background: radial-gradient(circle at 50% 50%, rgba(99, 55, 180, 0.12), transparent 70%);
-    bottom: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(99, 55, 180, 0.10), transparent 70%);
+    bottom: 25%;
     right: 5%;
     animation: orb-drift-3 15s ease-in-out infinite;
   }
