@@ -201,7 +201,7 @@ fn main() {
 | 固定宽度 | `{:>10}` / `{:<10}` / `{:^10}` |
 | 小数位数 | `{:.2}` |
 
-实现自定义类型的 `Display`（控制 `{}` 的输出格式）属于进阶内容，会在[补充内容：格式化输出进阶](/RustCourse/chapters/22-supplements/02-advanced-formatting)中详细讲解。
+实现自定义类型的 `Display`（控制 `{}` 的输出格式）属于进阶内容，会在[补充内容：格式化输出进阶](/RustCourse/chapters/23-supplements/02-advanced-formatting)中详细讲解。
 
 # 练习题
 

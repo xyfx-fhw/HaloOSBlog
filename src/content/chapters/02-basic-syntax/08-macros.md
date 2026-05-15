@@ -1,140 +1,197 @@
 ---
-title: "宏"
-description: "理解 Rust 四种宏的概念与用途，学会用 macro_rules! 编写声明宏，了解三种过程宏的使用场景。"
-difficulty: advanced
-estimatedTime: 40
-keywords: ["macro_rules!", "宏", "声明宏", "过程宏", "derive", "元编程", "TokenStream"]
+title: "声明宏"
+description: "深入理解 Rust 声明宏（macro_rules!）：元变量片段类型、多规则匹配、重复模式、宏的卫生性与作用域导出。"
+difficulty: intermediate
+estimatedTime: 50
+keywords: ["macro_rules!", "声明宏", "元变量", "重复模式", "宏卫生性", "macro_export", "元编程"]
 ---
 
-# 宏与元编程
+# 声明宏
 
-宏（Macro）是 Rust 中一种"为写代码而写代码"的机制，称为**元编程**（metaprogramming）。
+你已经频繁使用过宏了：`println!`、`vec!`、`format!`、`assert!`。是时候看清楚它们背后的机制，并学会编写自己的宏了。
 
 ## 什么是宏
 
-你在前面章节已经使用过宏了：`println!`、`vec!`、`format!`、`assert!`。这些看起来像函数的调用，但名称后跟着感叹号 `!`——这就是宏调用的标志。
+**宏**（Macro）是一种"为写代码而写代码"的机制，称为**元编程**（metaprogramming）。宏在**编译时展开**——编译器遇到宏调用时，先把它展开成普通代码，再编译生成的代码。
+
+宏调用有一个显眼的标志：名称后跟感叹号 `!`。
 
 ```rust runnable
 fn main() {
-    // 这些都是宏调用，注意名称后的感叹号
-    println!("Hello, Macro!");
-
-    let v = vec![1, 2, 3, 4, 5]; // vec! 接受任意数量的参数
-    println!("{:?}", v);
-
-    let s = format!("{} + {} = {}", 1, 2, 1 + 2); // format! 返回 String
-    println!("{}", s);
+    println!("这是宏调用");          // println! 展开为格式化打印代码
+    let v = vec![10, 20, 30];        // vec! 展开为创建 Vec 的代码
+    let s = format!("结果：{}", 42); // format! 展开为构建 String 的代码
+    println!("{:?}  {}", v, s);
 }
 ```
 
-宏在**编译时展开**：编译器看到宏调用时，会把它替换成宏定义的代码，然后才编译生成的代码。这一点和函数完全不同——函数是在**运行时调用**的。
+## 宏与函数的核心区别
 
-Rust 有四种宏：
+宏能做到函数做不到的三件事：
 
-- **声明宏**（`macro_rules!`）：最常见，基于模式匹配生成代码
-- **自定义 derive 宏**：用 `#[derive(...)]` 为结构体/枚举自动生成 trait 实现
-- **类属性宏**：可用于任意项（包括函数）的自定义属性
-- **类函数宏**：看起来像函数调用，但在编译时处理任意 token 序列
-
-## 宏与函数的区别
-
-宏有几个函数做不到的事：
-
-**1. 可变参数数量**——函数必须声明固定参数个数，宏不需要：
+**一、接受可变数量的参数。** 函数签名必须写明参数个数，宏不需要：
 
 ```rust runnable
 fn main() {
-    // println! 可以接受 1 个、2 个、任意多个参数
     println!("一个参数");
-    println!("两个参数：{}", 42);
-    println!("三个参数：{} {} {}", "a", "b", "c");
-    // 普通函数做不到这一点
+    println!("两个：{}", 99);
+    println!("四个：{} {} {}", "a", "b", "c");
+    // 普通函数无法做到参数个数可变
 }
 ```
 
-**2. 编译时展开，可实现 trait**——宏在编译器翻译代码之前展开，因此可以在编译时为类型生成 trait 实现；函数运行在程序执行期间，无法做到这一点。
+**二、在编译时生成 trait 实现。** `#[derive(Debug, Clone)]` 这类宏在编译期为你的类型生成完整的 trait 实现代码，函数在运行时执行，错过了这个时机。
 
-**3. 必须先定义或引入**——调用宏之前必须先定义它，或将其引入作用域；而函数可以在文件任意位置定义：
+**三、必须在调用前定义或引入。** 这与函数不同——函数可以在文件任意位置定义，宏的作用域是**顺序**的：
 
 ```rust runnable expect-error
 fn main() {
-    my_macro!(); // 错误：宏在此处未定义
+    greet!(); // 错误：此处宏尚未定义
 }
 
-macro_rules! my_macro {
-    () => { println!("展开了"); };
-}
-```
-
-正确写法是把宏定义放在调用之前：
-
-```rust runnable
-macro_rules! my_macro {
-    () => { println!("展开了"); };
-}
-
-fn main() {
-    my_macro!();
+macro_rules! greet {
+    () => { println!("你好！"); };
 }
 ```
 
-## 声明宏入门
-
-`macro_rules!` 让你编写基于**模式匹配**的宏：宏接收代码片段，与各个规则的模式比较，用第一个匹配成功的规则的代码替换掉宏调用。
+把宏定义移到调用之前就能正常工作：
 
 ```rust runnable
 macro_rules! greet {
-    // 规则 1：无参数
+    () => { println!("你好！"); };
+}
+
+fn main() {
+    greet!();
+}
+```
+
+## 第一个声明宏
+
+`macro_rules!` 让你编写基于**模式匹配**的宏。语法结构：
+
+```text
+macro_rules! 宏名 {
+    (模式1) => { 展开代码1 };
+    (模式2) => { 展开代码2 };
+}
+```
+
+调用宏时，编译器依次用输入去匹配各规则，使用**第一个匹配成功**的规则展开：
+
+```rust runnable
+macro_rules! say {
+    // 规则 1：空参数
     () => {
         println!("你好，世界！");
     };
-    // 规则 2：有一个表达式参数
-    ($name:expr) => {
-        println!("你好，{}！", $name);
+    // 规则 2：一个表达式
+    ($msg:expr) => {
+        println!("消息：{}", $msg);
+    };
+    // 规则 3：两个表达式
+    ($a:expr, $b:expr) => {
+        println!("{} + {} = {}", $a, $b, $a + $b);
     };
 }
 
 fn main() {
-    greet!();            // 匹配规则 1
-    greet!("Rustacean"); // 匹配规则 2
-    greet!(42);          // 也匹配规则 2，42 是一个表达式
+    say!();           // 匹配规则 1
+    say!("Rust");     // 匹配规则 2
+    say!(10, 20);     // 匹配规则 3
 }
 ```
 
-宏定义的语法：`macro_rules! 宏名 { (模式) => { 替换代码 }; ... }`，多个规则之间用分号分隔。
+## 元变量与片段类型
 
-## 模式语法
+模式中用 `$名称:片段类型` 捕获传入的代码片段，称为**元变量**（metavariable）。片段类型决定能匹配哪种代码：
 
-模式中用**元变量**（metavariable）捕获传入的代码片段，格式为 `$名称:类型`：
-
-| 元变量类型 | 匹配的内容 | 示例 |
-|-----------|-----------|------|
-| `$x:expr` | 任意表达式 | `1+2`、`"hello"`、`foo()` |
-| `$t:ty` | 任意类型 | `i32`、`String`、`Vec<u8>` |
-| `$i:ident` | 标识符（变量名/函数名） | `foo`、`my_var` |
-| `$l:literal` | 字面量 | `42`、`"text"`、`true` |
-
-**重复模式**：`$( ... )*` 表示零次或多次，`$( ... )+` 表示一次或多次：
+| 片段类型 | 匹配内容 | 示例 |
+|---------|---------|------|
+| `expr`  | 任意表达式 | `1+2`、`"hello"`、`foo()` |
+| `ty`    | 任意类型   | `i32`、`String`、`Vec<u8>` |
+| `ident` | 标识符（变量名/函数名/类型名） | `x`、`my_fn`、`Point` |
+| `literal` | 字面量 | `42`、`"text"`、`true`、`3.14` |
+| `pat`   | 模式（match 分支里的那种） | `Some(x)`、`(a, b)`、`_` |
+| `stmt`  | 单条语句 | `let x = 1;`、`foo();` |
+| `block` | 代码块 | `{ let x = 1; x + 1 }` |
+| `tt`    | 任意单个 token 树（最宽泛） | 任何东西 |
 
 ```rust runnable
-// 仿照标准库 vec! 宏的简化实现
+macro_rules! create_fn {
+    // $name:ident 匹配函数名，$ret:ty 匹配返回类型，$body:block 匹配函数体
+    ($name:ident, $ret:ty, $body:block) => {
+        fn $name() -> $ret $body
+    };
+}
+
+// 宏展开后等价于：fn add_one() -> i32 { 41 + 1 }
+create_fn!(add_one, i32, { 41 + 1 });
+
+// 展开后：fn greeting() -> String { "你好！".to_string() }
+create_fn!(greeting, String, { "你好！".to_string() });
+
+fn main() {
+    println!("{}", add_one());
+    println!("{}", greeting());
+}
+```
+
+### tt 的特殊地位
+
+`tt`（token tree）是最宽泛的片段类型，可以匹配任何内容。当你不确定输入的类型，或需要原样转发给另一个宏时，用 `tt`：
+
+```rust runnable
+macro_rules! passthrough {
+    ($($t:tt)*) => {
+        // 把所有输入原封不动地放到 println! 里
+        println!($($t)*)
+    };
+}
+
+fn main() {
+    passthrough!("格式化：{} + {} = {}", 1, 2, 3);
+}
+```
+
+## 重复模式
+
+重复模式让一条规则能匹配不定数量的输入，是声明宏最强大的特性之一。
+
+语法：`$( 捕获内容 ) 分隔符? 量词`
+
+| 量词 | 含义 |
+|-----|------|
+| `*` | 零次或多次 |
+| `+` | 一次或多次 |
+| `?` | 零次或一次（不能有分隔符） |
+
+### 逗号分隔的列表
+
+标准库的 `vec!` 宏就是用重复模式实现的，下面是简化版：
+
+```rust runnable
 macro_rules! my_vec {
-    // $( $x:expr ),* 匹配零个或多个由逗号分隔的表达式
+    // $( $x:expr ),*  ←  零个或多个逗号分隔的表达式
     ( $( $x:expr ),* ) => {
         {
             let mut v = Vec::new();
-            $(
-                v.push($x); // 对每个匹配的 $x 展开这一行
+            $(                  // 展开区：对每个 $x 重复这段代码
+                v.push($x);
             )*
             v
         }
+    };
+    // 支持末尾多余的逗号（my_vec![1, 2, 3,]）
+    ( $( $x:expr ),+ , ) => {
+        my_vec![$($x),*]
     };
 }
 
 fn main() {
     let a = my_vec![1, 2, 3];
     let b = my_vec!["x", "y", "z", "w"];
-    let c: Vec<i32> = my_vec![]; // 零个参数也合法
+    let c: Vec<i32> = my_vec![];   // 零个参数也合法
 
     println!("{:?}", a);
     println!("{:?}", b);
@@ -142,283 +199,260 @@ fn main() {
 }
 ```
 
-`$( $x:expr ),*` 的解读：
-- `$( ... )` — 捕获组，里面是要重复的内容
-- `$x:expr` — 匹配任意表达式，命名为 `$x`
-- `,` — 每次匹配之间的可选分隔符
-- `*` — 重复零次或更多次
+拆解 `$( $x:expr ),*`：
+- `$(` `)` — 捕获组的开始与结束
+- `$x:expr` — 在组内捕获一个表达式，命名为 `$x`
+- `,` — 每次重复之间的**分隔符**（可选，可以是任意 token）
+- `*` — 重复零次或多次
 
-`#[macro_export]` 属性让宏可以被其他模块或 crate 引入使用：
+### 加号量词（至少一次）
 
 ```rust runnable
-// #[macro_export] 让这个宏在模块外也可用
-#[macro_export]
-macro_rules! double {
-    ($x:expr) => {
-        $x * 2
+macro_rules! print_all {
+    // 用 + 要求至少传入一个参数
+    ( $first:expr $( , $rest:expr )* ) => {
+        print!("{}", $first);
+        $(
+            print!(", {}", $rest);
+        )*
+        println!();
     };
 }
 
 fn main() {
-    println!("{}", double!(5));  // 展开为 5 * 2
-    println!("{}", double!(3 + 1)); // 展开为 (3 + 1) * 2
+    print_all!(1);
+    print_all!(10, 20, 30);
+    print_all!("a", "b", "c", "d");
 }
 ```
 
-# 过程宏
-
-过程宏比声明宏更强大，它们接收 Rust 源代码的 token 流，经过程序逻辑处理后输出新的 token 流。
-
-## 什么是过程宏
-
-过程宏的三种形式都基于同一个核心：接收 `TokenStream`（源代码的 token 序列），返回新的 `TokenStream`（生成的代码）。
-
-你最熟悉的过程宏是 `#[derive(...)]`：
+### 问号量词（零或一次）
 
 ```rust runnable
-// #[derive(...)] 触发过程宏，自动生成 trait 实现
-#[derive(Debug, Clone, PartialEq)]
-struct Point {
-    x: f64,
-    y: f64,
+macro_rules! config {
+    // 可选的初始值：config!(capacity) 或 config!(capacity = 16)
+    ($name:ident $( = $val:expr )?) => {
+        {
+            let v: usize = 0 $( + $val )?;  // 有值则加上，没有则加 0
+            println!("配置 {}: {}", stringify!($name), v);
+            v
+        }
+    };
 }
 
 fn main() {
-    let p1 = Point { x: 1.0, y: 2.0 };
-    let p2 = p1.clone();             // Clone：过程宏生成
-    println!("{:?}", p1);             // Debug：过程宏生成
-    println!("相等：{}", p1 == p2);   // PartialEq：过程宏生成
+    config!(max_size);          // 输出：配置 max_size: 0
+    config!(buffer_size = 64);  // 输出：配置 buffer_size: 64
 }
 ```
 
-`#[derive(Debug)]` 这一行触发过程宏：宏读取结构体定义，自动生成等价于下面代码的 trait 实现：
+## 宏的卫生性
 
-```rust
-impl std::fmt::Debug for Point {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        f.debug_struct("Point")
-            .field("x", &self.x)
-            .field("y", &self.y)
-            .finish()
+Rust 的声明宏是**卫生的**（hygienic）：宏内部引入的变量名不会"泄漏"到调用者的作用域，反之亦然。这防止了宏展开时意外覆盖用户变量的问题。
+
+```rust runnable
+macro_rules! swap {
+    ($a:expr, $b:expr) => {
+        // 宏内的 tmp 变量不会与调用者的 tmp 冲突
+        let tmp = $a;
+        $a = $b;
+        $b = tmp;
+    };
+}
+
+fn main() {
+    let tmp = "这是用户的 tmp".to_string(); // 用户也有个 tmp
+    let mut x = 10;
+    let mut y = 20;
+    swap!(x, y);
+    println!("x={}, y={}", x, y); // 10 和 20 互换了
+    println!("用户的 tmp 没被覆盖：{}", tmp); // 依然完好
+}
+```
+
+但元变量 `$a`、`$b` 传入的是表达式本身（`x` 和 `y`），它们属于**调用者的作用域**，所以修改 `$a` 等于修改 `x`。
+
+> **注意**：卫生性只对 `ident` 片段和宏内新声明的绑定有效。若用 `$name:ident` 直接拼接出新的标识符（`concat_idents` 这类场景），需要格外小心。
+
+## 作用域与导出
+
+### 模块内作用域
+
+宏默认只在定义它的**模块及其子模块**内可见，且遵循**顺序规则**（必须先定义后使用）：
+
+```rust runnable
+mod math {
+    macro_rules! square {
+        ($x:expr) => { $x * $x };
+    }
+
+    pub fn demo() {
+        println!("3² = {}", square!(3)); // 在同一模块内可用
     }
 }
+
+fn main() {
+    math::demo();
+    // square!(4); // 错误：这里看不到 math 模块里的宏
+}
 ```
 
-你不用手写这段代码——宏替你生成了。
+### #[macro_use] — 跨模块使用
 
-## 自定义 derive 宏
-
-自定义 derive 宏让你可以为自己的 trait 提供 `#[derive(...)]` 支持。
-
-没有宏时，用户需要为每个类型手动实现 trait：
+在子模块上加 `#[macro_use]`，可以把该模块的宏提升到父模块：
 
 ```rust runnable
-trait HelloMacro {
-    fn hello_macro();
-}
-
-struct Dog;
-struct Cat;
-
-// 必须为每个类型分别手写
-impl HelloMacro for Dog {
-    fn hello_macro() { println!("Hello, Macro! My name is Dog!"); }
-}
-impl HelloMacro for Cat {
-    fn hello_macro() { println!("Hello, Macro! My name is Cat!"); }
+#[macro_use]
+mod helpers {
+    macro_rules! double {
+        ($x:expr) => { $x * 2 };
+    }
 }
 
 fn main() {
-    Dog::hello_macro();
-    Cat::hello_macro();
+    println!("{}", double!(7)); // 父模块可以使用
 }
 ```
 
-有了自定义 derive 宏，用户只需写一行注解：
+### #[macro_export] — 导出给其他 crate
 
-```rust
-#[derive(HelloMacro)]
-struct Dog;
-
-#[derive(HelloMacro)]
-struct Cat;
-```
-
-宏的实现需要创建一个专用 crate，函数签名像这样（无法在单文件 Playground 中运行）：
-
-```rust
-use proc_macro::TokenStream;
-
-// 注册为 derive 宏，名称是 HelloMacro
-#[proc_macro_derive(HelloMacro)]
-pub fn hello_macro_derive(input: TokenStream) -> TokenStream {
-    // 用 syn crate 解析输入，用 quote crate 生成输出代码
-    // ...
-}
-```
-
-> 实现过程宏需要独立的 `proc-macro` 类型 crate，以及 `syn`（解析代码）和 `quote`（生成代码）两个外部库。这属于进阶话题，现阶段了解"是什么、怎么用"就足够了。
-
-## 类属性宏
-
-类属性宏可以应用于**任意项**（包括函数），而 derive 宏只能用于结构体和枚举。
-
-`#[test]` 就是一个内置的类属性宏，标记某函数是测试函数：
+`#[macro_export]` 让宏可以被**其他 crate** 通过 `use` 引入（Rust 2018+），或通过 `#[macro_use]` 引入（Rust 2015）：
 
 ```rust runnable
-fn add(a: i32, b: i32) -> i32 {
-    a + b
-}
-
-// #[test] 是类属性宏，把这个函数标记为单元测试
-#[test]
-fn test_add() {
-    assert_eq!(add(2, 3), 5);
-    assert_eq!(add(-1, 1), 0);
+#[macro_export]
+macro_rules! assert_approx_eq {
+    ($a:expr, $b:expr, $eps:expr) => {
+        let diff = ($a - $b).abs();
+        if diff > $eps {
+            panic!(
+                "断言失败：|{} - {}| = {} > {}",
+                $a, $b, diff, $eps
+            );
+        }
+    };
 }
 
 fn main() {
-    println!("2 + 3 = {}", add(2, 3));
+    assert_approx_eq!(1.0_f64, 1.0000001, 0.001); // 通过
+    println!("近似相等断言通过");
 }
 ```
 
-Web 框架（如 actix-web）大量使用类属性宏标注路由函数：
+> `#[macro_export]` 会把宏提升到 crate 根作用域，其他 crate 用 `use your_crate::assert_approx_eq;` 引入。
 
-```rust
-// 类属性宏的典型使用场景：路由注解
-#[get("/")]
-async fn index() -> String {
-    "Hello, World!".to_string()
-}
-```
+## 实用标准库宏速查
 
-类属性宏的定义函数接收两个 `TokenStream`：属性参数和被标注的项本身：
-
-```rust
-#[proc_macro_attribute]
-pub fn route(attr: TokenStream, item: TokenStream) -> TokenStream {
-    // attr 对应 GET, "/" 部分
-    // item 对应 fn index() { ... } 整个函数
-}
-```
-
-## 类函数宏
-
-类函数宏调用时像函数（带括号），但可以接受任意的 token 序列，甚至语法上不完整的内容：
+你已经见过很多内置宏，这里做个系统整理：
 
 ```rust runnable
 fn main() {
-    // 内置的类函数宏示例
-    // format! 接受任意数量和类型的参数
-    let msg = format!("Hello, {}! 答案是 {}", "Rust", 42);
-    println!("{}", msg);
+    // ---- 调试用 ----
+    let x = 5;
+    let y = dbg!(x * 2 + 1); // 打印表达式和值，返回值本身
+    println!("y = {}", y);
 
-    // concat! 在编译时连接字面量
-    const GREETING: &str = concat!("Hello", ", ", "World", "!");
-    println!("{}", GREETING);
+    // ---- 编译时字符串 ----
+    const GREET: &str = concat!("Hello", ", ", "world", "!");
+    println!("{}", GREET);
 
-    // stringify! 把表达式转成字符串（编译时）
-    let expr_str = stringify!(1 + 2 + 3);
-    println!("表达式文本：{}", expr_str); // 打印 "1 + 2 + 3"
+    let expr = stringify!(1 + 2 * 3); // 把表达式转成字符串，不求值
+    println!("表达式原文：{}", expr);
+
+    // ---- 条件编译信息 ----
+    // env!("CARGO_PKG_VERSION") 在编译时读取环境变量
+    let version = env!("CARGO_PKG_VERSION");
+    println!("版本：{}", version);
 }
 ```
 
-基于过程宏的类函数宏还可以解析自定义的 DSL（领域专用语言），例如在编译时验证 SQL 语法：
+```rust runnable expect-error
+fn not_done_yet() {
+    todo!("等以后再实现");         // 运行时 panic，带消息
+}
 
-```rust
-// 过程宏可以在编译时解析和验证 SQL，而不是等到运行时
-let query = sql!(SELECT * FROM users WHERE id = 1);
-```
+fn impossible_path(x: u8) -> &'static str {
+    match x {
+        0 => "零",
+        1..=255 => "非零",
+        _ => unreachable!("u8 不可能超过 255"), // 告诉编译器此处不可达
+    }
+}
 
-其定义签名：
-
-```rust
-#[proc_macro]
-pub fn sql(input: TokenStream) -> TokenStream {
-    // 解析 SQL 语法，检查合法性，生成对应的 Rust 代码
+fn main() {
+    println!("{}", impossible_path(42));
+    not_done_yet(); // 会 panic
 }
 ```
+
+## 调试宏展开
+
+当宏行为不符合预期时，可以用 `cargo expand`（需安装 `cargo-expand`）查看展开后的代码：
+
+```bash
+cargo install cargo-expand
+cargo expand        # 展开整个 crate
+cargo expand main   # 只展开 main 函数
+```
+
+展开结果告诉你宏实际生成了什么代码，是调试声明宏最直接的方法。
+
+---
 
 # 练习题
 
-## 声明宏测验
+## 基础测验
 
 ```quiz single
-Q: 宏调用与函数调用在语法上如何区分？
-- 宏用方括号 []，函数用圆括号 ()
-+ 宏名称后跟感叹号 !（如 println!），函数不带感叹号
-- 宏必须全部大写
-- 两者在语法上没有区别
-E: Rust 宏调用的标志是名称后的 `!`，如 `println!`、`vec!`、`assert!`。这个设计让读者一眼能区分宏调用和函数调用。
-```
-
-```rust
-macro_rules! my_macro {
-    () => { println!("无参数"); };
-    ($x:expr) => { println!("参数：{}", $x); };
-    ($x:expr, $y:expr) => { println!("两个参数：{} {}", $x, $y); };
-}
-
-fn main() {
-    my_macro!();
-    my_macro!(42);
-    my_macro!("hello", "world");
-}
+Q: `$( $x:expr ),+` 与 `$( $x:expr ),*` 的区别是什么？
+- 两者完全相同，可以互换
+- `+` 版本要求参数用加号分隔，`*` 版本用乘号分隔
++ `+` 要求至少一个参数，`*` 允许零个参数
+- `+` 只能匹配数字，`*` 可以匹配任意类型
+E: `+` 量词表示"一次或多次"，因此宏调用至少要传入一个参数，否则编译错误。`*` 表示"零次或多次"，空参数也合法。
 ```
 
 ```quiz single
-Q: 上面的代码输出什么？
-- 编译错误，宏不支持多个规则
-- 只有第一条规则生效，输出"无参数"三次
-+ 依次输出"无参数"、"参数：42"、"两个参数：hello world"
-- 三条规则同时展开，输出六行
-E: 声明宏的规则按顺序匹配，第一个匹配的规则生效。my_macro!() 无参数匹配规则1；my_macro!(42) 匹配规则2；my_macro!("hello", "world") 匹配规则3。
+Q: 以下代码（先调用 `hello!()`，再定义 `macro_rules! hello`）能否编译通过？
+- 能，宏的作用域和函数一样，定义顺序不影响使用
++ 不能，声明宏必须在调用之前定义，此处宏定义在调用之后
+- 能，只要在同一文件中定义就行
+- 不能，宏不能在 main 函数外定义
+E: 声明宏遵循顺序作用域——只有在定义之后的代码才能看到它。函数不受此限制，但宏受。
 ```
 
 ```quiz single
-Q: 在 `$( $x:expr ),*` 中，最后的 `*` 表示什么？
-- 通配符，匹配任意内容
-- 恰好一次
-- 一次或多次
-+ 零次或多次
-E: `*` 表示重复零次或多次（包括零次）。若想要至少一次，应使用 `+`。`$( ... ),*` 是最常见的重复模式，用于匹配逗号分隔的列表。
+Q: 在 `macro_rules! let_bind { ($name:ident = $val:expr) => { let $name = $val; }; }` 中，调用 `let_bind!(answer = 6 * 7)` 时，`$name` 和 `$val` 分别捕获什么？
+- `$name` 匹配 `answer = 6`，`$val` 匹配 `7`
++ `$name` 匹配标识符 `answer`，`$val` 匹配表达式 `6 * 7`
+- `$name` 匹配 `answer = 6 * 7`，`$val` 为空
+- 编译错误，宏不能包含 `=` 号
+E: `ident` 片段精确匹配一个标识符 token，等号 `=` 是字面分隔符（不是元变量），之后的 `6 * 7` 是表达式，被 `$val:expr` 捕获。
 ```
 
 ```quiz single
-Q: 关于宏和函数的区别，以下哪项正确？
-- 宏比函数运行更快，应尽量用宏替代函数
-- 宏在运行时展开，函数在编译时执行
-+ 宏在编译时展开，因此可以实现 trait 等编译期操作；函数在运行时调用，无法做到这一点
-- 宏只能在当前模块使用，函数可以跨模块调用
-E: 宏在编译时展开是关键区别。这使宏能接受可变数量参数、在编译时生成 trait 实现等。代价是宏定义比函数复杂，且必须在调用前定义或引入作用域。
-```
-
-## 过程宏测验
-
-```quiz single
-Q: `#[derive(Debug, Clone)]` 是通过什么机制工作的？
-- 编译器为这两个 trait 内置了特殊处理逻辑
-+ 过程宏（derive 宏）：读取类型定义，在编译时自动生成对应的 trait 实现代码
-- 运行时反射机制
-- 标准库中已经为所有类型预先实现了这些 trait
-E: #[derive(...)] 触发过程宏。宏读取你的结构体/枚举定义，生成等价于手写 `impl Debug for ...` 的代码。这发生在编译时，生成的代码和你手写的没有区别。
+Q: Rust 声明宏的"卫生性"（hygiene）指的是什么？
+- 宏不允许使用 unsafe 代码
++ 宏内部引入的变量绑定与调用者的作用域隔离，不会意外覆盖用户的同名变量
+- 宏只能在同一模块内使用
+- 宏的参数类型必须在编译时已知
+E: 卫生宏的核心是作用域隔离。宏展开时，宏内部新声明的绑定（如临时变量 `tmp`）和调用者的同名变量不会相互干扰，防止了宏"污染"使用者代码的问题。
 ```
 
 ```quiz multi
-Q: 下列关于三种过程宏的说法，哪些是正确的？
-+ 自定义 derive 宏只能应用于结构体和枚举，不能用于函数
-+ 类属性宏可以应用于函数，这是它比 derive 宏更灵活的地方
-- 类函数宏和普通函数一样，在运行时执行
-+ 三种过程宏都以 TokenStream 作为输入，返回 TokenStream 作为输出
-- 过程宏可以在普通库 crate 中定义，不需要特殊设置
-E: derive 宏确实只适用于结构体/枚举；类属性宏可用于函数等任意项；过程宏在编译时执行，不是运行时；所有过程宏都基于 TokenStream；过程宏必须在 proc-macro 类型的独立 crate 中定义。
+Q: 关于 `#[macro_export]`，以下哪些描述是正确的？
++ 它让宏可以被其他 crate 使用
++ 它会把宏提升到 crate 根作用域
+- 它让宏可以在定义位置之前调用
+- 它使宏变成过程宏
++ 在 Rust 2018+ 中，外部 crate 用 `use crate_name::macro_name;` 引入
+E: `#[macro_export]` 专门用于跨 crate 导出宏，会将宏提升到 crate 根，让其他 crate 可以引入使用。它不改变宏的顺序作用域规则，也不将其转换为过程宏。
 ```
 
 ## 编程练习
 
-### 练习一：定义打印宏
+### 练习一：定义 `print_twice!` 宏
 
-定义一个名为 `print_twice` 的宏，接受一个表达式，将该值打印两次。
+定义一个 `print_twice!` 宏，接受一个表达式，将该值打印两次（每次单独一行）。
 
 ```rust editable
 // 在这里定义 print_twice! 宏
@@ -436,19 +470,19 @@ Hello
 Hello
 ```
 
-### 练习二：实现 max 宏
+### 练习二：实现 `max!` 宏
 
-实现一个 `max!` 宏，接受两个表达式，返回较大的值。提示：宏可以展开为 `if` 表达式。
+实现一个 `max!` 宏，接受**两个**表达式，返回较大的值。提示：宏可以展开为 `if` 表达式。
 
 ```rust editable
 macro_rules! max {
-    // TODO：填写宏规则，接受两个表达式，返回较大的那个
+    // TODO：填写规则，接受两个表达式，返回较大的那个
 }
 
 fn main() {
-    println!("{}", max!(3, 7));    // 应输出 7
-    println!("{}", max!(10, 2));   // 应输出 10
-    println!("{}", max!(-1, -5));  // 应输出 -1
+    println!("{}", max!(3, 7));     // 7
+    println!("{}", max!(10, 2));    // 10
+    println!("{}", max!(-1, -5));   // -1
 }
 ```
 
@@ -456,4 +490,31 @@ fn main() {
 7
 10
 -1
+```
+
+### 练习三：实现 `map_vec!` 宏
+
+实现一个 `map_vec!` 宏，接受一个 `Vec` 和一个**闭包表达式**，返回映射后的新 `Vec`。
+
+示例：`map_vec!(v, |x| x * 2)` 等价于 `v.iter().map(|x| x * 2).collect::<Vec<_>>()`。
+
+```rust editable
+macro_rules! map_vec {
+    // TODO：实现宏
+}
+
+fn main() {
+    let nums = vec![1, 2, 3, 4, 5];
+    let doubled = map_vec!(nums, |x| x * 2);
+    println!("{:?}", doubled); // [2, 4, 6, 8, 10]
+
+    let words = vec!["hello", "world"];
+    let upper = map_vec!(words, |s| s.to_uppercase());
+    println!("{:?}", upper); // ["HELLO", "WORLD"]
+}
+```
+
+```expected
+[2, 4, 6, 8, 10]
+["HELLO", "WORLD"]
 ```
