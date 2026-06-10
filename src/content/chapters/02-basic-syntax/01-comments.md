@@ -94,7 +94,7 @@ fn main() {
 
 简单记：`///` 是"我在描述下面的东西"，`//!` 是"我在描述我所在的容器"。
 
-> 文档注释和内部文档注释的完整用法（Markdown 语法、示例测试、cargo doc 工作流）在[项目工程化：文档注释与 doctest](/RustCourse/chapters/08-engineering/04-doc-comments) 中专门讲解。
+> 文档注释和内部文档注释的完整用法（Markdown 语法、示例测试、cargo doc 工作流）在[项目工程化：文档注释与 doctest](/RustCourse/chapters/08-engineering/04-doc-comments) 中专门讲解，当前了解即可。
 
 ## 四种注释速查
 

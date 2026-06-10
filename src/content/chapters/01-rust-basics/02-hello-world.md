@@ -32,7 +32,7 @@ mkdir hello_world
 cd hello_world
 ```
 
-> **文件命名约定：** 如果文件名包含多个单词，用下划线分隔，例如 `hello_world.rs`，而不是 `helloworld.rs`。这是 Rust 社区的惯例。
+> **文件命名约定：** 如果文件名包含多个单词，统一用小写字母并通过下划线分隔，例如 `hello_world.rs`，而不是 `helloworld.rs` 或 `HelloWorld`。这是 Rust 社区的惯例。
 
 ## 编写第一个程序
 

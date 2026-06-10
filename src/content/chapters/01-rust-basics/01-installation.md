@@ -50,7 +50,7 @@ rustup 让你可以：
 | `clippy` | 代码检查（lint）工具 |
 | `rust-analyzer` | LSP 服务器（IDE 代码补全的基础） |
 
-日常开发中，你打交道最多的是 `cargo`，`rustc` 通常不需要直接调用。
+日常开发中，你打交道最多的是 `cargo`和`rust-analyzer`，`rustc` 通常不需要直接调用。
 
 ## rustup 的日常使用
 
@@ -58,7 +58,7 @@ rustup 让你可以：
 | --- | --- |
 | `rustup update` | 升级 Rust 到最新稳定版 |
 | `rustup show` | 查看当前安装的工具链信息 |
-| `rustup doc` | 在浏览器打开本地离线文档 |
+| `rustup doc` | 在浏览器打开本地离线的 Rust 官方英文文档 |
 | `rustup self uninstall` | 完全卸载 Rust 和 rustup |
 
 **建议定期运行 `rustup update`**——Rust 每六周发布新版本，新版本通常会改进编译器的报错信息，学习期间能看到更清晰的提示。
