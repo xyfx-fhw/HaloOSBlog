@@ -1,21 +1,46 @@
 ---
 title: "属性"
 description: "学习 Rust 属性的语法与用途，掌握 dead_code 警告处理和 cfg 条件编译的核心写法。"
-difficulty: beginner
+difficulty: intermediate
 estimatedTime: 30
 keywords: ["属性", "attribute", "cfg", "dead_code", "allow", "条件编译", "derive"]
 ---
 
 # 属性基础
 
-属性（attribute）是 Rust 中为代码附加元数据的机制，编译器会读取这些元数据并据此改变编译行为。
+属性（attribute）是 Rust 中为代码附加**元数据**的机制。元数据就是**对代码的附加信息和标签**——比如"这个函数是测试函数"、"这段代码只在 Windows 平台编译"、"忽略这个未使用的变量的警告"。属性用 `#[...]` 的语法写在代码前面。编译器读取这些标签，并根据标签改变编译行为。
 
 ## 什么是属性
 
-属性可以应用于 crate、模块、函数、结构体等任何 Rust 项。最常见的属性之一是 `#[derive(...)]`，它告诉编译器自动为类型生成某些 trait 的实现：
+**属性不是代码本身，而是对代码的注解**。编译器根据不同的属性做不同的事情。属性用 `#[...]` 的语法写在代码前面，告诉编译器如何处理这段代码。
+
+比如，如果你写了一个函数但没有使用它，编译器会给出警告。加上 `#[allow(dead_code)]` 属性就能压制这个警告：
 
 ```rust runnable
-// #[derive(Debug)] 是一个属性，让编译器自动实现 Debug trait
+#[allow(dead_code)]  // 这是一个属性，告诉编译器忽略"未使用函数"的警告
+fn unused_function() {
+    println!("这个函数没有被调用");
+}
+
+fn main() {
+    println!("主程序");
+}
+```
+
+没有 `#[allow(dead_code)]`，编译器会警告这个函数没被使用。有了这个属性后，警告就被压制了。
+
+## 属性的作用范围
+
+Rust 属性有两种作用范围：
+
+- **`#[attribute]`**：作用于紧跟其后的**单个项**（函数、结构体、模块等）
+- **`#![attribute]`**：作用于**整个 crate 或模块**，通常放在文件顶部，注意多了一个 `!`
+
+```rust runnable
+// 整个文件级别的属性，放在最上方
+#![allow(dead_code)]
+
+// 作用于单个函数
 #[derive(Debug)]
 struct Point {
     x: i32,
@@ -24,107 +49,93 @@ struct Point {
 
 fn main() {
     let p = Point { x: 3, y: 5 };
-    println!("{:?}", p); // {:?} 格式需要 Debug trait
+    println!("{:?}", p);
 }
 ```
 
-属性能做什么？常见用途包括：
+## 常用属性详解
 
-- 自动派生 trait 实现（`#[derive(...)]`）
-- 条件编译，只在特定平台或配置下包含某段代码（`#[cfg(...)]`）
-- 禁用或启用编译器警告（`#[allow(...)]`、`#[warn(...)]`）
-- 标记单元测试函数（`#[test]`）
-- 设置文档注释（`#[doc = "..."]`）
+### 警告控制：allow、warn、deny
 
-## 语法格式
-
-Rust 属性有两种作用范围：
-
-- **`#[attribute]`**：作用于紧跟其后的**单个项**（函数、结构体等）
-- **`#![attribute]`**：作用于**整个 crate 或模块**，通常放在文件顶部，注意多了一个 `!`
+最简单的属性是 `#[allow(...)]`，用来**禁止某些编译器警告**：
 
 ```rust runnable
-// #![allow(unused_variables)] 放在文件顶部，作用于整个 crate
-// 这里用函数级的 allow 来演示效果
-
-#[derive(Debug, Clone)]        // #[attribute(value1, value2)] 形式
-struct Color {
-    r: u8,
-    g: u8,
-    b: u8,
-}
-
-fn main() {
-    let red = Color { r: 255, g: 0, b: 0 };
-    let also_red = red.clone(); // clone 由 derive 自动实现
-    println!("{:?}", red);
-    println!("{:?}", also_red);
-}
-```
-
-属性可以带参数，有三种格式：
-
-```rust
-#[attribute = "value"]           // 键值对形式，如 #[doc = "说明文字"]
-#[attribute(key = "value")]      // 括号键值对，如 #[cfg(target_os = "linux")]
-#[attribute(value)]              // 单值，如 #[allow(dead_code)]
-#[attribute(value1, value2)]     // 多值，如 #[derive(Debug, Clone)]
-```
-
-> `crate_type` 和 `crate_name` 是两个特殊的 crate 级属性（`#![crate_type = "lib"]`），可以在直接用 `rustc` 编译时指定 crate 类型和名称。但在 Cargo 项目中这两个属性**没有效果**——Cargo 通过 `Cargo.toml` 管理这些信息。
-
-## dead_code 与 allow
-
-Rust 编译器内置了一个 lint 叫 `dead_code`，当你写了一个函数但从未调用它时会产生警告：
-
-```rust runnable
-fn used_function() {
-    println!("我被调用了");
-}
-
-fn unused_function() {
-    // 这个函数没有被调用，编译器会产生 dead_code 警告
-    println!("我从未被调用");
-}
-
-fn main() {
-    used_function();
-}
-```
-
-用 `#[allow(dead_code)]` 可以告诉编译器："我知道这个函数没被调用，这是故意的，不要警告"：
-
-```rust runnable
-fn used_function() {
-    println!("我被调用了");
-}
-
 #[allow(dead_code)]
 fn unused_function() {
-    println!("我知道没被调用，但不要警告我");
+    println!("这个函数现在不被调用");
 }
 
 fn main() {
-    used_function();
+    println!("主程序");
 }
 ```
 
-如果想全局禁用整个文件的 `dead_code` 警告，可以在文件顶部使用 crate 级属性：
+没有 `#[allow(dead_code)]`，编译器会警告 `unused_function` 没有被调用。但加上这个属性后，警告就被压制了。
+
+`#[warn(...)]` 和 `#[deny(...)]` 用来控制警告级别：
+
+- `#[allow(...)]`：压制警告，代码可以通过编译
+- `#[warn(...)]`：强制显示警告（在被全局关闭时重新启用）
+- `#[deny(...)]`：把警告当作错误，编译失败
+
+**实际场景**：假设整个项目用 `#![allow(unused_variables)]` 关闭了未使用变量警告，但在某个关键函数中想检查，就可以用 `#[warn(...)]` 重新启用。
+
+### 自动派生：derive
+
+`#[derive(...)]` 告诉编译器**自动为某个类型生成某些功能**：
 
 ```rust runnable
-#![allow(dead_code)]
-
-fn a() {}
-fn b() {}
-fn c() {}
+#[derive(Debug, Clone)]
+struct Point {
+    x: i32,
+    y: i32,
+}
 
 fn main() {
-    a();
-    // b 和 c 没被调用，但由于 #![allow(dead_code)]，不会有警告
+    let p1 = Point { x: 3, y: 5 };
+    let p2 = p1.clone();  // Clone 由 derive 自动生成
+    println!("p1: {:?}", p1);  // Debug 由 derive 自动生成
+    println!("p2: {:?}", p2);
 }
 ```
 
-> 在实际项目中，应当清理掉真正多余的死代码，而不是用 `allow` 来掩盖问题。`#[allow(dead_code)]` 更适合用于：库中暂未导出的内部函数、条件编译中某平台不会用到的函数。
+### 其他常用属性
+
+- `#[deprecated]`：标记已过时的代码，编译器会提示用户使用新版本
+- `#[must_use]`：标记函数返回值不应被忽视，忽视会得到编译警告
+- `#[inline]`、`#[inline(always)]`、`#[inline(never)]`：控制函数是否被内联（优化编译结果）
+- `#[repr(...)]`：控制结构体或枚举在内存中的布局
+- `#[doc = "..."]`：添加文档注释（也可以用 `///` 注释）
+- `#[non_exhaustive]`：标记结构体或枚举以后可能添加新字段，防止用户全量匹配
+- `#![crate_name]`、`#![crate_type]`：指定 crate 名称和编译类型。**但这是 rustc 级别属性，只在直接用 `rustc` 编译时有效**。使用 Cargo 项目时，由 `Cargo.toml` 中的 `name` 和 `crate-type` 字段管理，代码中的这两个属性会被忽略（不常用）。
+
+## 属性的参数格式
+
+属性可以带参数，根据参数个数和形式，常见的格式有：
+
+**单个参数**：
+
+```rust
+#[allow(dead_code)]          // 单值参数
+#[warn(unused_variables)]    // 单值参数
+```
+
+**多个参数**：
+
+```rust
+#[derive(Debug, Clone)]      // 多个参数用逗号分隔
+```
+
+**键值对参数**：
+
+```rust
+#[cfg(target_os = "linux")]  // 键值对形式
+#[doc = "这是文档注释"]      // 等号形式
+```
+
+实际应用中，大多数常用属性都是单值或多值形式。根据不同属性的定义，参数形式会有所不同。
+
+> **属性是固定的**：属性名称由 Rust 语言规定，你不能随意创建属于自己的属性。编译器只能识别特定的属性名（如 `allow`、`derive` 等），其他名称会被编译器忽略或报错。如果你对自定义属性感兴趣，那是一个高级特性（涉及过程宏），暂时不在本章范围内。
 
 # 条件编译
 
@@ -154,7 +165,7 @@ fn main() {
 
 Rust Playground 运行在 Linux 上，所以上面的代码会打印"运行在 Linux 上"。
 
-`cfg` 支持三种逻辑运算符来组合条件：
+`cfg` 支持三种逻辑运算符，并且支持组合条件：
 
 ```rust runnable
 // all：两个条件都满足
@@ -169,12 +180,30 @@ fn unix_like() {
     println!("Unix-like 系统");
 }
 
+// not：条件不满足
+#[cfg(not(target_os = "windows"))]
+fn not_windows() {
+    println!("非 Windows 系统");
+}
+
+// 组合条件：在 Unix 系列且是 x86_64 架构，但不是 macOS
+#[cfg(all(any(target_os = "linux", target_os = "freebsd"), target_arch = "x86_64", not(target_os = "macos")))]
+fn complex_condition() {
+    println!("满足复杂条件");
+}
+
 fn main() {
     #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
     linux_x64_only();
 
     #[cfg(any(target_os = "linux", target_os = "macos"))]
     unix_like();
+
+    #[cfg(not(target_os = "windows"))]
+    not_windows();
+
+    #[cfg(all(any(target_os = "linux", target_os = "freebsd"), target_arch = "x86_64", not(target_os = "macos")))]
+    complex_condition();
 }
 ```
 
@@ -204,7 +233,52 @@ fn main() {
 | 不满足时 | 代码**完全不编译** | 代码编译，值为 `false` |
 | 适用场景 | 使用平台专属 API | 运行时根据条件走不同分支 |
 
-这个区别很重要：如果某段代码用了只在特定平台存在的 API，**必须用 `#[cfg(...)]`** 而不是 `if cfg!(...)`，否则在其他平台会因为找不到 API 而编译报错。
+**类比 C 语言**：
+
+在 C 语言中有两种条件编译方式：
+
+```c
+// 方式 1：编译时排除代码（类似 Rust 的 #[cfg(...)]）
+#ifdef LINUX
+void linux_only() {
+    printf("Only on Linux\n");
+}
+#endif
+
+// 方式 2：编译时保留代码，运行时判断（类似 Rust 的 cfg!(...)）
+void platform_check() {
+    if (LINUX) {  // LINUX 是编译时常量，通常通过 -DLINUX 定义
+        printf("On Linux\n");
+    } else {
+        printf("Not on Linux\n");
+    }
+}
+```
+
+对应的 Rust 写法：
+
+```rust
+// 方式 1：编译时完全排除代码
+#[cfg(target_os = "linux")]
+fn linux_only() {
+    println!("Only on Linux");
+}
+
+// 方式 2：编译时保留代码，运行时判断
+fn platform_check() {
+    if cfg!(target_os = "linux") {
+        println!("On Linux");
+    } else {
+        println!("Not on Linux");
+    }
+}
+```
+
+**关键区别**：
+- **C 的 `#ifdef`** = Rust 的 `#[cfg(...)]`：代码完全不编译进二进制
+- **C 的 `#define` + `if`** = Rust 的 `cfg!(...)`：代码都编译进去，运行时判断
+
+这个区别很重要：如果某段代码用了只在特定平台存在的 API，**必须用 `#[cfg(...)]`** 而不是 `if cfg!(...)`，否则在其他平台会因为找不到 API 而编译报错。就像在 C 中，如果用的是平台专属的系统调用（比如 `SetWindowPos` 只在 Windows 上存在），必须用 `#ifdef WIN32` 包裹，而不是 `if (WIN32)` 后再调用，否则编译器会在非 Windows 平台上找不到 `SetWindowPos` 的符号定义而报链接错误。
 
 ## 常用内置条件
 
@@ -238,7 +312,9 @@ fn main() {
 
 ## 自定义条件
 
-除了内置条件，还可以通过 `--cfg` 标记向编译器传入自定义条件。下面的代码在 Playground 中运行时，`some_condition` 未被定义，因此 `conditional_function` 不会被编译进来：
+除了内置条件，还可以通过 `--cfg` 标记向编译器传入自定义条件。**重要的是，自定义条件不能像 C 语言的 `#define` 那样在代码里定义，必须从外部传入。**
+
+下面的代码在 Playground 中运行时，`some_condition` 未被定义，因此 `conditional_function` 不会被编译进来：
 
 ```rust runnable
 // some_condition 是自定义条件，需要通过 --cfg 传入才会生效
@@ -266,7 +342,9 @@ $ rustc --cfg some_condition custom.rs && ./custom
 条件满足！
 ```
 
-> 在 Cargo 项目中，自定义条件通常通过 `build.rs` 构建脚本或 `features` 特性标志来管理，不直接使用 `--cfg` 命令行标记。
+**为什么 Rust 这样设计**：条件应该由编译环境决定（编译参数、目标平台、特性标志等），而不是代码本身决定。这样可以确保同一份源代码在不同的构建配置下得到不同的二进制，而不是靠代码内部的"开关"。对比 C 语言，`#define` 定义在代码里，容易导致同一个源文件在不同团队或工程中产生不同的二进制，难以追踪。
+
+> 在 Cargo 项目中，自定义条件通常通过 `build.rs` 构建脚本或 `Cargo.toml` 中的 `features` 特性标志来管理，而不是直接使用 `--cfg` 命令行标记。
 
 # 练习题
 
@@ -370,16 +448,21 @@ fn helper() {
 主函数运行
 ```
 
-### 练习二：条件编译问候语
+### 练习二：使用 cfg! 宏判断构建类型
 
-使用 `cfg!` 宏让程序根据构建类型打印不同的消息。在 Rust Playground 中 `debug_assertions` 默认为 `true`（debug 模式）。
+`cfg!(debug_assertions)` 是一个编译时常量，在 debug 模式下为 `true`，release 模式下为 `false`。
+
+**任务**：补全下面代码中的 `???` 部分，使用 `cfg!` 来判断当前构建类型，在 debug 模式打印"调试模式：功能全开"，release 模式打印"发布模式：性能优先"。
+
+（在 Rust Playground （即本网页编辑器） 中默认是 debug 模式，所以你写完后会看到"调试模式"的输出）
 
 ```rust editable
 fn main() {
-    // TODO：使用 cfg!(debug_assertions) 判断构建类型
-    // debug 构建打印："调试模式：功能全开"
-    // release 构建打印："发布模式：性能优先"
-    println!("TODO");
+    if ??? {
+        println!("调试模式：功能全开");
+    } else {
+        println!("发布模式：性能优先");
+    }
 }
 ```
 

@@ -226,6 +226,8 @@ fn main() {
 
 ## 切片的内部结构
 
+<img src="/RustCourse/diagrams/slice.svg" alt="切片的原理" style="max-width:100%;margin:1rem 0;" />
+
 字符串切片和数组切片在内部结构上是一样的：存储**指向序列起始位置的指针**和**切片的长度**。切片本身存在栈上（两个 `usize` 大小），真正的数据仍然在原始集合里。
 
 ```rust runnable
