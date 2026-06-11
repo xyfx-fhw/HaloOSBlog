@@ -72,6 +72,20 @@
     };
   }
 
+  // 从 localStorage 读取保存的高度（如有）
+  function getSavedHeight(blockId: string): number | null {
+    if (!blockId) return null;
+    const saved = localStorage.getItem(`editor-height-${blockId}`);
+    return saved ? parseInt(saved, 10) : null;
+  }
+
+  // 保存高度到 localStorage
+  function saveHeight(blockId: string, height: number): void {
+    if (blockId) {
+      localStorage.setItem(`editor-height-${blockId}`, String(height));
+    }
+  }
+
   async function initCodeEditor(el: HTMLElement): Promise<void> {
     const starterCode = decodeURIComponent(el.dataset.starterCode ?? '');
     if (!starterCode) return;
@@ -126,7 +140,48 @@
 
     // 挂载前的占位高度，避免布局抖动（按行数估算，最少 3 行避免过矮）
     const lineCount = Math.max(starterCode.split('\n').length, 3);
-    editorHost.style.height = `${Math.min(lineCount * 20 + 24, 480)}px`;
+    let defaultHeight = Math.min(lineCount * 20 + 24, 480);
+    // 尝试从 localStorage 读取保存的高度
+    const savedHeight = getSavedHeight(blockId);
+    if (savedHeight) {
+      defaultHeight = Math.max(Math.min(savedHeight, 800), 120);  // 限制在 120-800px
+    }
+    editorHost.style.height = `${defaultHeight}px`;
+
+    // ── 可拖拽调整句柄 ────────────────────────────────────────────────────
+    const resizeHandle = document.createElement('div');
+    resizeHandle.className = 'code-editor-resize-handle';
+    resizeHandle.title = '拖拽以调整高度';
+
+    let isResizing = false;
+    let startY = 0;
+    let startHeight = 0;
+
+    resizeHandle.addEventListener('mousedown', (e: MouseEvent) => {
+      isResizing = true;
+      startY = e.clientY;
+      startHeight = editorHost.offsetHeight;
+      e.preventDefault();
+
+      const onMouseMove = (moveEvent: MouseEvent) => {
+        if (!isResizing) return;
+        const delta = moveEvent.clientY - startY;
+        const newHeight = Math.max(120, Math.min(startHeight + delta, 800));  // 限制在 120-800px
+        editorHost.style.height = `${newHeight}px`;
+        if (editor) editor.layout();
+      };
+
+      const onMouseUp = () => {
+        isResizing = false;
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+        // 保存调整后的高度
+        saveHeight(blockId, editorHost.offsetHeight);
+      };
+
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    });
 
     // ── 输出区 ─────────────────────────────────────────────────────────────
     const output = document.createElement('div');
@@ -137,6 +192,7 @@
     el.innerHTML = '';
     el.appendChild(toolbar);
     el.appendChild(editorHost);
+    el.appendChild(resizeHandle);
     el.appendChild(output);
 
     // ── 复制按钮（无需 Monaco） ───────────────────────────────────────────
@@ -415,7 +471,24 @@
   .code-editor-host {
     /* Monaco 自己会填满该容器；初始 height 在脚本中按行数估算 */
     min-height: 120px;
-    max-height: 480px;
+    max-height: none;
+  }
+
+  /* 可拖拽调整句柄 */
+  .code-editor-resize-handle {
+    height: 4px;
+    background: linear-gradient(to bottom, transparent, rgba(206, 65, 43, 0.2));
+    cursor: row-resize;
+    user-select: none;
+    transition: background-color 0.2s;
+  }
+
+  .code-editor-resize-handle:hover {
+    background: linear-gradient(to bottom, transparent, rgba(206, 65, 43, 0.4));
+  }
+
+  .code-editor-resize-handle:active {
+    background: linear-gradient(to bottom, transparent, rgba(206, 65, 43, 0.6));
   }
 
   /* 构建期 Shiki 高亮 fallback（Monaco 加载前短暂可见） */
