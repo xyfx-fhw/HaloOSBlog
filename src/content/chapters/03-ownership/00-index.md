@@ -1,8 +1,8 @@
 ---
 title: "所有权系统"
 description: "了解 Rust 所有权的内存模型背景，以及移动、拷贝与克隆三种数据交互方式的本质区别。"
-difficulty: intermediate
-estimatedTime: 35
+difficulty: beginner
+estimatedTime: 5
 keywords: ["所有权", "栈", "堆", "移动", "Copy", "Clone", "所有权与函数"]
 ---
 

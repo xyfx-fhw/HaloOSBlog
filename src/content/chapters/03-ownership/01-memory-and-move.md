@@ -26,7 +26,7 @@ Rust 中的所有权系统根本上是在管理数据在内存中的位置和生
 
 ## 栈与堆的配合：以 String 为例
 
-栈存放**大小编译期已知**的数据，堆存放**大小运行时可变**的数据——但实际应用中，往往两者都要用到。让我们用 `String` 类型来看看它们如何配合：
+栈存放**大小编译期已知**的数据，堆存放**大小运行时可变**的数据——但实际应用中，如果需要使用到堆，往往两者都要用到。让我们用 `String` 类型来看看它们如何配合：
 
 ```rust
 fn main() {
@@ -39,25 +39,11 @@ fn main() {
 
 `String` 在栈上只存**三个字**：
 
-```text
-栈上的 String 结构体：
-┌─────────────────────────┐
-│ ptr  ──────────────────┐│
-│ len: 5                 ││
-│ capacity: 5            ││
-└───────────────────────┬┘
-                        │
-                        ├──→ 堆上的实际数据
-                               ┌───────────────┐
-                               │ h e l l o     │
-                               └───────────────┘
-```
-
 - **ptr**：指向堆上数据的指针
 - **len**：当前字符串的字节数（这里是 5）
 - **capacity**：堆上已分配内存能容纳的最大字节数（通常 ≥ len）
 
-真正的字符数据 `"hello"` 存在**堆上**，通过 `ptr` 指针来访问。
+真正的字符数据 `"HelloWorld"` 存在**堆上**，通过 `ptr` 指针来访问。
 
 <img src="/RustCourse/diagrams/string.svg" alt="String memory layout" style="max-width:100%;margin:1rem 0;" />
 
@@ -69,7 +55,7 @@ fn main() {
 fn main() {
     let mut s = String::from("hello");
     println!("len: {}, capacity: {}", s.len(), s.capacity());
-    
+
     s.push_str(", world!");
     println!("len: {}, capacity: {}", s.len(), s.capacity());
 }
@@ -88,35 +74,6 @@ fn main() {
   - 更新 len（容量 capacity 可能也会改变）
 
 <img src="/RustCourse/diagrams/string_opration.svg" alt="String operations" style="max-width:100%;margin:1rem 0;" />
-
-### 字符串字面量 vs String
-
-这两种字符串的存储方式和行为完全不同，是初学者容易混淆的地方：
-
-```rust runnable
-fn main() {
-    let lit = "hello";                    // 字符串字面量，类型是 &str
-    let s = String::from("hello");        // String 类型
-    
-    // 你可以对比两者在栈上占用的空间
-    println!("字面量占用栈空间: {} 字节", std::mem::size_of_val(&lit));
-    println!("String 占用栈空间: {} 字节", std::mem::size_of_val(&s));
-}
-```
-
-| 特性 | 字符串字面量 `"hello"` | String::from("hello") |
-|-----|------|------|
-| **存储位置** | 程序的只读数据区 | 堆上 |
-| **大小** | 编译时固定 | 运行时可动态增长 |
-| **可修改** | 不可修改 | 可修改（需要 `mut`） |
-| **所有权** | 无（不拥有数据） | 拥有（负责释放） |
-| **类型** | `&str`（引用） | `String`（所有者） |
-
-**核心区别**：
-- `"hello"` 在程序启动时就存在（在只读区），所有引用共享同一份数据
-- `String::from("hello")` 是**独立的堆分配**，每次调用都创建新的内存空间
-
-这就是为什么只有 `String` 需要所有权管理——它的堆内存必须在某个时刻被释放，所有权规则确保了这一点。
 
 # 数据流动的三种方式
 
