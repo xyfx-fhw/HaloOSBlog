@@ -20,7 +20,7 @@ Rust 的解决方案是：**没有 `null`，用 `Option<T>` 枚举代替**。
 
 # Option<T> 的定义
 
-`Option<T>` 是标准库中的一个枚举：
+`Option\<T\>` 是标准库中的一个枚举：
 
 ```rust
 enum Option<T> {
@@ -33,7 +33,7 @@ enum Option<T> {
 - `Some(T)` — 表示有值
 - `None` — 表示没有值
 
-`<T>` 是一个**泛型参数**（后续会详细讲），现在只需知道它表示"任何类型"。
+`\<T\>` 是一个**泛型参数**（后续会详细讲），现在只需知道它表示"任何类型"。
 
 ## 使用 Option
 
@@ -51,6 +51,8 @@ fn main() {
 
 当有 `None` 时，必须指定类型，因为编译器无法推断。
 
+（注：示例代码中的 `Option\<i32\>` 在实际 Rust 代码中写作 `Option<i32>`，这里只是 Markdown 中的转义）
+
 ## 为什么这比 null 安全
 
 假如 Rust 有 `null`：
@@ -60,7 +62,7 @@ let x: i32 = null;     // x 可能是 null
 println!("{}", x + 1); // 崩溃！
 ```
 
-用 `Option<T>`：
+用 `Option\<T\>`：
 
 ```rust runnable expect-error
 let x: Option<i32> = None;
@@ -106,7 +108,7 @@ fn main() {
 
 ## 方法三：Option 的方法
 
-`Option<T>` 提供了许多方便的方法（这里先了解，后续会深入）：
+`Option\<T\>` 提供了许多方便的方法（这里先了解，后续会深入）：
 
 ```rust runnable
 fn main() {
