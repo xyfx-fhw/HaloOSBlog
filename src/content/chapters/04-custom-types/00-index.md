@@ -1,7 +1,7 @@
 ---
 title: "自定义数据类型"
 description: "学习 Rust 的自定义类型系统：结构体、枚举、方法、Option、模式匹配和常量，是面向对象编程的基础。"
-difficulty: intermediate
+difficulty: beginner
 estimatedTime: 10
 keywords: ["结构体", "枚举", "Option", "模式匹配", "类型系统"]
 ---
@@ -29,7 +29,7 @@ fn main() {
     let point_x = 10;
     let point_y = 20;
     let point_z = 30;
-    
+
     // 很难清楚地表达这些数据是相关的
     println!("点：({}, {}, {})", point_x, point_y, point_z);
 }
