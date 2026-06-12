@@ -1,7 +1,7 @@
 ---
 title: "内存与数据流动"
 description: "理解栈与堆的区别，以及移动、拷贝与克隆三种数据交互方式的本质。"
-difficulty: intermediate
+difficulty: beginner
 estimatedTime: 25
 keywords: ["栈", "堆", "移动", "Copy", "Clone", "内存模型"]
 ---
@@ -24,28 +24,107 @@ Rust 中的所有权系统根本上是在管理数据在内存中的位置和生
 
 ---
 
-## 栈与堆的配合
+## 栈与堆的配合：以 String 为例
 
-在 Rust 中，这两者如何配合：变量的绑定（名字）本身通常保存在栈上；但如果该绑定指向一个在运行时分配的值（例如 `String` 的字符缓冲区），真实数据会存放在堆上。例如：
+栈存放小数据，堆存放大数据——但实际应用中，往往两者都要用到。让我们用 `String` 类型来看看它们如何配合：
 
 ```rust
 fn main() {
-    let x = 42;                 // x 的值直接存放在栈上
-    let s = String::from("HelloWorld"); // s 在栈上存储三部分（指针、长度、容量），实际字符数据在堆上
+    let s = String::from("hello");
+    // s 是什么存在栈上？整个字符串内容在哪？
 }
 ```
 
-这里的**长度**是 String 当前包含的字符数，**容量**是堆上已分配内存能容纳的最大字符数。长度总是 ≤ 容量；当你向 String 添加数据超出容量时，Rust 会自动重新分配更大的堆空间。
+### String 的内存结构
 
-<img src="/RustCourse/diagrams/string.svg" alt="Heap diagram" style="max-width:100%;margin:1rem 0;" />
+`String` 在栈上只存**三个字**：
 
-这就是所有权问题出现的背景：当你把一个绑定的值**移动**或**传递**给别的变量/函数时，Rust 会在编译期检查谁拥有堆上数据的释放权，从而在无需运行时 GC 的情况下保证内存安全。
+```text
+栈上的 String 结构体：
+┌─────────────────────────┐
+│ ptr  ──────────────────┐│
+│ len: 5                 ││
+│ capacity: 5            ││
+└───────────────────────┬┘
+                        │
+                        ├──→ 堆上的实际数据
+                               ┌───────────────┐
+                               │ h e l l o     │
+                               └───────────────┘
+```
+
+- **ptr**：指向堆上数据的指针
+- **len**：当前字符串的字节数（这里是 5）
+- **capacity**：堆上已分配内存能容纳的最大字节数（通常 ≥ len）
+
+真正的字符数据 `"hello"` 存在**堆上**，通过 `ptr` 指针来访问。
+
+<img src="/RustCourse/diagrams/string.svg" alt="String memory layout" style="max-width:100%;margin:1rem 0;" />
+
+### from() 和 push_str() 做了什么
+
+这两个操作涉及不同的内存变化：
+
+```rust runnable
+fn main() {
+    let mut s = String::from("hello");
+    println!("len: {}, capacity: {}", s.len(), s.capacity());
+    
+    s.push_str(", world!");
+    println!("len: {}, capacity: {}", s.len(), s.capacity());
+}
+```
+
+- **`String::from("hello")`**：
+  - 从只读数据区读取字面量 `"hello"`
+  - 在堆上分配新空间
+  - 复制内容到堆上
+  - 在栈上创建 String 结构体指向这块堆内存
+
+- **`push_str(", world!")`**：
+  - 检查当前容量是否足够
+  - 若容量不足，重新在堆上分配更大的空间，移动旧数据过去
+  - 追加新内容
+  - 更新 len（容量 capacity 可能也会改变）
+
+<img src="/RustCourse/diagrams/string_opration.svg" alt="String operations" style="max-width:100%;margin:1rem 0;" />
+
+### 字符串字面量 vs String
+
+这两种字符串的存储方式和行为完全不同，是初学者容易混淆的地方：
+
+```rust runnable
+fn main() {
+    let lit = "hello";                    // 字符串字面量，类型是 &str
+    let s = String::from("hello");        // String 类型
+    
+    // 你可以对比两者在栈上占用的空间
+    println!("字面量占用栈空间: {} 字节", std::mem::size_of_val(&lit));
+    println!("String 占用栈空间: {} 字节", std::mem::size_of_val(&s));
+}
+```
+
+| 特性 | 字符串字面量 `"hello"` | String::from("hello") |
+|-----|------|------|
+| **存储位置** | 程序的只读数据区 | 堆上 |
+| **大小** | 编译时固定 | 运行时可动态增长 |
+| **可修改** | 不可修改 | 可修改（需要 `mut`） |
+| **所有权** | 无（不拥有数据） | 拥有（负责释放） |
+| **类型** | `&str`（引用） | `String`（所有者） |
+
+**核心区别**：
+- `"hello"` 在程序启动时就存在（在只读区），所有引用共享同一份数据
+- `String::from("hello")` 是**独立的堆分配**，每次调用都创建新的内存空间
+
+这就是为什么只有 `String` 需要所有权管理——它的堆内存必须在某个时刻被释放，所有权规则确保了这一点。
 
 # 数据流动的三种方式
 
 理解了栈与堆的区别，现在来看 Rust 里数据在变量之间"流动"时会发生什么。这是初学者最常卡住的地方——同样是 `let b = a` 这行代码，对整数和对 `String` 的行为截然不同。
 
 ## 移动（Move）
+
+<img src="/RustCourse/diagrams/move.svg" alt="Heap diagram" style="max-width:100%;margin:1rem 0;" />
 
 当你把一个 `String` 赋值给另一个变量时，发生了什么？
 
@@ -73,6 +152,8 @@ fn main() {
 
 ## 拷贝（Copy）：栈类型的隐式复制
 
+<img src="/RustCourse/diagrams/copy.svg" alt="Heap diagram" style="max-width:100%;margin:1rem 0;" />
+
 整数、布尔、浮点、字符等类型存在栈上，大小固定，复制成本极低。Rust 对这类类型自动进行**按值复制**（copy），不会让原变量失效：
 
 ```rust runnable
@@ -95,6 +176,8 @@ fn main() {
 
 ## 克隆（Clone）：真正的深拷贝
 
+<img src="/RustCourse/diagrams/clone.svg" alt="Heap diagram" style="max-width:100%;margin:1rem 0;" />
+
 如果确实需要两份独立的数据，用 `.clone()`：
 
 ```rust runnable
@@ -111,9 +194,9 @@ fn main() {
 
 | 操作 | 发生条件 | 原变量是否失效 | 是否复制堆数据 |
 |------|---------|--------------|------|
-| **移动（Move）** | 堆分配类型赋值/传参 | ✅ 失效 | 否（只复制栈上元数据） |
-| **复制（Copy）** | 栈类型（实现 Copy 特征） | ❌ 仍有效 | 不涉及堆数据 |
-| **克隆（Clone）** | 显式调用 `.clone()` | ❌ 仍有效 | ✅ 是（深拷贝） |
+| **移动（Move）** | 堆分配类型赋值/传参 | ❌ 失效 | 否（只复制栈上元数据） |
+| **复制（Copy）** | 栈类型（实现 Copy 特征） | ✅ 仍有效 | 不涉及堆数据 |
+| **克隆（Clone）** | 显式调用 `.clone()` | ✅ 仍有效 | ✅ 是（深拷贝） |
 
 ```rust runnable
 fn main() {
@@ -139,6 +222,8 @@ fn main() {
 **判断一个类型是 Move 还是 Copy 的快捷方法**：
 - 如果它需要在堆上分配内存（`String`、`Vec`、`Box` 等），通常是 Move
 - 如果它只存在栈上（整数、浮点、布尔、char、小元组），通常是 Copy
+
+> 使用`=`通常都是 Move 或者 Cpoy，如果要使用 Clone，通常都是调用.clone()的形式
 
 ## 移动 vs 浅拷贝
 
