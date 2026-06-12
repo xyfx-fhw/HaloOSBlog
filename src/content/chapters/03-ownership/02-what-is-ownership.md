@@ -129,78 +129,136 @@ fn main() {
 - C：需要手动 `free`（容易忘记）
 - Rust：作用域结束立即释放（确定且无开销）
 
-# 所有权与函数
+# 所有权转移
 
-函数调用时，传参和返回都涉及所有权问题。但要注意：**不是所有类型都会转移所有权**。
+**核心原则**：只要一个值被"消费"了（被移动到新的所有者），所有权就转移。这发生在以下场景：
 
-- **堆类型**（String、Vec 等）：发生**移动**（所有权转移）
-- **栈类型**（整数、布尔等）：发生**复制**（自动 Copy，所有权不转移）
+## 场景一：赋值
 
-理解这点很关键。同时要知道，**所有权转移不只发生在函数中**——任何时刻只要把值从一个地方"转移"到另一个地方，都可能发生所有权转移：
+```rust runnable
+fn main() {
+    let s1 = String::from("hello");
+    let s2 = s1;  // s1 的所有权转移给 s2
+    
+    println!("{}", s2);  // ✓ 可以
+    // println!("{}", s1);  // ✗ 错误：s1 已失效
+}
+```
 
-| 转移场景 | 示例 |
-|---|---|
-| **赋值** | `let b = a;` |
-| **函数传参** | `func(a);` |
-| **函数返回** | `return a;` 或 `a` |
-| **模式匹配** | `let (x, y) = tuple;` 会转移 x、y 的所有权 |
-| **match 表达式** | `match s { ... }` 可能转移匹配变量的所有权 |
-| **for 循环** | `for item in vec { ... }` 转移 vec 的所有权（迭代时） |
-| **闭包捕获** | `\|\| s { ... }` 可能转移 s 的所有权 |
-
-**核心原则**：只要一个值被"消费"了（被移动到新的所有者），所有权就转移。
-
-## 传参时的所有权转移
+## 场景二：函数传参
 
 ```rust runnable
 fn main() {
     let s = String::from("hello");
-    takes_ownership(s);      // s 的所有权转移到函数内
-                             // s 之后无效
-    // println!("{}", s);    // ✗ 错误
-
-    let x = 5;
-    makes_copy(x);           // i32 实现了 Copy，自动复制
-    println!("x={}", x);     // ✓ x 仍然有效
+    takes_ownership(s);  // s 的所有权转移到函数内
+    // println!("{}", s);  // ✗ 错误：s 已失效
 }
 
 fn takes_ownership(s: String) {
     println!("{}", s);
 }  // s 离开作用域，堆内存释放
-
-fn makes_copy(x: i32) {
-    println!("{}", x);
-}  // x 离开作用域，但栈数据自动清理，无需特殊处理
 ```
 
-## 返回值的所有权转移
-
-对于堆类型，函数也可以通过返回值转移所有权。对于 Copy 类型，返回值同样自动复制：
+## 场景三：函数返回
 
 ```rust runnable
 fn main() {
-    let s1 = gives_ownership();  // 函数返回 String，所有权转给 s1
+    let s1 = gives_ownership();  // 函数返回的 String 所有权转给 s1
     println!("{}", s1);
-    
-    let n = gives_number();      // 返回 i32，自动复制，no ownership transfer
-    println!("{}", n);
 }
 
 fn gives_ownership() -> String {
     let s = String::from("yours");
     s  // 返回 s，所有权转移给调用者
 }
+```
 
-fn gives_number() -> i32 {
-    42  // 返回 i32，自动复制给调用者
+## 其他场景
+
+模式匹配、match 表达式、for 循环、闭包捕获等也都会转移所有权：
+
+```rust runnable
+fn main() {
+    // 模式匹配
+    let s = String::from("hello");
+    let (a, b) = ("x", s);  // s 的所有权转移到模式中
+    
+    // match 表达式
+    match b {
+        _ => println!("{}", b),  // b 被消费
+    }
+    // println!("{}", b);  // ✗ 错误：b 已失效
+    
+    // for 循环
+    let vec = vec![1, 2, 3];
+    for item in vec {  // vec 的所有权被转移到迭代器
+        println!("{}", item);
+    }
+    // println!("{:?}", vec);  // ✗ 错误：vec 已失效
 }
 ```
 
-**关键差异**：
-- `gives_ownership()` 返回 String：**所有权转移**给调用者
-- `gives_number()` 返回 i32：**值复制**给调用者（所有权不存在）
+---
 
-这样虽然工作，但频繁地"传进去再返回"很烦。Rust 提供了更优雅的方案——**引用**（下一篇的主题）。
+## 异常：Copy 类型不转移所有权
+
+**并非所有类型都会转移所有权！** 对于栈类型（整数、布尔等），Rust 会自动复制而不是转移：
+
+```rust runnable
+fn main() {
+    // 赋值时复制
+    let x = 5;
+    let y = x;  // 自动复制，不转移所有权
+    println!("x={}, y={}", x, y);  // ✓ 两个都有效
+    
+    // 函数传参时复制
+    let a = 42;
+    print_number(a);  // 自动复制，a 仍有效
+    println!("a={}", a);  // ✓ 有效
+    
+    // 函数返回时复制
+    let b = get_number();  // 自动复制
+    println!("b={}", b);
+}
+
+fn print_number(x: i32) {
+    println!("{}", x);
+}
+
+fn get_number() -> i32 {
+    42  // 自动复制给调用者
+}
+```
+
+**为什么**？因为这些类型实现了 `Copy` 特征——它们存在栈上，复制成本极低，所以 Rust 默认复制而不转移。
+
+---
+
+## 对比：String vs i32
+
+看一个更清晰的对比：
+
+```rust runnable
+fn main() {
+    // String：堆类型，转移所有权
+    let s1 = String::from("hello");
+    let s2 = s1;
+    // println!("{}", s1);  // ✗ s1 已失效
+    
+    // i32：栈类型，自动复制
+    let n1 = 42;
+    let n2 = n1;
+    println!("n1={}, n2={}", n1, n2);  // ✓ 都有效
+}
+```
+
+| | String（堆） | i32（栈） |
+|---|---|---|
+| `let b = a` | 转移所有权，a 失效 | 复制值，a 仍有效 |
+| `func(a)` | 转移所有权，a 失效 | 复制值，a 仍有效 |
+| `return a` | 转移所有权给调用者 | 复制值给调用者 |
+
+这样虽然工作，但对于堆类型频繁地"传进去再返回"很烦。Rust 提供了更优雅的方案——**引用**（下一篇的主题）。
 
 # 所有权的误区
 
