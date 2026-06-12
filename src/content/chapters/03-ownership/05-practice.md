@@ -256,14 +256,14 @@ fn count_char(s: &str, target: char) -> usize {
 
 fn main() {
     println!("{}", count_char("hello world", 'l')); // 3
-    println!("{}", count_char("rust programming", 'r')); // 2
+    println!("{}", count_char("rust programming", 'r')); // 3
     println!("{}", count_char("abcabc", 'a'));            // 2
 }
 ```
 
 ```expected
 3
-2
+3
 2
 ```
 

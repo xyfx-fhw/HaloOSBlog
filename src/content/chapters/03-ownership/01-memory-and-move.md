@@ -22,8 +22,6 @@ Rust 中的所有权系统根本上是在管理数据在内存中的位置和生
 
 <img src="/RustCourse/diagrams/heap.svg" alt="Heap diagram" style="max-width:100%;margin:1rem 0;" />
 
----
-
 ## 栈与堆的配合：以 String 为例
 
 栈存放**大小编译期已知**的数据，堆存放**大小运行时可变**的数据——但实际应用中，如果需要使用到堆，往往两者都要用到。让我们用 `String` 类型来看看它们如何配合：
