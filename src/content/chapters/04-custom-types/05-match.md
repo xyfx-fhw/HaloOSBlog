@@ -83,9 +83,9 @@ fn main() {
 
 当匹配 `Quarter(state)` 时，`state` 被**绑定**到内部的 `UsState` 值。
 
-# 匹配 Option<T>
+# 匹配 Option\<T\>
 
-`Option<T>` 是最常见的 `match` 用法：
+`Option\<T\>` 是最常见的 `match` 用法：
 
 ```rust runnable
 fn add_one(x: Option<i32>) -> Option<i32> {
@@ -300,7 +300,7 @@ E: `|` 在 match 模式中表示"或"，`1 | 2` 意思是"匹配 1 或 2"。
 
 ### 练习 1：使用 match 处理 Option
 
-实现一个函数 `greet_user()`，接收 `Option<String>`。如果有名字，输出欢迎；如果没有，输出默认问候：
+实现一个函数 `greet_user()`，接收 `Option\<String\>`。如果有名字，输出欢迎；如果没有，输出默认问候：
 
 ```rust editable
 fn greet_user(name: Option<String>) {
@@ -359,7 +359,7 @@ fn main() {
 
 ### 练习 3：多层 Option 匹配
 
-实现一个函数 `process_optional_result()`，接收 `Option<Option<i32>>`，返回最终值或默认值：
+实现一个函数 `process_optional_result()`，接收 `Option\<Option\<i32\>\>`，返回最终值或默认值：
 
 ```rust editable
 fn process_optional_result(value: Option<Option<i32>>) -> i32 {

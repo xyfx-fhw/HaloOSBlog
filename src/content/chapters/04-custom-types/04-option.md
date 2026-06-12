@@ -1,5 +1,5 @@
 ---
-title: "Option<T> 枚举"
+title: "Option\<T\> 枚举"
 description: "掌握 Option 类型如何表示值的存在或缺失，理解 Rust 为何不用 null，以及如何安全地处理可选值。"
 difficulty: intermediate
 estimatedTime: 35
@@ -14,11 +14,11 @@ keywords: ["Option", "Some", "None", "null", "可选值"]
 - 在不该是 `null` 的地方突然变成 `null`
 - 很难区分"正常的空值"和"未初始化"
 
-Rust 的解决方案是：**没有 `null`，用 `Option<T>` 枚举代替**。
+Rust 的解决方案是：**没有 `null`，用 `Option\<T\>` 枚举代替**。
 
 这强制你在编译期就必须处理"可能没有值"的情况。
 
-# Option<T> 的定义
+# Option\<T\> 的定义
 
 `Option\<T\>` 是标准库中的一个枚举：
 
@@ -37,7 +37,7 @@ enum Option<T> {
 
 ## 使用 Option
 
-`Option<T>` 在 prelude 中，无需导入前缀就能用 `Some` 和 `None`：
+`Option\<T\>` 在 prelude 中，无需导入前缀就能用 `Some` 和 `None`：
 
 ```rust runnable
 fn main() {
@@ -50,8 +50,6 @@ fn main() {
 ```
 
 当有 `None` 时，必须指定类型，因为编译器无法推断。
-
-（注：示例代码中的 `Option\<i32\>` 在实际 Rust 代码中写作 `Option<i32>`，这里只是 Markdown 中的转义）
 
 ## 为什么这比 null 安全
 
@@ -299,7 +297,7 @@ fn main() {
 
 ### 练习 3：处理多个 Option
 
-实现一个函数 `find_max_in_options()`，接收两个 `Option<i32>`，返回其中最大的值。如果都是 None，返回 None；如果一个是 None，返回另一个：
+实现一个函数 `find_max_in_options()`，接收两个 `Option\<i32\>`，返回其中最大的值。如果都是 None，返回 None；如果一个是 None，返回另一个：
 
 ```rust editable
 fn find_max_in_options(a: Option<i32>, b: Option<i32>) -> Option<i32> {
