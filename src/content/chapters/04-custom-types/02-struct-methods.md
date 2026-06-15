@@ -1,7 +1,7 @@
 ---
 title: "方法与关联函数"
 description: "学习如何在结构体上定义方法和关联函数，理解 impl 块、self 参数和自动引用解引用机制。"
-difficulty: intermediate
+difficulty: beginner
 estimatedTime: 35
 keywords: ["方法", "impl", "self", "关联函数", "接收者"]
 ---
@@ -65,7 +65,7 @@ impl Circle {
     fn area(&self) -> f64 {
         3.14159 * self.radius * self.radius
     }
-    
+
     fn is_large(&self) -> bool {
         self.area() > 100.0
     }
@@ -101,7 +101,7 @@ impl Rectangle {
     fn area(&self) -> u32 {
         self.width * self.height
     }
-    
+
     fn width(&self) -> bool {
         self.width > 0
     }
@@ -127,7 +127,7 @@ impl Counter {
     fn increment(&mut self) {
         self.count += 1;
     }
-    
+
     fn value(&self) -> i32 {
         self.count
     }
@@ -166,7 +166,7 @@ fn main() {
 
 > **命名惯例**：获取所有权的方法经常用 `into_` 前缀，表示"消费转换"。比如 `into_uppercase()` 表示"消费这个实例，返回大写版本"。
 
-# 多个参数的方法
+## 多个参数的方法
 
 方法可以有除 `self` 外的其他参数：
 
@@ -186,7 +186,7 @@ fn main() {
     let rect1 = Rectangle { width: 30, height: 50 };
     let rect2 = Rectangle { width: 10, height: 40 };
     let rect3 = Rectangle { width: 60, height: 45 };
-    
+
     println!("rect1 能容纳 rect2？{}", rect1.can_hold(&rect2));
     println!("rect1 能容纳 rect3？{}", rect1.can_hold(&rect3));
 }
@@ -210,7 +210,7 @@ impl Rectangle {
             height: size,
         }
     }
-    
+
     // 普通方法
     fn area(&self) -> u32 {
         self.width * self.height
@@ -279,17 +279,17 @@ impl Point {
 
 fn main() {
     let p = Point { x: 3, y: 4 };
-    
+
     // 这四种调用方式都等价：
     p.distance_from_origin();      // 自动转为 (&p).distance_from_origin()
     (&p).distance_from_origin();   // 显式写出
-    
+
     let p_ref = &p;
     p_ref.distance_from_origin();  // 也可以
 }
 ```
 
-这个特性使 Rust 的方法调用语法很优雅，无需手动管理引用。
+这个特性使 Rust 的方法调用语法很优雅，无需手动管理引用。所以 `->`（C/C++ 的结构体指针成员访问符）在 Rust 里完全不需要——`.` 就够了，编译器会自动帮你处理。
 
 # 练习题
 
@@ -348,11 +348,11 @@ impl Account {
     fn deposit(&mut self, amount: f64) {
         // TODO: 实现
     }
-    
+
     fn withdraw(&mut self, amount: f64) -> bool {
         // TODO: 实现，余额不足返回 false，否则返回 true
     }
-    
+
     fn get_balance(&self) -> f64 {
         // TODO: 实现
     }
@@ -360,16 +360,16 @@ impl Account {
 
 fn main() {
     let mut account = Account { balance: 100.0 };
-    
+
     println!("初始余额：{}", account.get_balance());
-    
+
     account.deposit(50.0);
     println!("存入 50 后：{}", account.get_balance());
-    
+
     if account.withdraw(30.0) {
         println!("取出 30 成功，余额：{}", account.get_balance());
     }
-    
+
     if !account.withdraw(200.0) {
         println!("取出 200 失败（余额不足）");
     }
@@ -385,7 +385,7 @@ fn main() {
 
 ### 练习 2：实现关联函数作为构造函数
 
-定义一个 `Color` 结构体，包含 `r`、`g`、`b` 三个 `u8` 字段，并实现三个功能：
+定义一个 `Color` 结构体，包含 `r`、`g`、`b` 三个 `u8` 字段，写出对应关联函数和方法并实现三个功能：
 
 ```rust editable
 #[derive(Debug)]
@@ -395,26 +395,16 @@ struct Color {
     b: u8,
 }
 
-impl Color {
-    fn white() -> Color {
-        // TODO: 返回白色 (255, 255, 255)
-    }
-    
-    fn black() -> Color {
-        // TODO: 返回黑色 (0, 0, 0)
-    }
-    
-    fn brightness(&self) -> f64 {
-        // TODO: 计算亮度（(r+g+b)/3）
-    }
-}
+// TODO: 返回白色 (255, 255, 255)
+// TODO: 返回黑色 (0, 0, 0)
+// TODO: 计算亮度（(r+g+b)/3）
 
 fn main() {
     let white = Color::white();
     let black = Color::black();
-    
-    println!("白色亮度：{:.2}", white.brightness());
-    println!("黑色亮度：{:.2}", black.brightness());
+
+    println!("白色亮度：{:.2}", white.brightness() as f64);
+    println!("黑色亮度：{:.2}", black.brightness() as f64);
 }
 ```
 

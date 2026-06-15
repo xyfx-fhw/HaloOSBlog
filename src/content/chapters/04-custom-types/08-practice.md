@@ -89,207 +89,115 @@ E: x 是 None，所以不匹配 Some(val)，执行 else 分支返回 0。
 
 # 编程练习
 
-## 练习 1：银行账户系统
+## 练习 1：书籍管理
 
-设计一个简单的银行账户系统，包含以下功能：
+定义一个 `Book` 结构体，并实现相关方法。
+
+**任务：**
+- 定义 `Book` 结构体，包含 `title`（String）、`author`（String）、`pages`（u32）
+- 实现 `new()` 方法创建新书
+- 实现 `summary()` 方法返回书籍摘要
+
+**格式要求：**
+- `summary()` 返回格式：`"{title}" by {author}（{pages} 页）`
+- 例如：`"Rust 圣经" by 张汉东（652 页）`
 
 ```rust editable
-#[derive(Debug, Clone)]
-struct Account {
-    holder: String,
-    balance: f64,
+struct Book {
+    // TODO: 添加三个字段
 }
 
-enum Transaction {
-    Deposit(f64),
-    Withdraw(f64),
-    Check,
-}
-
-impl Account {
-    fn new(holder: String, initial_balance: f64) -> Account {
-        // TODO: 创建新账户
+impl Book {
+    fn new(title: String, author: String, pages: u32) -> Book {
+        // TODO: 创建并返回 Book 实例
     }
     
-    fn process(&mut self, transaction: Transaction) -> bool {
-        // TODO: 处理交易
-        // Deposit: 存钱（总是成功）
-        // Withdraw: 取钱（余额不足返回 false）
-        // Check: 检查余额（总是成功，打印余额）
+    fn summary(&self) -> String {
+        // TODO: 返回书籍摘要，按格式要求组织
     }
 }
 
 fn main() {
-    let mut account = Account::new(String::from("张三"), 1000.0);
-    
-    // 存钱
-    account.process(Transaction::Deposit(500.0));
-    account.process(Transaction::Check);
-    
-    // 取钱
-    if account.process(Transaction::Withdraw(300.0)) {
-        println!("取钱成功");
-    }
-    account.process(Transaction::Check);
-    
-    // 试图取超过余额的钱
-    if !account.process(Transaction::Withdraw(2000.0)) {
-        println!("余额不足");
-    }
+    let book = Book::new(String::from("Rust 圣经"), String::from("张汉东"), 652);
+    println!("{}", book.summary());
 }
 ```
 
 ```expected
-当前余额：1500
-当前余额：1200
-取钱成功
-余额不足
+"Rust 圣经" by 张汉东（652 页）
 ```
 
-## 练习 2：订单处理系统
+## 练习 2：灯泡颜色
 
-设计一个订单处理系统，处理不同状态的订单：
+定义一个 `LightColor` 枚举，用 `match` 返回颜色的描述。
+
+**任务：**
+- 定义 `LightColor` 枚举，包含三个成员：`Red`、`Green`、`Blue`
+- 实现 `describe()` 函数，接收 `LightColor`，用 `match` 返回对应的中文描述
+
+**格式要求：**
+- 红灯返回：`"红灯：停止"`
+- 绿灯返回：`"绿灯：通行"`
+- 蓝灯返回：`"蓝灯：准备"`
 
 ```rust editable
-#[derive(Debug, Clone)]
-struct Order {
-    id: u32,
-    customer: String,
-    amount: f64,
-    status: OrderStatus,
+enum LightColor {
+    // TODO: 定义三个成员：Red、Green、Blue
 }
 
-#[derive(Debug, Clone)]
-enum OrderStatus {
-    Pending,
-    Processing,
-    Shipped { tracking_number: String },
-    Delivered,
-    Cancelled { reason: String },
-}
-
-impl Order {
-    fn new(id: u32, customer: String, amount: f64) -> Order {
-        // TODO: 创建新订单，初始状态为 Pending
-    }
-    
-    fn process(&mut self) -> bool {
-        // TODO: 从 Pending 转移到 Processing（其他状态无法处理）
-    }
-    
-    fn ship(&mut self, tracking_number: String) -> bool {
-        // TODO: 从 Processing 转移到 Shipped（其他状态无法发货）
-    }
-    
-    fn deliver(&mut self) -> bool {
-        // TODO: 从 Shipped 转移到 Delivered（其他状态无法交付）
-    }
-    
-    fn cancel(&mut self, reason: String) -> bool {
-        // TODO: 如果订单还没发货（Pending 或 Processing），可以取消
-    }
-    
-    fn status_info(&self) -> String {
-        // TODO: 使用 match 返回订单状态的描述
-        match &self.status {
-            OrderStatus::Pending => String::from("订单待处理"),
-            OrderStatus::Processing => String::from("订单处理中"),
-            OrderStatus::Shipped { tracking_number } => {
-                format!("订单已发货，追踪号：{}", tracking_number)
-            }
-            OrderStatus::Delivered => String::from("订单已交付"),
-            OrderStatus::Cancelled { reason } => {
-                format!("订单已取消：{}", reason)
-            }
-        }
-    }
+fn describe(color: LightColor) -> String {
+    // TODO: 使用 match 处理三种情况，返回对应字符串
 }
 
 fn main() {
-    let mut order = Order::new(1001, String::from("Alice"), 299.99);
-    println!("初始：{}", order.status_info());
-    
-    order.process();
-    println!("处理后：{}", order.status_info());
-    
-    order.ship(String::from("SF123456"));
-    println!("发货后：{}", order.status_info());
-    
-    order.deliver();
-    println!("交付后：{}", order.status_info());
+    println!("{}", describe(LightColor::Red));
+    println!("{}", describe(LightColor::Green));
+    println!("{}", describe(LightColor::Blue));
 }
 ```
 
 ```expected
-初始：订单待处理
-处理后：订单处理中
-发货后：订单已发货，追踪号：SF123456
-交付后：订单已交付
+红灯：停止
+绿灯：通行
+蓝灯：准备
 ```
 
-## 练习 3：数据验证与 Option
+## 练习 3：数组中查找
 
-实现一个用户注册系统，使用 `Option` 处理验证：
+使用 `Option` 在数组中查找元素。
+
+**任务：**
+- 实现 `find_number()` 函数，在数组中查找指定数字
+- 如果找到，返回 `Some(位置)`；如果没找到，返回 `None`
+- 在 `main` 中使用 `if let` 处理结果，并打印查找信息
+
+**格式要求：**
+- 找到时：`"{number} 在位置 {index}"`（例如：`30 在位置 2`）
+- 未找到时：`"{number} 未找到"`（例如：`99 未找到`）
+
+**提示：**
+- 可以用 `for` 循环配合 `enumerate()` 遍历数组
+- 或使用 `numbers.iter().position(|&x| x == target)`
 
 ```rust editable
-struct User {
-    username: String,
-    email: String,
-    age: u32,
-}
-
-fn validate_username(username: &str) -> Option<String> {
-    // TODO: 用户名必须 3-20 个字符，全是字母和数字
-    // 有效返回 Some(用户名)，无效返回 None
-}
-
-fn validate_email(email: &str) -> Option<String> {
-    // TODO: 邮箱必须包含 @ 和点号
-    // 有效返回 Some(邮箱)，无效返回 None
-}
-
-fn validate_age(age: u32) -> Option<u32> {
-    // TODO: 年龄必须在 18-120 之间
-    // 有效返回 Some(年龄)，无效返回 None
-}
-
-fn register_user(
-    username: &str,
-    email: &str,
-    age: u32,
-) -> Option<User> {
-    // TODO: 使用 match 或 if let 验证所有字段
-    // 全部有效则返回 Some(User)，否则返回 None
-    
-    let valid_username = validate_username(username)?;
-    let valid_email = validate_email(email)?;
-    let valid_age = validate_age(age)?;
-    
-    Some(User {
-        username: valid_username,
-        email: valid_email,
-        age: valid_age,
-    })
+fn find_number(numbers: &[i32], target: i32) -> Option<usize> {
+    // TODO: 遍历数组，找到 target 返回 Some(位置)，否则返回 None
 }
 
 fn main() {
-    match register_user("Alice", "alice@example.com", 25) {
-        Some(user) => println!("注册成功：{:?}", user),
-        None => println!("注册失败：数据验证错误"),
-    }
+    let nums = [10, 20, 30, 40, 50];
     
-    match register_user("Al", "invalid.email", 25) {
-        Some(user) => println!("注册成功：{:?}", user),
-        None => println!("注册失败：数据验证错误"),
-    }
+    // TODO: 查找 30，使用 if let 处理返回值，按格式打印
+    
+    // TODO: 查找 99，使用 if let 处理返回值，按格式打印
 }
 ```
 
 ```expected
-注册成功：User { username: "Alice", email: "alice@example.com", age: 25 }
-注册失败：数据验证错误
+30 在位置 2
+99 未找到
 ```
 
 ---
 
-**完成这些练习，你就已经掌握了自定义数据类型的核心概念！**
+**完成这三个练习，你掌握了自定义类型的基础！**

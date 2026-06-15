@@ -1,7 +1,7 @@
 ---
 title: "枚举"
 description: "理解 Rust 枚举的定义、成员、关联数据和方法，掌握用枚举模型一组离散的状态或选择。"
-difficulty: intermediate
+difficulty: beginner
 estimatedTime: 40
 keywords: ["枚举", "enum", "成员", "变体", "关联数据"]
 ---
@@ -51,7 +51,7 @@ fn main() {
 
 枚举通过编译器的强制，确保**不会陷入无效的状态组合**。
 
-# 定义和使用枚举
+## 定义和使用枚举
 
 基本语法：
 
@@ -65,7 +65,7 @@ enum Direction {
 
 fn main() {
     let my_direction = Direction::North;
-    
+
     // 可以有多个成员
     let go_east = Direction::East;
     let go_back = Direction::South;
@@ -80,6 +80,8 @@ fn main() {
 # 枚举成员与关联数据
 
 枚举的真正力量在于：**每个成员可以关联不同类型的数据**。
+
+> **对于 C 程序员的类比**：Rust 枚举相当于 C 的 **tagged union**（带标签的联合体）。C 的 `union` 让多个成员共享同一块内存但没有标记当前活跃成员，容易出错。Rust 枚举自动添加标签记录当前变体，编译器强制安全地访问数据，无需手动维护标志位。
 
 ## 简单关联数据
 
@@ -165,45 +167,6 @@ fn main() {
 
 （这里用到了 `match`，后续会详细讲）
 
-# 实际例子：IP 地址
-
-这是官方文档的经典例子：
-
-```rust runnable
-enum IpAddr {
-    V4(u8, u8, u8, u8),
-    V6(String),
-}
-
-fn main() {
-    let home = IpAddr::V4(127, 0, 0, 1);
-    let loopback = IpAddr::V6(String::from("::1"));
-    
-    println!("IPv4: {:?}", home);
-    println!("IPv6: {:?}", loopback);
-}
-```
-
-如果用结构体，就得这样：
-
-```rust runnable
-struct Ipv4Addr {
-    octets: (u8, u8, u8, u8),
-}
-
-struct Ipv6Addr {
-    segments: String,
-}
-
-struct IpAddr {
-    kind: String,
-    address: Box<dyn std::any::Any>,
-}
-// 这样既复杂又容易出错
-```
-
-枚举清晰地表达：IP 地址要么是 IPv4（4 个 u8），要么是 IPv6（一个 String）。
-
 # 常见枚举模式
 
 ## 状态机
@@ -221,7 +184,10 @@ enum PlayerState {
 
 impl PlayerState {
     fn can_jump(&self) -> bool {
-        matches!(self, PlayerState::Idle | PlayerState::Walking)
+        match self {
+            PlayerState::Idle | PlayerState::Walking => true,
+            _ => false,
+        }
     }
 }
 
@@ -321,7 +287,7 @@ fn main() {
         content: String::from("Hello, world!"),
     };
     let op3 = FileOperation::Read(String::from("test.txt"));
-    
+
     println!("{:?}", op1);
     println!("{:?}", op2);
     println!("{:?}", op3);
@@ -334,50 +300,46 @@ Write { filename: "test.txt", content: "Hello, world!" }
 Read("test.txt")
 ```
 
-### 练习 2：为枚举实现方法
+### 练习 2：重构：用枚举替代多个结构体
 
-为 `HttpStatus` 枚举实现一个 `code()` 方法，返回对应的 HTTP 状态码：
+下面用多个结构体定义了不同的网络消息，你的任务是把这段代码改写成用枚举来统一这些消息。
+
+**原来的代码（多个结构体）：**
+
+```rust
+struct QuitMessage;               // 关闭应用
+struct MoveMessage {
+    x: i32,
+    y: i32,
+}                                // 移动光标
+struct WriteMessage {
+    text: String,
+}                                // 写入文本
+struct ChangeColorMessage {
+    r: u8,
+    g: u8,
+    b: u8,
+}                                // 改变颜色
+```
+
+**你的任务：** 定义一个 `Message` 枚举，把上面四种消息统一为一个类型。每个成员的关联数据结构应该与原结构体完全对应。然后创建各种类型的消息实例并打印它们。
 
 ```rust editable
-#[derive(Debug)]
-enum HttpStatus {
-    Ok,
-    BadRequest,
-    NotFound,
-    ServerError,
-}
-
-impl HttpStatus {
-    fn code(&self) -> u16 {
-        // TODO: 实现方法，返回状态码
-        // Ok => 200, BadRequest => 400, NotFound => 404, ServerError => 500
-    }
-    
-    fn message(&self) -> &str {
-        // TODO: 实现方法，返回状态消息
-        match self {
-            HttpStatus::Ok => "OK",
-            HttpStatus::BadRequest => "Bad Request",
-            HttpStatus::NotFound => "Not Found",
-            HttpStatus::ServerError => "Internal Server Error",
-        }
-    }
-}
+// TODO: 定义 Message 枚举，包含上面四种消息
 
 fn main() {
-    let status = HttpStatus::Ok;
-    println!("状态码：{}", status.code());
-    println!("消息：{}", status.message());
-    
-    let error = HttpStatus::NotFound;
-    println!("错误码：{}", error.code());
-    println!("错误信息：{}", error.message());
+    let quit = Message::Quit;
+    let move_msg = Message::Move { x: 100, y: 200 };
+    let write_msg = Message::Write(String::from("Hello"));
+    let color_msg = Message::ChangeColor { r: 255, g: 0, b: 0 };
+
+    // TODO: 使用 {:?} 打印这四个消息（需要派生 Debug）
 }
 ```
 
 ```expected
-状态码：200
-消息：OK
-错误码：404
-错误信息：Not Found
+Quit
+Move { x: 100, y: 200 }
+Write("Hello")
+ChangeColor { r: 255, g: 0, b: 0 }
 ```

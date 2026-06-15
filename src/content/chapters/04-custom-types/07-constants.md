@@ -2,19 +2,13 @@
 title: "常量与静态变量"
 description: "理解 const 和 static 的区别，掌握如何定义全局和编译期常量，以及何时使用各种形式。"
 difficulty: beginner
-estimatedTime: 20
+estimatedTime: 15
 keywords: ["const", "static", "常量", "编译期"]
 ---
 
-# 什么是常量
+# const：常量
 
 **常量** 是那些在程序运行期间**不能改变**的值。与变量不同，常量必须始终是不可变的，且不能用 `mut` 修饰。
-
-Rust 提供两种常量机制：
-- `const` — 编译期常量（推荐用于大多数情况）
-- `static` — 静态变量（特殊场景使用）
-
-# const：编译期常量
 
 ## 基本用法
 
@@ -47,6 +41,23 @@ fn main() {
 }
 ```
 
+## 常数表达式
+
+`const` 可以使用常数表达式（编译期可计算的表达式，不会消耗运行性能）：
+
+```rust runnable
+const HOURS_PER_DAY: u32 = 24;
+const MINUTES_PER_HOUR: u32 = 60;
+const SECONDS_PER_MINUTE: u32 = 60;
+
+const SECONDS_PER_DAY: u32 =
+    HOURS_PER_DAY * MINUTES_PER_HOUR * SECONDS_PER_MINUTE;
+
+fn main() {
+    println!("每天秒数：{}", SECONDS_PER_DAY);
+}
+```
+
 ## const 的限制
 
 不能用复杂的运行时操作定义 const，比如函数调用（除了一些特殊的 const 函数）：
@@ -59,128 +70,159 @@ const VALUE: String = String::from("hello");  // 编译错误！
 
 # static：静态变量
 
-## 基本用法
+**静态变量**是一种**全局变量**，在程序整个生命周期中只存在一个实例，存储在**固定的内存地址**上。与 const 不同，static 在内存中有真实的地址，可以被取引用。
+
+> **重要**：static 和 const 一样，**都必须明确指定类型**，不能依赖类型推断。
 
 ```rust runnable
-static COUNTER: i32 = 0;
-static APP_NAME: &str = "MyApp";
+static VERSION: &str = "1.0.0";
 
 fn main() {
-    println!("应用名：{}", APP_NAME);
-    println!("计数器初值：{}", COUNTER);
+    // static 有固定地址
+    println!("版本：{}", VERSION);
+    println!("版本地址：{:p}", &VERSION);  // 可以取地址
 }
 ```
 
-## static vs const
+## static 的限制
 
-| 特性 | const | static |
-|------|-------|--------|
-| 存储位置 | 代码中（内联） | 内存中（固定地址） |
-| 类型推断 | 不支持，必须指定 | 不支持，必须指定 |
-| 访问速度 | 直接值 | 通过地址 |
-| 生命周期 | 编译期 | 程序生命周期 |
-| 可变性 | 总是不可变 | 可以是 `static mut`（需 unsafe） |
+static 的初始值也必须在**编译期可知**，这一点和 const 相同。不能使用运行时函数来初始化 static：
 
-**经验法则：** 优先用 `const`，只有在需要固定内存地址或可变全局变量时才用 `static`。
+```rust runnable expect-error
+static NAME: String = String::from("App");  // 编译错误！
+```
 
-## 可变静态变量
+因为 `String::from()` 需要在运行时执行。如果需要字符串，应该用 `&str` 字面量：
 
-可以定义可变的 `static`，但访问或修改它都需要 `unsafe` 代码块（这是后续章节的内容）：
+```rust runnable
+static NAME: &str = "App";  // 正确
+
+fn main() {
+    println!("{}", NAME);
+}
+```
+
+Rust 也支持在函数内声明 static，这与 C 语言相似。函数内的 static 变量生命周期贯穿整个程序，但**作用域被限制在函数内部**，是一种很好的封装手段。
+
+```rust runnable
+fn get_db_timeout() -> u32 {
+    // 函数内的 static — 只初始化一次
+    static DEFAULT_TIMEOUT: u32 = 30;
+    DEFAULT_TIMEOUT
+}
+
+fn main() {
+    println!("超时：{} 秒", get_db_timeout());
+    println!("超时：{} 秒", get_db_timeout());  // 不会重新初始化
+}
+```
+
+**关键特性：**
+- 每次调用函数时，static 不会重新初始化（只在首次调用时初始化）
+- 外部无法直接访问这个 static（作用域限制）
+- 这样既能保持全局状态，又能避免污染全局命名空间
+
+## 可变 static
+
+如果你需要一个可变的全局状态，可以用 `static mut`，但**访问或修改都需要 `unsafe` 块**。
+
+### 为什么需要 unsafe
+
+静态变量存在于全局数据区。如果在多个线程中同时访问可变 static，会引发**数据竞争**（Data Race）。Rust 通过 `unsafe` 块要求你显式承认这个风险。
+
+### 例子
 
 ```rust runnable
 static mut COUNTER: i32 = 0;
 
-fn main() {
+fn increment() {
     unsafe {
         COUNTER += 1;
         println!("计数器：{}", COUNTER);
     }
 }
-```
-
-一般不推荐使用可变 static，因为容易引起并发问题。
-
-# 实际例子
-
-## 数学常数
-
-```rust runnable
-const PI: f64 = 3.14159265359;
-const E: f64 = 2.71828182846;
-const GOLDEN_RATIO: f64 = 1.61803398875;
 
 fn main() {
-    let radius = 5.0;
-    let area = PI * radius * radius;
-    println!("半径 {} 的圆面积：{:.2}", radius, area);
+    increment();
+    increment();
 }
 ```
 
-## 配置常数
+> **建议：** 一般不推荐使用可变 static，因为容易引起并发问题。如果你需要全局可变状态，考虑其他方案（如 Mutex、线程本地存储等，后续会讲）。
+
+# const vs static：全局变量的选择
+
+## 全局变量只能是 const 或 static
+
+在全局作用域（函数外），你**不能用 `let`**，只能用 `const` 或 `static`。（函数内的话都可以使用）
+
+```rust runnable expect-error
+// 错误！不能在全局作用域用 let
+let name = "Alice";
+
+fn main() {}
+```
+
+**为什么？** 全局变量的生命周期贯穿整个程序，编译器要求它要么是编译期已知的常数（const），要么是有特殊运行时特性的（static）。普通的 let 变量无法满足这一要求。
+
+## const vs static 的本质区别
+
+虽然 const 和 static 都可以在全局作用域使用，但它们的**原理和用途完全不同**。
+
+### 三种变量的对比
 
 ```rust runnable
-const DATABASE_URL: &str = "postgres://localhost/mydb";
-const MAX_CONNECTIONS: usize = 100;
-const TIMEOUT_SECONDS: u64 = 30;
-const DEBUG_MODE: bool = true;
+// 1. 局部 let 变量
+fn example_local() {
+    let name = "Alice";  // 每次调用都重新创建
+}
+
+// 2. 全局 const
+const API_HOST: &str = "api.example.com";  // 编译期被内联到每个使用处
+
+// 3. 全局 static
+static DATABASE_URL: &str = "postgres://...";  // 在内存的固定地址，程序启动创建
 
 fn main() {
-    println!("数据库：{}", DATABASE_URL);
-    println!("最大连接数：{}", MAX_CONNECTIONS);
-    if DEBUG_MODE {
-        println!("调试模式已启用");
-    }
+    // const：编译后的二进制里有多个 "api.example.com" 副本
+    println!("{}", API_HOST);
+
+    // static：二进制里只有一个 DATABASE_URL，所有代码指向同一地址
+    println!("{}", DATABASE_URL);
 }
 ```
 
-## 性能敏感的应用
+### const vs static 的核心区别
+
+| 特性 | const | static |
+|------|-------|--------|
+| **存储位置** | 编译期内联到代码中 | 程序内存中的固定地址 |
+| **运行时地址** | 无地址（被替换为值） | 有固定地址（`&STATIC` 可取地址） |
+| **性能** | 零开销（直接是值） | 通过地址访问（多一步寻址） |
+| **生命周期** | 编译期存在 | 程序从启动到结束 |
+| **作用域** | 可以是局部（如函数内） | 必须是全局 |
+| **可变性** | 总是不可变 | 可以是 `static mut`（需 unsafe） |
+
+**类比理解：**
+- `const` 像"直接数字替换"：`PI` 在使用处被替换为 `3.14159`
+- `static` 像"全局变量"：在内存中有一个固定盒子，所有地方都访问同一个地址
+
+### 为什么 static 需要固定地址
 
 ```rust runnable
-const BUFFER_SIZE: usize = 8192;
-const CACHE_LINES: usize = 64;
-
-struct Buffer {
-    data: [u8; BUFFER_SIZE],
-}
+const PI: f64 = 3.14;
+static VERSION: &str = "1.0";
 
 fn main() {
-    let buffer = Buffer { data: [0; BUFFER_SIZE] };
-    println!("缓冲区大小：{} 字节", std::mem::size_of_val(&buffer.data));
+    // const 没有地址，无法取引用
+    // println!("{:p}", &PI);  // 编译错误！
+
+    // static 有地址，可以取引用
+    println!("版本地址：{:p}", &VERSION);
 }
 ```
 
-# 何时用 const vs let
-
-```rust runnable
-fn main() {
-    // const 用于编译期已知的常值
-    const MAX_USERS: u32 = 1000;
-    
-    // let 用于运行时确定的值
-    let user_count = 42;
-    
-    // let mut 用于需要修改的变量
-    let mut active_users = 0;
-    active_users = 35;
-}
-```
-
-# 常数表达式
-
-`const` 可以使用常数表达式（编译期可计算的表达式）：
-
-```rust runnable
-const HOURS_PER_DAY: u32 = 24;
-const MINUTES_PER_HOUR: u32 = 60;
-const SECONDS_PER_MINUTE: u32 = 60;
-
-const SECONDS_PER_DAY: u32 = 
-    HOURS_PER_DAY * MINUTES_PER_HOUR * SECONDS_PER_MINUTE;
-
-fn main() {
-    println!("每天秒数：{}", SECONDS_PER_DAY);
-}
-```
+const 因为被编译期内联了，根本不存在于运行时，所以没有地址。而 static 在内存中有真实的地址，因此可以被取引用。
 
 # 练习题
 
@@ -288,50 +330,3 @@ fn main() {
   每天秒数：86400
   每天分钟数：1440
 ```
-
-### 练习 3：常数约束
-
-在函数中使用常数来约束数据结构大小：
-
-```rust editable
-const MAX_QUEUE_SIZE: usize = 100;
-const MAX_NAME_LENGTH: usize = 50;
-
-struct Queue {
-    items: Vec<String>,
-}
-
-impl Queue {
-    fn new() -> Self {
-        Queue { items: Vec::new() }
-    }
-    
-    fn enqueue(&mut self, item: String) -> bool {
-        // TODO: 如果队列大小小于 MAX_QUEUE_SIZE，添加项目
-        // 如果项目长度大于 MAX_NAME_LENGTH，截断
-    }
-    
-    fn size(&self) -> usize {
-        self.items.len()
-    }
-}
-
-fn main() {
-    let mut queue = Queue::new();
-    
-    queue.enqueue(String::from("Alice"));
-    queue.enqueue(String::from("Bob"));
-    
-    println!("队列大小：{}", queue.size());
-}
-```
-
-```expected
-队列大小：2
-```
-
----
-
-**现在你已经掌握了 Rust 自定义数据类型的全部内容！**
-
-从结构体到枚举，从方法到 match 表达式，从 Option 到常数，你已经拥有了构建真实 Rust 程序所需的基础知识。
