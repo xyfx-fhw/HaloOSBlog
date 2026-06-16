@@ -198,8 +198,6 @@ fn main() {
 
 ## 类型别名测验
 
-```quiz single
-Q: 下列代码会编译通过吗？
 ```rust
 type UserId = u32;
 type ProductId = u32;
@@ -210,6 +208,9 @@ fn main() {
     let sum = id1 + id2;
 }
 ```
+
+```quiz single
+Q: 下列代码会编译通过吗？
 + 会，因为别名不提供类型安全
 - 不会，UserId 和 ProductId 是不同类型
 - 不会，u32 不支持这样的操作

@@ -391,8 +391,6 @@ Q: 下列关于 From 和 Into 的说法，正确的是？
 E: 如果为类型 A 实现了 From<B>，编译器会自动为 B 实现 Into<A>。只需实现 From，不用手动实现 Into。
 ```
 
-```quiz single
-Q: 下列代码会编译通过吗？
 ```rust
 struct Color(u8, u8, u8);
 
@@ -406,6 +404,9 @@ fn main() {
     let c: Color = (255, 0, 0).into();
 }
 ```
+
+```quiz single
+Q: 下列代码会编译通过吗？
 + 会，into() 会自动从 From 实现推导
 - 不会，需要显式实现 Into trait
 - 不会，(u8, u8, u8) 无法转为 Color
@@ -444,8 +445,6 @@ Q: 要把字符串 "42" 转为 i32，下列哪种写法是错误的？
 E: `as` 只用于原始类型转换，不用于字符串。字符串需要用 `parse()` 方法结合 FromStr trait。
 ```
 
-```quiz single
-Q: 下列代码的输出是什么？
 ```rust
 fn main() {
     let num = 42i32;
@@ -453,6 +452,9 @@ fn main() {
     println!("{}", s);
 }
 ```
+
+```quiz single
+Q: 下列代码的输出是什么？
 - 不能编译
 - 输出类似 "Number(42)"
 + 输出 "42"

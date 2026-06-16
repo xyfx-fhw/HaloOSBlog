@@ -35,7 +35,7 @@ fn main() {
     let y = 5.0;            // 推导为 f64（Rust 浮点数默认类型）
     let name = "hello";     // 推导为 &str（字符串字面量）
     let b = true;           // 推导为 bool
-    
+
     println!("x: {:?}, y: {:?}, name: {:?}, b: {:?}", x, y, name, b);
 }
 ```
@@ -48,13 +48,13 @@ fn main() {
 fn main() {
     // 创建一个空向量，此时编译器还不知道元素类型
     let mut vec = Vec::new();
-    
+
     // 向其中添加 5u8（无符号 8 位整数）
     vec.push(5u8);
-    
+
     // 现在编译器推导出：vec 是 Vec<u8>
     println!("vec: {:?}", vec);
-    
+
     // 再看这个例子
     let mut collection = Vec::new();
     collection.push(10);    // 这一行确定了元素类型是 i32
@@ -69,15 +69,15 @@ fn main() {
 ```rust runnable
 fn main() {
     let mut numbers = Vec::new();
-    
+
     // 第 1 行：暂时还是 Vec<_>
-    
+
     numbers.push(42);
     // 第 2 行：现在是 Vec<i32>
-    
+
     numbers.push(100);
     // 第 3 行：仍然是 Vec<i32>
-    
+
     println!("{:?}", numbers);
 }
 ```
@@ -96,7 +96,7 @@ fn main() {
 fn main() {
     // 错误！编译器不知道要什么类型
     // let empty = Vec::new();
-    
+
     // 正确：显式标注
     let empty: Vec<i32> = Vec::new();
     println!("empty vec: {:?}", empty);
@@ -112,12 +112,12 @@ fn main() {
     // 错误！5 既可以是 i32、i64、u32 等
     // let x = 5;
     // x.parse::<...>() 会推导失败
-    
+
     // 正确：明确指定类型
     let x: i32 = 5;
     let y: u8 = 5;
     let z: f64 = 5.0;
-    
+
     println!("x: {}, y: {}, z: {}", x, y, z);
 }
 ```
@@ -147,10 +147,10 @@ fn main() {
 fn main() {
     // 难以一眼看出类型
     let data = vec![1, 2, 3];
-    
+
     // 更清晰
     let numbers: Vec<i32> = vec![1, 2, 3];
-    
+
     println!("{:?}", numbers);
 }
 ```
@@ -164,10 +164,10 @@ fn main() {
     // turbofish 语法 ::<type>
     // parse 方法可以返回 i32、u32、f64 等
     let num: i32 = "42".parse().expect("无法解析");
-    
+
     // 或者用 turbofish
     let num2 = "42".parse::<u32>().expect("无法解析");
-    
+
     println!("num: {}, num2: {}", num, num2);
 }
 ```
@@ -195,7 +195,7 @@ fn main() {
 ```rust runnable expect-error
 fn main() {
     let mut value = 5;
-    
+
     if true {
         value = "hello";  // 错误！之前是 i32，现在是 &str
     }
@@ -210,10 +210,10 @@ fn main() {
 fn main() {
     // 可以接受
     let numbers: Vec<_> = vec![1, 2, 3];
-    
+
     // 不推荐（太模糊）
     // let x: _ = 42;
-    
+
     println!("{:?}", numbers);
 }
 ```
@@ -229,15 +229,15 @@ fn main() {
     vec.push("hello");
     vec.push("world");
     // 现在 vec 是 Vec<&str>
-    
+
     // 例子 2：从初始化宏推导
     let nums = vec![1, 2, 3, 4];
     // 自动推导为 Vec<i32>
-    
+
     // 例子 3：需要显式标注
     let colors: Vec<&str> = vec![];
     // 空向量需要标注
-    
+
     println!("vec: {:?}", vec);
     println!("nums: {:?}", nums);
     println!("colors: {:?}", colors);
@@ -255,10 +255,10 @@ fn main() {
     scores.insert("Alice", 88);
     scores.insert("Bob", 92);
     // 推导为 HashMap<&str, i32>
-    
+
     // 空 HashMap 需要标注
     let empty: HashMap<String, i32> = HashMap::new();
-    
+
     println!("scores: {:?}", scores);
     println!("empty: {:?}", empty);
 }
@@ -273,10 +273,10 @@ fn main() {
     // 解析字符串时常用 turbofish
     let num1: i32 = "42".parse().expect("解析失败");
     let num2 = "42".parse::<u32>().expect("解析失败");
-    
+
     // 显式指定向量元素类型
     let nums = Vec::<i32>::new();
-    
+
     println!("num1: {}, num2: {}", num1, num2);
     println!("nums: {:?}", nums);
 }
@@ -288,11 +288,12 @@ fn main() {
 
 ## 类型推导测验
 
-```quiz single
-Q: 下面的代码中，`x` 的类型是什么？
 ```rust
 let x = 5;
 ```
+
+```quiz single
+Q: 下面的代码中，`x` 的类型是什么？
 - 无法确定
 - f64
 + i32
@@ -300,13 +301,14 @@ let x = 5;
 E: Rust 中整数字面量 `5` 默认推导为 `i32`。如果你需要其他类型，可以添加后缀（如 `5u8`、`5u32` 等）或显式标注。
 ```
 
-```quiz single
-Q: 以下代码能编译吗？
 ```rust
 let mut vec = Vec::new();
 vec.push(42);
 vec.push("hello");
 ```
+
+```quiz single
+Q: 以下代码能编译吗？
 - 能，Rust 支持混合类型容器
 - 能，编译器会自动转换
 + 不能，向量中所有元素类型必须相同
@@ -332,11 +334,12 @@ Q: 下列关于 Rust 类型推导的说法，正确的是？（多选）
 E: 类型推导是基于使用上下文的，可以跨行进行。但函数参数、返回值、以及有歧义的情况需要显式标注。编译器不会盲目选择，无法推导时会报错。
 ```
 
-```quiz single
-Q: 下面代码中，用 turbofish 语法的正确方式是什么？
 ```rust
 let num = "42".parse(...);
 ```
+
+```quiz single
+Q: 下面代码中，用 turbofish 语法的正确方式是什么？
 - `let num = "42".parse(i32);`
 + `let num = "42".parse::<i32>();`
 - `let num = "42".parse<i32>();`
@@ -344,12 +347,13 @@ let num = "42".parse(...);
 E: Turbofish 语法是 `::<Type>`，放在方法名后面。正确写法是 `parse::<i32>()`，而不是 `parse(i32)` 或 `parse<i32>()`。
 ```
 
-```quiz single
-Q: 以下代码会编译失败的原因是什么？
 ```rust
 let mut x = 5;
 x = "hello";
 ```
+
+```quiz single
+Q: 以下代码会编译失败的原因是什么？
 - 字符串必须用 String 类型，不能用 &str
 + 变量 x 的类型在第一行推导为 i32，与 &str 冲突
 - x 没有声明为可变的（mut）
@@ -370,11 +374,11 @@ fn main() {
     // TODO: 创建一个空 HashMap，然后通过 insert 操作推导出 HashMap<String, i32>
     let mut scores = HashMap::new();
     // 在这里添加两个 insert 操作，使得 HashMap 被推导为 HashMap<String, i32>
-    
+
     // TODO: 创建一个空向量，然后通过 push 操作推导出 Vec<f64>
     let mut numbers = Vec::new();
     // 在这里添加两个 push 操作，使得向量被推导为 Vec<f64>
-    
+
     println!("scores: {:?}", scores);
     println!("numbers: {:?}", numbers);
 }
@@ -396,14 +400,14 @@ fn main() {
     // values.push(42);
     // values.push("hello");
     // println!("{:?}", values);
-    
+
     // 错误 2：类型冲突
     // let mut x = 5;
     // x = "world";
     // println!("{}", x);
-    
+
     // TODO: 修复上面的两个错误，保持输出正确
-    
+
     println!("修复成功！");
 }
 ```
