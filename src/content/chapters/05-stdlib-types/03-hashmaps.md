@@ -65,9 +65,11 @@ fn main() {
 
 > **哈希函数**（Hash Function）：一个函数，能快速把任意大小的输入"转换"成固定大小的数字（位置）。想象一下档案馆：给定一个人名，哈希函数计算出应该放在哪一行哪一列，从而快速找到文件。Rust 中常见的键类型（`i32`、`String` 等）都内置了哈希实现，不用你手动处理。
 
-# 创建和初始化 HashMap
+# 使用HashMap
 
-## 使用 `HashMap::new()`
+## 创建和初始化 HashMap
+
+### 使用 `HashMap::new()`
 
 最直接的创建方式：
 
@@ -83,24 +85,7 @@ fn main() {
 
 注意这里需要显式标注类型 `HashMap<String, i32>`，因为 HashMap 是空的，编译器无法推断。
 
-## 使用 `insert()` 填充数据
-
-```rust runnable
-use std::collections::HashMap;
-
-fn main() {
-    let mut map = HashMap::new();
-
-    // 插入键值对，编译器推断为 HashMap<&str, i32>
-    map.insert("张三", 28);
-    map.insert("李四", 34);
-    map.insert("王五", 25);
-
-    println!("总共有 {} 条记录", map.len());
-}
-```
-
-## 从向量创建
+### 从向量创建
 
 一个常见的模式是从**元组向量**转换成 HashMap：
 
@@ -125,9 +110,9 @@ fn main() {
 
 > **学习提示**：`iter().cloned().collect()` 是一个很常用的模式。不用现在完全理解迭代器的细节，后续章节会详细讲解。
 
-# 访问 HashMap 中的值
+## 访问 HashMap 中的值
 
-## 使用 `get()` 方法
+### 使用 `get()` 方法
 
 最安全的访问方式是 `get()`，它返回 `Option<&V>`：
 
@@ -154,7 +139,7 @@ fn main() {
 
 `get()` 的优点是**不会 panic**，你可以安全地处理键不存在的情况。
 
-## 使用索引访问
+### 使用索引访问
 
 也可以直接用 `map[key]` 访问，但如果键不存在会 panic：
 
@@ -177,7 +162,7 @@ fn main() {
 - 用 `get()` 当键可能不存在时
 - 用 `[]` 当你确定键一定存在时
 
-## 检查键是否存在
+### 检查键是否存在
 
 ```rust runnable
 use std::collections::HashMap;
@@ -200,7 +185,7 @@ fn main() {
 
 ## 插入和修改数据
 
-## 插入新键值对
+### 插入新键值对
 
 `insert()` 既可以添加新数据，也可以覆盖存在的值：
 
@@ -223,7 +208,9 @@ fn main() {
 
 `insert()` 会返回原来的值（如果存在），这很有用。
 
-## 使用 `entry()` API 优化更新
+### 使用 `entry()` API 优化更新
+
+**`entry()` 的作用**：只需查找一次，就能**检查键是否存在**并**根据存在与否来执行不同的操作**。它返回一个 `Entry` 对象，你可以链式调用 `or_insert()`（不存在就插入）或 `and_modify()`（存在就修改）。
 
 如果想**只在键不存在时才插入**，用 `entry()` 更高效：
 
@@ -246,7 +233,7 @@ fn main() {
 
 为什么用 `entry()` 而不是先 `get()` 再 `insert()`？因为 `entry()` 只查找一次，而分开操作需要查找两次，性能更差。
 
-## 修改已存在的值
+### 修改已存在的值
 
 使用 `entry()` 配合 `and_modify()` 可以修改现有值：
 
@@ -275,7 +262,88 @@ fn main() {
 
 这个模式在**计数**场景中非常常见。
 
-## HashMap 的所有权规则
+## 遍历 HashMap
+
+### 遍历所有键值对
+
+```rust runnable
+use std::collections::HashMap;
+
+fn main() {
+    let mut map = HashMap::new();
+    map.insert("red", 0xFF0000);
+    map.insert("green", 0x00FF00);
+    map.insert("blue", 0x0000FF);
+
+    // 遍历键值对
+    for (color, hex) in &map {
+        println!("{} 的十六进制值：{:06X}", color, hex);
+    }
+}
+```
+
+### 只遍历键
+
+```rust runnable
+use std::collections::HashMap;
+
+fn main() {
+    let mut map = HashMap::new();
+    map.insert("Alice", 88);
+    map.insert("Bob", 92);
+    map.insert("Charlie", 85);
+
+    println!("所有学生：");
+    for name in map.keys() {
+        println!("  {}", name);
+    }
+}
+```
+
+### 只遍历值
+
+```rust runnable
+use std::collections::HashMap;
+
+fn main() {
+    let map = {
+        let mut m = HashMap::new();
+        m.insert("Alice", 88);
+        m.insert("Bob", 92);
+        m.insert("Charlie", 85);
+        m
+    };
+
+    println!("所有分数：");
+    for score in map.values() {
+        println!("  {}", score);
+    }
+}
+```
+
+### 可变遍历
+
+要修改值，需要可变引用：
+
+```rust runnable
+use std::collections::HashMap;
+
+fn main() {
+    let mut map = HashMap::new();
+    map.insert("apple", 5);
+    map.insert("banana", 3);
+    map.insert("cherry", 7);
+
+    // 将所有数量翻倍
+    for (_fruit, count) in &mut map {
+        *count *= 2;
+    }
+
+    println!("翻倍后：{:?}", map);
+}
+```
+
+# HashMap 的所有权规则
 
 HashMap **拥有其键和值的所有权**。这是一个容易出错的地方。
 
@@ -339,87 +407,6 @@ fn main() {
 
 但这样做有个限制：HashMap 中的引用受**生命周期**约束（后续章节会学到）。实际上最常见的做法是 HashMap 拥有数据的所有权。
 
-## 遍历 HashMap
-
-## 遍历所有键值对
-
-```rust runnable
-use std::collections::HashMap;
-
-fn main() {
-    let mut map = HashMap::new();
-    map.insert("red", 0xFF0000);
-    map.insert("green", 0x00FF00);
-    map.insert("blue", 0x0000FF);
-
-    // 遍历键值对
-    for (color, hex) in &map {
-        println!("{} 的十六进制值：{:06X}", color, hex);
-    }
-}
-```
-
-## 只遍历键
-
-```rust runnable
-use std::collections::HashMap;
-
-fn main() {
-    let mut map = HashMap::new();
-    map.insert("Alice", 88);
-    map.insert("Bob", 92);
-    map.insert("Charlie", 85);
-
-    println!("所有学生：");
-    for name in map.keys() {
-        println!("  {}", name);
-    }
-}
-```
-
-## 只遍历值
-
-```rust runnable
-use std::collections::HashMap;
-
-fn main() {
-    let map = {
-        let mut m = HashMap::new();
-        m.insert("Alice", 88);
-        m.insert("Bob", 92);
-        m.insert("Charlie", 85);
-        m
-    };
-
-    println!("所有分数：");
-    for score in map.values() {
-        println!("  {}", score);
-    }
-}
-```
-
-## 可变遍历
-
-要修改值，需要可变引用：
-
-```rust runnable
-use std::collections::HashMap;
-
-fn main() {
-    let mut map = HashMap::new();
-    map.insert("apple", 5);
-    map.insert("banana", 3);
-    map.insert("cherry", 7);
-
-    // 将所有数量翻倍
-    for (_fruit, count) in &mut map {
-        *count *= 2;
-    }
-
-    println!("翻倍后：{:?}", map);
-}
-```
-
 # HashMap 的常见操作
 
 ## 获取 HashMap 的大小
@@ -471,35 +458,6 @@ fn main() {
     println!("清空后：{}", map.len());
 }
 ```
-
-# 实战案例：词频统计
-
-这是 HashMap 最经典的应用场景。统计一段文本中每个单词出现的次数：
-
-```rust runnable
-use std::collections::HashMap;
-
-fn main() {
-    let text = "hello world hello rust hello programming world";
-
-    let mut word_count = HashMap::new();
-
-    for word in text.split_whitespace() {
-        // entry().and_modify().or_insert() 模式：
-        // 如果单词已存在，计数加 1；否则插入初始值 1
-        word_count.entry(word)
-            .and_modify(|count| *count += 1)
-            .or_insert(1);
-    }
-
-    // 按单词字母序打印（HashMap 本身无序）
-    for (word, count) in &word_count {
-        println!("'{}' 出现 {} 次", word, count);
-    }
-}
-```
-
-这个例子展示了 HashMap 的核心价值：**快速统计和查询**。
 
 # HashMap 的重要特性
 
