@@ -212,46 +212,29 @@ fn main() {
 
 **`entry()` 的作用**：只需查找一次，就能**检查键是否存在**并**根据存在与否来执行不同的操作**。它返回一个 `Entry` 对象，你可以链式调用 `or_insert()`（不存在就插入）或 `and_modify()`（存在就修改）。
 
-如果想**只在键不存在时才插入**，用 `entry()` 更高效：
-
-```rust runnable
-use std::collections::HashMap;
-
-fn main() {
-    let mut map = HashMap::new();
-    map.insert("name", "Alice");
-
-    // entry().or_insert() 只在键不存在时才插入
-    map.entry("name").or_insert("Bob");
-    println!("name 仍然是：{}", map.get("name").unwrap());
-
-    // 如果键不存在，才会插入
-    map.entry("age").or_insert(28);
-    println!("age 被插入为：{}", map.get("age").unwrap());
-}
-```
-
 为什么用 `entry()` 而不是先 `get()` 再 `insert()`？因为 `entry()` 只查找一次，而分开操作需要查找两次，性能更差。
 
-### 修改已存在的值
-
-使用 `entry()` 配合 `and_modify()` 可以修改现有值：
-
 ```rust runnable
 use std::collections::HashMap;
 
 fn main() {
     let mut map = HashMap::new();
-    map.insert("count", 0);
 
-    // 修改已存在的值，否则插入初始值
+    // 场景 1：只在键不存在时才插入
+    map.entry("name").or_insert("Alice");
+    println!("name：{}", map.get("name").unwrap());
+
+    map.entry("name").or_insert("Bob");  // 已存在，不会改变
+    println!("name 仍然是：{}", map.get("name").unwrap());
+
+    // 场景 2：修改已存在的值，否则插入初始值（常见的计数模式）
     map.entry("count")
-        .and_modify(|e| *e += 1)
-        .or_insert(1);
+        .and_modify(|e| *e += 1)  // 如果存在，修改它
+        .or_insert(1);             // 如果不存在，插入 1
 
     println!("count：{}", map.get("count").unwrap());
 
-    // 再运行一次，count 会被修改
+    // 再运行一次
     map.entry("count")
         .and_modify(|e| *e += 1)
         .or_insert(1);
@@ -260,7 +243,7 @@ fn main() {
 }
 ```
 
-这个模式在**计数**场景中非常常见。
+这个模式在**计数、累加、初始化**等场景中最常见。
 
 ## 遍历 HashMap
 
