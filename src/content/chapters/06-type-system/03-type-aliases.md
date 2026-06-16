@@ -103,7 +103,7 @@ fn main() {
 
 ## 别名 vs 新类型（重要区别）
 
-**关键点**：类型别名**不创建新类型**，它只是给现有类型换个名字。
+**关键点**：类型别名**不创建新类型**，它只是给现有类型换个名字。__因此不提供类型安全__
 
 ```rust runnable
 type UserId = u32;
@@ -194,8 +194,6 @@ fn main() {
 - 只使用一次（没有重复）
 - 别名不能添加方法（如需要，用结构体）
 
----
-
 # 练习题
 
 ## 类型别名测验
@@ -275,29 +273,4 @@ fn main() {
 ```expected
 response: Ok("success")
 cache: {}
-```
-
-### 练习 2：泛型别名
-
-完成下面的代码，定义并使用泛型类型别名：
-
-```rust editable
-// TODO: 定义泛型类型别名 Triple<T>，表示包含三个相同类型的元组 (T, T, T)
-
-
-fn main() {
-    // 使用别名创建整数三元组
-    let nums: Triple<i32> = (1, 2, 3);
-
-    // 使用别名创建字符串三元组
-    let strs: Triple<&str> = ("a", "b", "c");
-
-    println!("nums: {:?}", nums);
-    println!("strs: {:?}", strs);
-}
-```
-
-```expected
-nums: (1, 2, 3)
-strs: ("a", "b", "c")
 ```

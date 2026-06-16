@@ -32,12 +32,12 @@ fn main() {
     let float_val: f32 = 65.4;
     let int_val = float_val as i32;
     println!("浮点数 {} 转为整数 {}", float_val, int_val);
-    
+
     // 整数 -> 浮点数
     let num = 100;
     let float_num = num as f64;
     println!("整数 {} 转为浮点数 {}", num, float_num);
-    
+
     // 整数 -> 字符
     let code = 65u8;
     let character = code as char;
@@ -59,7 +59,7 @@ fn main() {
     let value = 1000u16;
     let narrow = value as u8;
     println!("1000 as u8 = {} (期望 232)", narrow);
-    
+
     // 验证：1000 mod 256 = 232
     println!("1000 % 256 = {}", 1000 % 256);
 }
@@ -80,7 +80,7 @@ fn main() {
     let num = 128i32;
     let as_i16 = num as i16;
     println!("128 as i16 = {}", as_i16);  // 仍是 128
-    
+
     // 例子 2：值超出范围
     // 128 作为 u8 还是 128
     // 但 128 的二进制补码被解释为 i8 时，最高位是 1，所以是负数
@@ -88,7 +88,7 @@ fn main() {
     let num2 = 128i32;
     let as_i8 = num2 as i8;
     println!("128 as i8 = {} (二进制补码解释为 -128)", as_i8);
-    
+
     // 例子 3：负数转无符号
     // -1 的二进制补码是 11111111（所有位都是 1）
     // 转为 u8 后保留所有 8 位，结果是 255
@@ -106,7 +106,7 @@ fn main() {
     let signed: i32 = -42;
     let unsigned = signed as u32;
     println!("-42 as u32 = {}", unsigned);  // 大正数
-    
+
     // 无符号 -> 有符号：按二进制补码解释
     let unsigned2: u32 = 4294967254;  // 就是 -42 的二进制表示
     let signed2 = unsigned2 as i32;
@@ -125,11 +125,11 @@ fn main() {
     let f1 = 3.99f32;
     let i1 = f1 as i32;
     println!("3.99 as i32 = {} (舍弃小数部分)", i1);  // 3
-    
+
     let f2 = -3.99f32;
     let i2 = f2 as i32;
     println!("-3.99 as i32 = {}", i2);  // -3
-    
+
     // 如果浮点数太大，超出整数范围会产生未定义行为
     // （在实践中通常转为 0 或该类型的最小值）
 }
@@ -144,7 +144,7 @@ fn main() {
     let i = 100i32;
     let f = i as f64;
     println!("{} as f64 = {}", i, f);
-    
+
     // 但大整数可能因浮点精度限制而丧失精确性
     let big = 1_000_000_000_000_000_i64;
     let f_big = big as f64;
@@ -159,7 +159,7 @@ fn main() {
     let f32_val: f32 = 3.14;
     let f64_val = f32_val as f64;
     println!("f32 {} -> f64 {}", f32_val, f64_val);
-    
+
     let f64_val2: f64 = 2.71828;
     let f32_val2 = f64_val2 as f32;
     println!("f64 {} -> f32 {}", f64_val2, f32_val2);  // 精度可能丧失
@@ -175,7 +175,7 @@ fn main() {
 ```rust runnable
 fn main() {
     let codes = vec![65u8, 66, 67, 68];
-    
+
     for code in codes {
         let ch = code as char;
         println!("{} -> '{}'", code, ch);
@@ -190,7 +190,7 @@ fn main() {
 ```rust runnable
 fn main() {
     let chars = vec!['A', 'B', 'C', '中'];
-    
+
     for ch in chars {
         let code = ch as u32;
         println!("'{}' -> {}", ch, code);
@@ -211,10 +211,10 @@ fn main() {
     // Debug 模式会 panic，release 模式会环绕
     #[cfg(debug_assertions)]
     println!("Debug 模式：大整数转 u8 可能 panic");
-    
+
     #[cfg(not(debug_assertions))]
     println!("Release 模式：大整数转 u8 会环绕");
-    
+
     let large = 256u16;
     let small = large as u8;
     println!("256 as u8 = {}", small);  // 0（环绕）
@@ -236,20 +236,18 @@ fn main() {
 ```rust runnable
 fn main() {
     let a = 1000i32;
-    
+
     // 方式 1：先转 u8，再转 f64
     let result1 = (a as u8) as f64;
     println!("(1000 as u8) as f64 = {}", result1);  // 232.0
-    
+
     // 方式 2：先转 f64，再转 u8
     let result2 = (a as f64) as u8;
     println!("(1000 as f64) as u8 = {}", result2);  // 232
-    
+
     // 两者结果相同，但过程不同
 }
 ```
-
----
 
 # 练习题
 
@@ -296,7 +294,7 @@ fn main() {
 ```
 
 ```quiz single
-Q: 下列代码的输出是什么？
+Q: 上面的代码的输出是什么？
 - 128
 + -128
 - 编译错误
@@ -337,16 +335,16 @@ E: `as char` 不检查 Unicode 有效性。应使用 `char::from_u32()` 返回 `
 fn main() {
     // TODO: 将 1000u16 转为 u8，输出结果和预期
     let val1 = 1000u16;
-    
-    
+
+
     // TODO: 将 -42i32 转为 u32，输出结果
     let val2 = -42i32;
-    
-    
+
+
     // TODO: 将 255i32 转为 i8，输出结果
     let val3 = 255i32;
-    
-    
+
+
     println!("1000 as u8 预期 232，实际 {}", val1);
     println!("-42 as u32 预期大数，实际 {}", val2);
     println!("255 as i8 预期 -1，实际 {}", val3);
@@ -367,16 +365,16 @@ fn main() {
 fn main() {
     // TODO: 将浮点数 3.99 转为 i32，存储在 int_val
     let float_val = 3.99f32;
-    
-    
+
+
     // TODO: 将整数 65 转为 char，存储在 char_val
     let int_code = 65u8;
-    
-    
+
+
     // TODO: 将字符 'Z' 转为 u32，存储在 code
     let character = 'Z';
-    
-    
+
+
     println!("浮点数 {} 转为整数：{}", float_val, int_val);
     println!("整数 {} 转为字符：'{}'", int_code, char_val);
     println!("字符 '{}' 转为代码：{}", character, code);
