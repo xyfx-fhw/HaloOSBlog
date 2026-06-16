@@ -549,35 +549,21 @@ fn print_vector_info(v: &Vec<i32>) {
     println!("长度：{}", );
 
     // 打印是否为空
-    println!("为空吗？{}", v.is_empty());
+    println!("为空吗？{}", );
 
     // 打印第一个元素（用 first）
-    println!("第一个元素：{:?}", v.first());
+    println!("第一个元素：{:?}", );
 
     // 打印最后一个元素（用 last）
-    println!("最后一个元素：{:?}", v.last());
+    println!("最后一个元素：{:?}", );
 
     // 打印所有元素
-    println!("所有元素：{:?}", v);
+    println!("所有元素：{:?}", );
 }
 
 fn sum_vector(v: &Vec<i32>) -> i32 {
     // 计算向量所有元素的和（用 for 循环）
-    let mut sum = 0;
-    for &num in v {
-        sum += num;
-    }
-    sum
-}
 
-fn contains_even(v: &Vec<i32>) -> bool {
-    // 检查向量中是否有偶数
-    for &num in v {
-        if num % 2 == 0 {
-            return true;
-        }
-    }
-    false
 }
 
 fn main() {
@@ -586,16 +572,14 @@ fn main() {
     print_vector_info(&v);
 
     println!("总和：{}", sum_vector(&v));
-    println!("包含偶数吗？{}", contains_even(&v));
 }
 ```
 
 ```expected
 长度：6
 为空吗？false
-第一个元素：Some(&1)
-最后一个元素：Some(&6)
+第一个元素：Some(1)
+最后一个元素：Some(6)
 所有元素：[1, 2, 3, 4, 5, 6]
 总和：21
-包含偶数吗？true
 ```

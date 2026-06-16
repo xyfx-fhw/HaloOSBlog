@@ -575,13 +575,13 @@ fn main() {
     // TODO: 检查 "Diana" 是否存在，不存在则添加分数 90
 
 
-    // TODO: 打印所有学生及分数
+    for (name, score) in scores {
+        println!("{}: {}", name, score);
+    }
 }
 ```
 
 ```expected
-Alice 的分数：88
-Diana 不存在，已添加
 Alice: 88
 Bob: 92
 Charlie: 85
@@ -603,11 +603,14 @@ fn main() {
 
     println!("初始库存：{:?}", inventory);
 
-    // TODO: 将苹果的数量增加 5 个（用 entry().and_modify()）
+    // TODO: 将苹果的数量增加 5 个（用 entry().and_modify(|e| *e += 5)）
 
+    println!("苹果现在有 {} 个", inventory.get("apple").unwrap());
 
     // TODO: 删除香蕉并打印删除的数量
-
+    if let Some(count) =  {
+        println!("删除的香蕉数量：{}", count);
+    }
 
     // TODO: 添加新的水果 "grape"，数量 12
 

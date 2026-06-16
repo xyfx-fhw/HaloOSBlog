@@ -36,7 +36,7 @@ fn main() {
     let mut s1 = String::from("Hello");
     s1.push_str(", World!");  // 可以修改
     println!("String: {}", s1);
-    
+
     // &str：字符串切片，借用的数据
     let s2: &str = "Hello";
     // s2.push_str(", World!");  // ✗ 错误！&str 不可修改
@@ -72,7 +72,7 @@ fn main() {
     let mut s = String::new();
     println!("空字符串长度：{}", s.len());
     println!("空字符串容量：{}", s.capacity());
-    
+
     // 现在可以向里面添加数据
     s.push_str("Hello");
     println!("添加后：{}", s);
@@ -105,7 +105,7 @@ fn main() {
 fn main() {
     let s1 = String::from("Hello");
     let s2 = "Hello".to_string();
-    
+
     println!("s1: {}", s1);
     println!("s2: {}", s2);
     println!("s1 == s2: {}", s1 == s2);
@@ -123,7 +123,7 @@ fn main() {
     // 预分配 10 字节容量
     let mut s = String::with_capacity(10);
     println!("初始容量：{}", s.capacity());
-    
+
     // 添加数据
     s.push_str("Hello");
     println!("添加后容量：{}", s.capacity());
@@ -143,7 +143,7 @@ fn main() {
     let mut s = String::from("hello");
     s.push('!');
     println!("{}", s);
-    
+
     // 也可以是中文字符
     s.push('✨');
     println!("{}", s);
@@ -172,12 +172,12 @@ fn main() {
 ```rust runnable
 fn main() {
     let mut s = String::from("hello");
-    
+
     match s.pop() {
         Some(ch) => println!("移除的字符：{}", ch),
         None => println!("字符串为空"),
     }
-    
+
     println!("移除后：{}", s);
 }
 ```
@@ -189,7 +189,7 @@ fn main() {
 ```rust runnable
 fn main() {
     let mut s = String::from("hello");
-    
+
     // 删除位置 0 的字符（'h'）
     let removed = s.remove(0);
     println!("删除的字符：{}", removed);
@@ -207,7 +207,7 @@ fn main() {
 fn main() {
     let mut s = String::from("Hello, World!");
     println!("清空前长度：{}", s.len());
-    
+
     s.clear();
     println!("清空后长度：{}", s.len());
     println!("清空后：'{}'", s);
@@ -232,7 +232,7 @@ fn main() {
 ```rust runnable
 fn main() {
     let mut s = String::from("hello world");
-    
+
     // 将位置 0..5 的字符替换为 "Hi"
     s.replace_range(0..5, "Hi");
     println!("{}", s);
@@ -246,7 +246,7 @@ fn main() {
 ```rust runnable
 fn main() {
     let mut s = String::from("Hello, World!");
-    
+
     s.truncate(5);  // 只保留前 5 个字节
     println!("{}", s);
 }
@@ -276,10 +276,10 @@ fn main() {
 ```rust runnable
 fn main() {
     let s = String::from("hello");
-    
+
     let slice1: &str = &s[0..2];   // 前 2 个字节
     let slice2: &str = &s[1..4];   // 字节 1-4
-    
+
     println!("slice1: {}", slice1);
     println!("slice2: {}", slice2);
 }
@@ -290,7 +290,7 @@ fn main() {
 ```rust runnable expect-error
 fn main() {
     let s = "Hello 🦀";  // 这里的 🦀 是 4 个字节
-    
+
     // 这会 panic！因为在字符中间切割
     let slice = &s[0..7];
 }
@@ -306,7 +306,7 @@ fn main() {
 fn main() {
     let s = "hello";
     println!("字节数：{}", s.len());  // 5
-    
+
     let s2 = "Hello 世";
     println!("字节数：{}", s2.len());  // 9（不是 7！）
 }
@@ -329,10 +329,10 @@ fn main() {
     // 这个看起来像一个"e"，但由两个 Unicode 字符组成
     let e_with_acute = "é";  // U+00E9（单个字符）
     let e_combining = "e\u{0301}";  // e（U+0065）+ 锐重音（U+0301）
-    
+
     println!("字节数（é）：{}", e_with_acute.len());
     println!("字符数（é）：{}", e_with_acute.chars().count());
-    
+
     println!("字节数（e̍）：{}", e_combining.len());
     println!("字符数（e̍）：{}", e_combining.chars().count());
 }
@@ -350,7 +350,7 @@ fn main() {
 ```rust runnable
 fn main() {
     let s = "Hello 🦀";
-    
+
     for ch in s.chars() {
         println!("字符：{}", ch);
     }
@@ -362,7 +362,7 @@ fn main() {
 ```rust runnable
 fn main() {
     let s = "hello";
-    
+
     for byte in s.bytes() {
         println!("字节：{}", byte);
     }
@@ -376,7 +376,7 @@ fn main() {
 ```rust runnable
 fn main() {
     let s = "Hello, Rust!";
-    
+
     println!("包含 'Rust'？{}", s.contains("Rust"));
     println!("包含 'Python'？{}", s.contains("Python"));
 }
@@ -387,7 +387,7 @@ fn main() {
 ```rust runnable
 fn main() {
     let s = "hello.txt";
-    
+
     println!("以 'hello' 开头？{}", s.starts_with("hello"));
     println!("以 '.txt' 结尾？{}", s.ends_with(".txt"));
 }
@@ -398,7 +398,7 @@ fn main() {
 ```rust runnable
 fn main() {
     let s = "one,two,three";
-    
+
     for part in s.split(',') {
         println!("部分：{}", part);
     }
@@ -410,7 +410,7 @@ fn main() {
 ```rust runnable
 fn main() {
     let s = "  Hello, Rust!  ";
-    
+
     println!("原字符串：'{}'", s);
     println!("trim()：'{}'", s.trim());
     println!("trim_start()：'{}'", s.trim_start());
@@ -423,7 +423,7 @@ fn main() {
 ```rust runnable
 fn main() {
     let s = "Hello, Rust!";
-    
+
     println!("大写：{}", s.to_uppercase());
     println!("小写：{}", s.to_lowercase());
 }
@@ -443,7 +443,7 @@ fn print_string(s: &str) {
 fn main() {
     // 传入字面量（已经是 &str）
     print_string("Hello");
-    
+
     // 传入 String（会自动解引用转换成 &str）
     let owned = String::from("World");
     print_string(&owned);
@@ -460,7 +460,7 @@ fn print_string_owned(s: String) {
 fn main() {
     let owned = String::from("Hello");
     print_string_owned(owned);
-    
+
     // print_string_owned("World");  // ✗ 错误！需要显式转换
     print_string_owned("World".to_string());  // 可以，但很啰嗦
 }
@@ -477,7 +477,7 @@ fn main() {
     let s1 = "42";
     let num: i32 = s1.parse().expect("无法解析为整数");
     println!("解析后：{}", num);
-    
+
     let s2 = "3.14";
     let float: f64 = s2.parse().expect("无法解析为浮点数");
     println!("解析后：{}", float);
@@ -506,7 +506,7 @@ E: 字符串字面量（双引号中的文本）的类型是 &str。String::from
 
 ```quiz multi
 Q: 下列关于 String 和 &str 的说法，哪些正确？
-+ String 拥有其数据的所有权，可以修改
++ String 拥有其数据的所有权，声明为 mut 的话可以修改
 + &str 是借用的字符串切片，不可修改
 - String 总是存储在栈上
 + 字符串字面量是 &str 类型
@@ -589,58 +589,32 @@ E: &str 参数的优点就是既能接收 &str 类型的字面量，也能接收
 
 ## 编程练习
 
-### 练习 1：字符串基础操作
-
-完成以下程序，实现一个简单的字符串处理函数：
-
-```rust editable
-fn main() {
-    let mut message = String::from("Rust");
-    
-    // TODO 1: 用 push_str() 添加 " is awesome!"
-    
-    // TODO 2: 用 push() 添加一个 '!'
-    
-    // TODO 3: 打印最终消息
-    
-    // TODO 4: 打印字符数（用 .chars().count()）
-    
-    // TODO 5: 打印是否包含 "awesome"
-}
-```
-
-```expected
-Rust is awesome!!
-字符数: 16
-包含 "awesome": true
-```
-
-### 练习 2：字符串切片和迭代
+### 练习 1：字符串切片和迭代
 
 完成下面程序，要求对字符串进行分析：
 
 ```rust editable
 fn main() {
     let text = "Hello, Rust!";
-    
+
     // TODO 1: 获取前 5 个字节的切片
-    let first_five = &text[0..5];
+    let first_five =
     println!("前5个字节: {}", first_five);
-    
-    // TODO 2: 遍历并计算所有字符
+
+    // TODO 2: 遍历并计算所有字符，使用 for 实现
     let mut char_count = 0;
-    for _ch in text.chars() {
+    for  {
         // TODO: 计数
     }
     println!("字符总数: {}", char_count);
-    
+
     // TODO 3: 检查字符串是否以 "Hello" 开头
-    if text.starts_with("Hello") {
+    if  {
         println!("以 'Hello' 开头: true");
     }
-    
+
     // TODO 4: 检查字符串是否以 "!" 结尾
-    if text.ends_with("!") {
+    if  {
         println!("以 '!' 结尾: true");
     }
 }
@@ -653,7 +627,7 @@ fn main() {
 以 '!' 结尾: true
 ```
 
-### 练习 3：文本处理函数
+### 练习 2：文本处理函数
 
 编写一个函数 `process_text()`，接收一个 `&str`，返回处理后的 `String`。要求：
 1. 移除首尾空白
@@ -663,18 +637,18 @@ fn main() {
 ```rust editable
 fn process_text(text: &str) -> String {
     // TODO: 实现函数体
-    todo!()
+
 }
 
 fn main() {
     let test1 = "  HELLO WORLD  ";
     let result1 = process_text(test1);
     println!("输入: '{}' -> 输出: '{}'", test1, result1);
-    
+
     let test2 = "    ";
     let result2 = process_text(test2);
-    println!("输入: '    ' -> 输出: '{}'", test2, result2);
-    
+    println!("输入: '{}' -> 输出: '{}'", test2, result2);
+
     let test3 = "RustLang";
     let result3 = process_text(test3);
     println!("输入: '{}' -> 输出: '{}'", test3, result3);
