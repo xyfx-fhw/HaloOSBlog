@@ -1,9 +1,9 @@
 ---
 title: "综合练习"
-description: "综合检验对类型推导、转换、别名的理解，通过完整的编程项目掌握类型系统的各个方面。"
+description: "综合检验对类型推导、类型铸造、类型别名的理解，通过完整的数据分析项目掌握类型系统的核心概念。"
 difficulty: intermediate
-estimatedTime: 60
-keywords: ["综合练习", "类型系统", "转换", "推导"]
+estimatedTime: 30
+keywords: ["综合练习", "类型系统", "推导", "铸造", "别名"]
 ---
 
 # 代码判断题
@@ -120,196 +120,77 @@ E: 实现 From<T> 会自动获得 Into。所以 (3, 4).into() 能正常工作。
 
 # 编程练习
 
-## 练习 1：类型推导与转换
+## 综合项目：数据分析系统
 
-完成以下函数，展示类型推导和转换的配合使用：
+实现一个简单的数据分析系统，综合应用**类型推导**、**类型铸造**和**类型别名**的知识。
+
+该系统需要：
+1. 使用**类型别名**定义复杂的数据结构
+2. 通过**类型推导**自动确定集合的元素类型
+3. 使用**类型铸造**（as）进行数据格式转换
 
 ```rust editable
 use std::collections::HashMap;
 
+// TODO: 定义类型别名
+// - Score 表示整数分数（i32）
+// - ScoreMap 表示 HashMap<String, i32>（学生名字 -> 分数）
+// - Percentage 表示浮点百分比（f64）
+
+
+
 fn main() {
-    // TODO: 创建一个 HashMap 来存储学生成绩
-    // 键是学生名字（String），值是成绩（i32）
-    // 通过 insert 操作让编译器推导出正确的类型
-    let mut grades: HashMap<_, _> = HashMap::new();
-    grades.insert(String::from("Alice"), 88);
-    grades.insert("Bob".to_string(), 92);
-    // TODO: 再添加 Charlie 的成绩 85
+    // 创建一个空的 ScoreMap，通过 insert 让编译器推导类型
+    let mut scores: ScoreMap = HashMap::new();
+    scores.insert("Alice".to_string(), 88);
+    scores.insert("Bob".to_string(), 92);
+    scores.insert("Charlie".to_string(), 85);
     
-    // TODO: 将成绩转为浮点数后输出平均分
-    let total: i32 = grades.values().sum();
-    let count = grades.len() as f64;
-    let average = total as f64 / count;
+    println!("=== 成绩统计 ===");
+    for (name, score) in &scores {
+        println!("{}: {}", name, score);
+    }
+    
+    // 计算平均分
+    let total: Score = scores.values().sum();
+    let count = scores.len() as f64;
+    let average = total as f64 / count;  // 类型铸造：i32 -> f64
+    
+    println!("\n总分：{}", total);
+    println!("参加人数：{}", scores.len());
     println!("平均分：{:.2}", average);
     
-    // TODO: 使用 turbofish 将字符串解析为成绩
-    let extra: i32 = "90".parse::<i32>().unwrap();
-    println!("额外成绩：{}", extra);
+    // 计算及格人数和及格率
+    let pass_count = scores.values().filter(|&&score| score >= 60).count();
+    let pass_rate = pass_count as f64 / count;  // 类型铸造：usize -> f64
+    let pass_percentage: Percentage = pass_rate * 100.0;
+    
+    println!("及格人数：{}", pass_count);
+    println!("及格率：{:.2}%", pass_percentage);
+    
+    // 找出最高分和最低分
+    if let (Some(&max_score), Some(&min_score)) = (scores.values().max(), scores.values().min()) {
+        let score_range = (max_score - min_score) as f64;  // 类型铸造：i32 -> f64
+        println!("\n最高分：{}", max_score);
+        println!("最低分：{}", min_score);
+        println!("分数范围：{}", score_range);
+    }
 }
 ```
 
 ```expected
+=== 成绩统计 ===
+Alice: 88
+Bob: 92
+Charlie: 85
+
+总分：265
+参加人数：3
 平均分：88.33
-额外成绩：90
-```
+及格人数：3
+及格率：100.00%
 
-## 练习 2：实现 From trait
-
-为自定义类型实现 From，并验证 Into 的自动提供：
-
-```rust editable
-use std::convert::From;
-
-#[derive(Debug)]
-struct Color {
-    red: u8,
-    green: u8,
-    blue: u8,
-}
-
-// TODO: 为 Color 实现 From<(u8, u8, u8)>
-// 接受一个 RGB 元组并创建 Color 实例
-
-
-fn main() {
-    // 使用 From
-    let c1 = Color::from((255, 0, 0));
-    println!("c1: {:?}", c1);
-    
-    // 使用 Into（自动从 From 推导）
-    let c2: Color = (0, 255, 0).into();
-    println!("c2: {:?}", c2);
-    
-    // TODO: 再创建一个蓝色 (0, 0, 255)，使用 Into
-    
-}
-```
-
-```expected
-c1: Color { red: 255, green: 0, blue: 0 }
-c2: Color { red: 0, green: 255, blue: 0 }
-```
-
-## 练习 3：TryFrom 与错误处理
-
-实现一个 TryFrom 来验证数据有效性：
-
-```rust editable
-use std::convert::TryFrom;
-
-#[derive(Debug, PartialEq)]
-struct Percentage(u8);
-
-// TODO: 为 Percentage 实现 TryFrom<i32>
-// 只有 0-100 之间的值才有效
-// 错误类型使用 &'static str
-
-
-fn main() {
-    // 成功情况
-    match Percentage::try_from(50) {
-        Ok(p) => println!("成功：{:?}", p),
-        Err(e) => println!("错误：{}", e),
-    }
-    
-    // 失败情况
-    match Percentage::try_from(150) {
-        Ok(p) => println!("成功：{:?}", p),
-        Err(e) => println!("错误：{}", e),
-    }
-    
-    // 使用 try_into
-    let result: Result<Percentage, _> = 75i32.try_into();
-    println!("try_into 结果：{:?}", result);
-}
-```
-
-```expected
-成功：Percentage(50)
-错误：百分比必须在 0-100 之间
-try_into 结果：Ok(Percentage(75))
-```
-
-## 练习 4：字符串与类型互转
-
-完成字符串的解析和转换操作：
-
-```rust editable
-fn main() {
-    // TODO: 将字符串数组 ["10", "20", "30"] 解析为整数向量
-    let str_nums = vec!["10", "20", "30"];
-    
-    
-    // TODO: 计算整数向量的和
-    
-    
-    // TODO: 将整数和转为字符串
-    
-    
-    // TODO: 安全地解析可能无效的字符串
-    let invalid_inputs = vec!["42", "abc", "100"];
-    for input in invalid_inputs {
-        match input.parse::<i32>() {
-            Ok(n) => println!("'{}' -> 整数 {}", input, n),
-            Err(_) => println!("'{}' 无法解析", input),
-        }
-    }
-}
-```
-
-```expected
-解析后的整数：[10, 20, 30]
-总和：60
-总和字符串：60
-'42' -> 整数 42
-'abc' 无法解析
-'100' -> 整数 100
-```
-
-## 练习 5：综合项目：温度转换器
-
-实现一个支持 From/Into 和 TryFrom 的温度转换系统：
-
-```rust editable
-use std::convert::{From, TryFrom};
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-struct Celsius(f64);
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-struct Fahrenheit(f64);
-
-// TODO: 为 Fahrenheit 实现 From<Celsius>
-// 转换公式：F = C × 9/5 + 32
-
-
-// TODO: 为 Celsius 实现 TryFrom<Fahrenheit>
-// 只接受 F >= -459.67（绝对零度）的值
-// 错误类型：&'static str
-
-
-fn main() {
-    // 使用 From 转换
-    let celsius = Celsius(0.0);
-    let fahrenheit: Fahrenheit = celsius.into();
-    println!("0°C = {:?}", fahrenheit);
-    
-    // 使用 TryFrom 转换
-    match Celsius::try_from(Fahrenheit(32.0)) {
-        Ok(c) => println!("32°F = {:?}", c),
-        Err(e) => println!("错误：{}", e),
-    }
-    
-    // 错误情况
-    match Celsius::try_from(Fahrenheit(-500.0)) {
-        Ok(c) => println!("-500°F = {:?}", c),
-        Err(e) => println!("错误：{}", e),
-    }
-}
-```
-
-```expected
-0°C = Fahrenheit(32.0)
-32°F = Celsius(0.0)
-错误：温度过低，低于绝对零度
+最高分：92
+最低分：85
+分数范围：7
 ```
