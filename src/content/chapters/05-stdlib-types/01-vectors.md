@@ -527,6 +527,9 @@ fn main() {
 
 
     // TODO: 打印三个向量的长度和内容
+    println!("第一个向量长度：{}，内容：{:?}", v1.len(), v1);
+    println!("第二个向量长度：{}，内容：{:?}", v2.len(), v2);
+    println!("第三个向量长度：{}，内容：{:?}", v3.len(), v3);
 }
 ```
 
@@ -536,141 +539,45 @@ fn main() {
 第三个向量长度：5，内容：[0, 0, 0, 0, 0]
 ```
 
-### 练习 2：安全的索引访问
-
-写一个函数 `safe_get_element`，接受一个向量和一个索引，返回对应的元素值或一个错误消息。要求：
-- 使用 `get()` 方法（不要用 `[]`）
-- 返回一个 `Option<i32>` 类型
-- 在 `main` 函数中演示几个有效和无效的索引
-
-```rust editable
-fn safe_get_element(v: &Vec<i32>, index: usize) -> Option<i32> {
-    // TODO: 使用 get() 返回对应的元素，如果超出范围返回 None
-    todo!()
-}
-
-fn main() {
-    let v = vec![10, 20, 30, 40, 50];
-
-    // TODO: 测试几个有效的索引
-
-
-    // TODO: 测试几个无效的索引
-}
-```
-
-```expected
-索引 0：Some(10)
-索引 2：Some(30)
-索引 5：None
-索引 100：None
-```
-
-### 练习 3：修改向量并遍历
-
-创建一个可变向量，然后：
-1. 向向量中添加几个数字（用 `push`）
-2. 删除最后一个元素（用 `pop`）
-3. 删除中间的某个元素（用 `remove`）
-4. 修改某个元素的值
-5. 用三种不同的方式遍历并打印向量内容：不可变遍历、可变遍历（翻倍）、转移所有权遍历
-
-```rust editable
-fn main() {
-    let mut v = vec![1, 2, 3];
-
-    // TODO: 添加元素 4 和 5
-
-
-    // TODO: 删除最后一个元素并打印删除的值
-
-
-    // TODO: 删除索引为 1 的元素并打印删除的值
-
-
-    // TODO: 修改第一个元素为 100
-
-
-    // TODO: 不可变遍历打印
-    println!("不可变遍历：");
-
-
-    // TODO: 可变遍历，将每个元素翻倍
-    println!("\n可变遍历（翻倍后）：");
-
-
-    // TODO: 转移所有权遍历
-    println!("\n转移所有权遍历（消耗向量）：");
-}
-```
-
-```expected
-删除的元素：5
-删除的元素：2
-不可变遍历：
-100 3 4
-可变遍历（翻倍后）：
-200 6 8
-转移所有权遍历（消耗向量）：
-200 6 8
-```
-
-### 练习 4：存储多种类型
-
-定义一个 `Item` 枚举，可以表示三种库存项目：
-- `Book { title: String, author: String }` —— 书籍
-- `Magazine(String)` —— 杂志（参数是名称）
-- `Digital(u32)` —— 数字内容（参数是文件大小，单位 MB）
-
-然后创建一个向量存储混合的 `Item`，并遍历打印每一项：
-
-```rust editable
-// TODO: 定义 Item 枚举
-
-enum Item {
-    // 三个成员...
-}
-
-fn main() {
-    let inventory = vec![
-        // TODO: 创建混合的库存项目
-    ];
-
-    // TODO: 遍历并打印每一项（用 match 匹配）
-}
-```
-
-```expected
-书籍：《Rust 编程语言》，作者：Steve Klabnik
-杂志：《Wired》
-数字内容：安装包（256 MB）
-```
-
-### 练习 5：向量操作综合
+### 练习 2：向量操作综合
 
 完成下面的函数，实现对向量的各种操作：
 
 ```rust editable
 fn print_vector_info(v: &Vec<i32>) {
-    // TODO: 打印向量的长度
+    // 打印向量的长度
+    println!("长度：{}", );
 
-    // TODO: 打印是否为空
+    // 打印是否为空
+    println!("为空吗？{}", v.is_empty());
 
-    // TODO: 打印第一个元素（用 first）
+    // 打印第一个元素（用 first）
+    println!("第一个元素：{:?}", v.first());
 
-    // TODO: 打印最后一个元素（用 last）
+    // 打印最后一个元素（用 last）
+    println!("最后一个元素：{:?}", v.last());
 
-    // TODO: 打印所有元素
+    // 打印所有元素
+    println!("所有元素：{:?}", v);
 }
 
 fn sum_vector(v: &Vec<i32>) -> i32 {
-    // TODO: 计算向量所有元素的和（用 for 循环）
-    todo!()
+    // 计算向量所有元素的和（用 for 循环）
+    let mut sum = 0;
+    for &num in v {
+        sum += num;
+    }
+    sum
 }
 
 fn contains_even(v: &Vec<i32>) -> bool {
-    // TODO: 检查向量中是否有偶数
-    todo!()
+    // 检查向量中是否有偶数
+    for &num in v {
+        if num % 2 == 0 {
+            return true;
+        }
+    }
+    false
 }
 
 fn main() {
