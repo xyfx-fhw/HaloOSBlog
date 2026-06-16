@@ -195,7 +195,7 @@ fn main() {
 ```rust runnable expect-error
 fn main() {
     let mut value = 5;  // 推导为 i32
-    
+
     // 错误！无法改变已推导的类型
     value = "hello";  // "hello" 是 &str，与 i32 冲突
 }
@@ -263,26 +263,6 @@ fn main() {
 }
 ```
 
-## Turbofish 语法（`::<type>`）
-
-当需要**显式指定泛型类型参数**时，使用 **turbofish** 语法（`::<T>`）：
-
-```rust runnable
-fn main() {
-    // 解析字符串时常用 turbofish
-    let num1: i32 = "42".parse().expect("解析失败");
-    let num2 = "42".parse::<u32>().expect("解析失败");
-
-    // 显式指定向量元素类型
-    let nums = Vec::<i32>::new();
-
-    println!("num1: {}, num2: {}", num1, num2);
-    println!("nums: {:?}", nums);
-}
-```
-
----
-
 # 练习题
 
 ## 类型推导测验
@@ -315,13 +295,13 @@ Q: 以下代码能编译吗？
 E: Rust 向量是同类型容器。第一个 `push` 推导元素为 `i32`，第二个 `push` 试图添加 `&str`，导致类型冲突，编译错误。
 ```
 
-```quiz single
-Q: 下列哪种情况下编译器**一定需要**显式类型标注？
-- 初始化非空向量
+```quiz multi
+Q: 下列哪些情况下编译器一定需要显式类型标注？（多选）
 + 初始化空集合（如 `Vec::new()`）
-- 在 if 语句中赋值
-- 在函数调用中传递参数
-E: 空集合（如 `Vec::new()` 或 `HashMap::new()`）无法从右值推导元素类型，必须显式标注。非空集合可以从初始值推导。
++ 函数签名中的参数和返回值
+- 初始化非空向量（如 `vec![1, 2, 3]`）
+- 在函数调用中传递参数值
+E: 空集合无法推导元素类型；函数签名必须显式标注参数和返回值（这是接口要求）。非空集合可推导；调用函数时参数值会被推导。
 ```
 
 ```quiz multi
