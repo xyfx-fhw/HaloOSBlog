@@ -6,6 +6,8 @@ estimatedTime: 15
 keywords: ["类型别名", "type", "别名", "可读性"]
 ---
 
+# 类型别名基础
+
 ## 什么是类型别名
 
 **类型别名** 让你为现有类型起一个新的、更简洁或更具语义化的名字，使用 `type` 关键字：
@@ -110,7 +112,7 @@ type ProductId = u32;
 fn main() {
     let user_id: UserId = 1;
     let product_id: ProductId = 2;
-    
+
     // 这是允许的！因为别名不提供类型安全
     let sum = user_id + product_id;
     println!("用户 ID {} + 产品 ID {} = {}", user_id, product_id, sum);
@@ -152,13 +154,13 @@ type UserDatabase = HashMap<String, Vec<(String, u32)>>;
 
 fn main() {
     let mut db: UserDatabase = HashMap::new();
-    
+
     // 添加数据
     db.insert(
         "user1".to_string(),
         vec![("Alice".to_string(), 30)]
     );
-    
+
     println!("数据库：{:?}", db);
 }
 ```
@@ -174,7 +176,7 @@ type Pair<T> = (T, T);
 fn main() {
     let int_pair: Pair<i32> = (1, 2);
     let str_pair: Pair<&str> = ("hello", "world");
-    
+
     println!("int_pair: {:?}", int_pair);
     println!("str_pair: {:?}", str_pair);
 }
@@ -256,15 +258,15 @@ use std::collections::HashMap;
 
 fn main() {
     // TODO: 定义类型别名 ServerResponse，表示 Result<String, String>
-    
-    
+
+
     // TODO: 定义类型别名 UserCache，表示 HashMap<String, i32>
-    
-    
+
+
     // 使用别名声明变量
     let response: ServerResponse = Ok("success".to_string());
     let cache: UserCache = HashMap::new();
-    
+
     println!("response: {:?}", response);
     println!("cache: {:?}", cache);
 }
@@ -286,10 +288,10 @@ cache: {}
 fn main() {
     // 使用别名创建整数三元组
     let nums: Triple<i32> = (1, 2, 3);
-    
+
     // 使用别名创建字符串三元组
     let strs: Triple<&str> = ("a", "b", "c");
-    
+
     println!("nums: {:?}", nums);
     println!("strs: {:?}", strs);
 }

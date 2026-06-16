@@ -188,17 +188,16 @@ fn main() {
 }
 ```
 
-### 限制 2：循环中的类型冲突
+### 限制 2：无法改变变量的已推导类型
 
-如果循环中推导出矛盾的类型，编译器会报错：
+一旦变量被推导为某个类型，就无法再赋予不同类型的值：
 
 ```rust runnable expect-error
 fn main() {
-    let mut value = 5;
-
-    if true {
-        value = "hello";  // 错误！之前是 i32，现在是 &str
-    }
+    let mut value = 5;  // 推导为 i32
+    
+    // 错误！无法改变已推导的类型
+    value = "hello";  // "hello" 是 &str，与 i32 冲突
 }
 ```
 
