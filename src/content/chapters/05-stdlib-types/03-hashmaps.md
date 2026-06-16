@@ -183,6 +183,21 @@ fn main() {
 }
 ```
 
+### 获取 HashMap 的大小
+
+```rust runnable
+use std::collections::HashMap;
+
+fn main() {
+    let mut map = HashMap::new();
+    map.insert("x", 10);
+    map.insert("y", 20);
+
+    println!("条目数量：{}", map.len());
+    println!("是否为空：{}", map.is_empty());
+}
+```
+
 ## 插入和修改数据
 
 ### 插入新键值对
@@ -229,7 +244,7 @@ fn main() {
 
     // 场景 2：修改已存在的值，否则插入初始值（常见的计数模式）
     map.entry("count")
-        .and_modify(|e| *e += 1)  // 如果存在，修改它
+        .and_modify(|e| *e += 1)  // 如果存在，修改它，这里的操作后面会讲到，目前只需要会用即可
         .or_insert(1);             // 如果不存在，插入 1
 
     println!("count：{}", map.get("count").unwrap());
@@ -244,6 +259,43 @@ fn main() {
 ```
 
 这个模式在**计数、累加、初始化**等场景中最常见。
+
+## 删除数据
+
+### 删除键值对
+
+```rust runnable
+use std::collections::HashMap;
+
+fn main() {
+    let mut map = HashMap::new();
+    map.insert("name", "Alice");
+    map.insert("age", "28");
+
+    // remove() 返回删除的值
+    if let Some(value) = map.remove("age") {
+        println!("删除的值：{}", value);
+    }
+
+    println!("删除后的 map：{:?}", map);
+}
+```
+
+### 清空 HashMap
+
+```rust runnable
+use std::collections::HashMap;
+
+fn main() {
+    let mut map = HashMap::new();
+    map.insert("a", 1);
+    map.insert("b", 2);
+
+    println!("清空前：{}", map.len());
+    map.clear();
+    println!("清空后：{}", map.len());
+}
+```
 
 ## 遍历 HashMap
 
@@ -390,58 +442,6 @@ fn main() {
 
 但这样做有个限制：HashMap 中的引用受**生命周期**约束（后续章节会学到）。实际上最常见的做法是 HashMap 拥有数据的所有权。
 
-# HashMap 的常见操作
-
-## 获取 HashMap 的大小
-
-```rust runnable
-use std::collections::HashMap;
-
-fn main() {
-    let mut map = HashMap::new();
-    map.insert("x", 10);
-    map.insert("y", 20);
-
-    println!("条目数量：{}", map.len());
-    println!("是否为空：{}", map.is_empty());
-}
-```
-
-## 删除键值对
-
-```rust runnable
-use std::collections::HashMap;
-
-fn main() {
-    let mut map = HashMap::new();
-    map.insert("name", "Alice");
-    map.insert("age", "28");
-
-    // remove() 返回删除的值
-    if let Some(value) = map.remove("age") {
-        println!("删除的值：{}", value);
-    }
-
-    println!("删除后的 map：{:?}", map);
-}
-```
-
-## 清空 HashMap
-
-```rust runnable
-use std::collections::HashMap;
-
-fn main() {
-    let mut map = HashMap::new();
-    map.insert("a", 1);
-    map.insert("b", 2);
-
-    println!("清空前：{}", map.len());
-    map.clear();
-    println!("清空后：{}", map.len());
-}
-```
-
 # HashMap 的重要特性
 
 ## 键必须实现 Eq 和 Hash
@@ -547,8 +547,8 @@ Q: 关于遍历 HashMap，下列说法正确的是？（多选）
 + for (key, value) in &map 可以遍历所有键值对
 + for key in map.keys() 可以只遍历键
 + HashMap 遍历顺序不固定，无法保证顺序
-- for (key, value) in map 会转移所有权，之后无法再使用 map
-E: 不可变借用遍历不会转移所有权。HashMap 本身不保证遍历顺序，每次可能不同。
+- 在遍历 HashMap 的循环中可以安全地删除或添加键值对
+E: 不可变借用遍历不会转移所有权。在遍历时修改 HashMap 的大小（添加/删除）会导致迭代器失效，就像向量一样。HashMap 本身不保证遍历顺序，每次可能不同。
 ```
 
 ## 编程练习
