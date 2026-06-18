@@ -127,7 +127,7 @@ tokio = { version = "1", features = ["full"] }
 anyhow = "1.0"
 ```
 
-> **Features 小知识**：`features` 是依赖库的**可选功能模块**，编译时由你选择启用哪些（如 serde 的 derive 宏），未启用的代码完全不参与编译，可以减小二进制体积。
+> **Features 小知识**：`features` 是依赖库的**可选功能模块**，编译时由你选择启用哪些（如 serde 的 derive 宏），未启用的代码完全不参与编译，可以减小二进制体积。文章后面会专门讲解。
 
 成员的 `Cargo.toml` 只需写 `workspace = true` 来继承：
 
@@ -190,7 +190,114 @@ monorepo/             ← 根目录只是工作空间，不是 crate
 - 如果你的项目有一个"主"库或应用（如 web 服务器），用**有 [package] 的工作空间**
 - 如果是平等的多个库组合（如工具链、中间件库族），用**虚拟工作空间**
 
-# 练习题
+# Features 与条件编译
+
+## Features：可选功能模块
+
+想象你开发了一个网络库，大多数用户只需要基本的 HTTP 功能，但少数高级用户需要 WebSocket 支持。你不想强迫所有人都编译 WebSocket 相关代码——毕竟引入额外依赖会增大二进制体积、拖慢编译速度。
+
+**Feature flag** 就是解决这个问题的机制。它让用户选择开启哪些功能模块，未开启的代码完全不会被编译。
+
+### 声明 Features
+
+Features 在 `[features]` 段落中声明：
+
+```toml
+[features]
+# default 是特殊名称：cargo build 时默认开启的 features
+default = ["http"]
+
+# 各个 feature 可以依赖其他 features
+http = []
+websocket = ["http"]       # websocket 开启时自动开启 http
+tls = []
+full = ["http", "websocket", "tls"]
+
+[dependencies]
+# 可选依赖：只在对应 feature 开启时才编译
+native-tls = { version = "0.2", optional = true }
+tokio-tungstenite = { version = "0.21", optional = true }
+```
+
+> **可选依赖**：用 `optional = true` 声明一个依赖为可选，然后在 `[features]` 中用 `dep:crate_name` 来引用它（`dep:` 前缀从 Rust 1.60 起推荐使用）。
+
+### 使用 Features
+
+在代码中，根据 feature 条件编译对应的模块：
+
+```rust
+// 只在 "tls" feature 开启时编译这个模块
+#[cfg(feature = "tls")]
+pub mod tls {
+    pub fn connect_secure(addr: &str) -> Result<(), String> {
+        println!("建立 TLS 连接到 {}", addr);
+        Ok(())
+    }
+}
+
+// 只在 "websocket" feature 开启时编译这个函数
+#[cfg(feature = "websocket")]
+pub fn connect_ws(url: &str) {
+    println!("WebSocket 连接：{}", url);
+}
+```
+
+用户在自己的项目里引用时，可以选择开启哪些 features：
+
+```toml
+[dependencies]
+# 关掉所有默认 features
+my_net_lib = { version = "1.0", default-features = false }
+
+# 只开启需要的 features
+my_net_lib = { version = "1.0", default-features = false, features = ["http", "tls"] }
+```
+
+### 从命令行启用 Features
+
+```bash
+# 启用额外 features（叠加在默认 features 之上）
+cargo build --features "websocket,tls"
+
+# 启用所有 features
+cargo build --all-features
+
+# 不启用任何默认 features
+cargo build --no-default-features
+
+# 组合使用
+cargo build --no-default-features --features tls
+```
+
+## 条件编译与 Features
+
+**前置阅读**：条件编译的基础语法（`#[cfg]` 属性、`cfg!()` 宏等）已在《属性》一章详细讲解。本节专注于**如何在 Feature 系统中使用条件编译**。
+
+### 在库代码中应用 Features
+
+`#[cfg(feature = "xxx")]` 让你根据 feature 是否开启来选择性编译代码：
+
+```rust
+// 结合多个条件
+#[cfg(all(feature = "tls", target_os = "linux"))]
+fn linux_tls_only() { /* ... */ }
+
+#[cfg(any(feature = "tls", feature = "native-tls"))]
+fn any_tls_support() { /* ... */ }
+
+#[cfg(not(feature = "std"))]
+fn no_std_impl() { /* ... */ }
+```
+
+当 feature 未开启时，这些代码**完全不会被编译进二进制文件**，实现了真正的按需功能。
+
+### Features 的关键特性
+
+- **累加性**：features 只能开启，不能关闭；一旦某个 feature 被开启，就保持开启
+- **零成本**：未启用的代码不参与编译
+- **依赖关系**：feature 可以依赖其他 feature（如 `websocket = ["http"]`）
+
+
 
 ## 工作空间概念测验
 
@@ -241,4 +348,42 @@ my_cli 的 Cargo.toml：serde = { workspace = true, features = ["rc"] }
 + my_cli 的 serde 同时启用 derive 和 rc
 - 只有 derive，rc 被忽略
 E: Cargo features 是累加的，继承时追加的 features 会与根声明的合并。最终 my_cli 使用的 serde 同时启用 derive（来自根）和 rc（来自成员追加）。
+```
+
+## Features 与工作空间
+
+```quiz single
+Q: 下列关于 Cargo features 的说法，哪个是正确的？
+- Features 可以用 --disable-features 关闭已开启的 feature
+- 每个 feature 都必须对应一个依赖库
++ Features 是累加的：一旦开启就不会再被关闭
+- default features 不能被用户关掉
+E: Features 的核心特性是"累加性"——只能开启，不能关闭。这保证了工作空间内所有成员使用一致的依赖配置。如果成员 A 依赖的库开启了某 feature，而成员 B 不想要，Cargo 也会确保这个 feature 依然开启，避免版本不一致。
+```
+
+```quiz multi
+Q: 下列哪些是 Cargo 命令的正确用法？（多选）
++ cargo build --features "websocket,tls"  （启用指定 features）
++ cargo build --all-features  （启用所有 features）
++ cargo build --no-default-features  （禁用默认 features）
+- cargo build --disable-features tls  （不存在这个参数）
+E: Cargo 支持 --features（指定）、--all-features（全部）、--no-default-features（关掉默认）。没有 --disable-features 这个参数。
+```
+
+```quiz single
+Q: 在 [features] 中声明 websocket = ["http"] 表示什么？
+- websocket 和 http 是互斥的，启用一个时另一个不可用
+- http 是 websocket 的前提，如果没有 http，websocket 无法使用
++ 启用 websocket feature 时，http feature 也会自动被启用
+- websocket 和 http 是同一个 feature 的两个名字
+E: features 的依赖关系是"启用 A 时自动启用 B"。websocket = ["http"] 意味着任何开启 websocket 的场景都会自动拥有 http feature，体现了 features 的累加性。
+```
+
+```quiz single
+Q: 想在自己的项目中使用某个库，但不想要它的默认 features，应该怎么写？
+- 无法关掉默认 features，必须全部接受
++ my_lib = { version = "1.0", default-features = false }
+- my_lib = { version = "1.0", features = [] }
+- my_lib = { version = "1.0", no-default = true }
+E: 用 default-features = false 可以关掉依赖库的默认 features（注意不是自己 crate 的 default features，而是那个依赖的）。然后再用 features = ["..."] 单独指定需要的功能。
 ```
