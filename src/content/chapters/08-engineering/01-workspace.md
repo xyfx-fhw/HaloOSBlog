@@ -145,31 +145,50 @@ tokio = { workspace = true, features = ["sync"] }
 
 ## 虚拟工作空间
 
-有时候工作空间本身就是一个"容器"，根目录不是任何一个 crate——没有 `[package]`，只有 `[workspace]`。这叫**虚拟工作空间（virtual workspace）**：
+### 什么是虚拟工作空间
 
-```toml
-# 根 Cargo.toml（虚拟工作空间）
-[workspace]
-members = [
-    "lib_a",
-    "lib_b",
-    "lib_c",
-]
-resolver = "2"
+有两种工作空间结构：
 
-[workspace.dependencies]
-serde = "1.0"
+**非虚拟（常见）**：根目录本身是一个 crate
+
+```text
+my_project/           ← 根目录既是工作空间，也是一个 crate
+├── Cargo.toml        （有 [package] + [workspace]）
+├── src/
+└── member1/
+    └── Cargo.toml
 ```
 
-虚拟工作空间适合管理一组平等的库，没有哪一个是"主" crate。很多知名开源项目（Tokio、Bevy、Axum 生态）都是这种结构。
+**虚拟（特殊）**：根目录只是"容器"，本身不是 crate
 
-**虚拟 vs 非虚拟的行为差异：**
+```text
+monorepo/             ← 根目录只是工作空间，不是 crate
+├── Cargo.toml        （只有 [workspace]，没有 [package]）
+├── lib_a/
+│   └── Cargo.toml
+├── lib_b/
+│   └── Cargo.toml
+└── lib_c/
+    └── Cargo.toml
+```
 
-| 操作 | 虚拟工作空间（无 [package]） | 有 [package] 的工作空间 |
-|------|--------------------------|----------------------|
-| `cargo build`（不加参数） | 构建所有成员 | 只构建根 package |
-| `cargo build --workspace` | 构建所有成员 | 构建所有成员 |
-| `cargo run` | 报错（没有根 binary） | 运行根 binary |
+### 为什么要用虚拟工作空间
+
+- **根没有代码**：有些项目天然是"多个独立库的集合"，比如 Tokio 生态（tokio、tokio-util、tokio-native-tls 各是独立库）
+- **避免歧义**：没有一个"主"库，所以 `cargo build` 默认不知道该构建谁，必须明确指定，更清晰
+- **平等性**：所有成员地位相同，没有"这个是主，那个是附属"的混乱
+
+### 行为差异
+
+| 场景 | 虚拟工作空间 | 有 [package] 的工作空间 |
+|------|-----------|----------------------|
+| `cargo build`（无参） | 构建**所有**成员 | 只构建**根** package |
+| `cargo run` | 报错（没有根二进制） | 运行根的 main 函数 |
+| `cargo test --workspace` | 测试所有成员 | 测试所有成员 |
+
+**实际使用建议**：
+- 如果你的项目有一个"主"库或应用（如 web 服务器），用**有 [package] 的工作空间**
+- 如果是平等的多个库组合（如工具链、中间件库族），用**虚拟工作空间**
 
 # 练习题
 
