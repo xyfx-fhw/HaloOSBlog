@@ -127,6 +127,8 @@ tokio = { version = "1", features = ["full"] }
 anyhow = "1.0"
 ```
 
+> **Features 小知识**：`features` 是依赖库的**可选功能模块**，编译时由你选择启用哪些（如 serde 的 derive 宏），未启用的代码完全不参与编译，可以减小二进制体积。
+
 成员的 `Cargo.toml` 只需写 `workspace = true` 来继承：
 
 ```toml
