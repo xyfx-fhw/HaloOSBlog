@@ -113,7 +113,7 @@ cargo check --workspace
 
 如果多个成员都依赖同一个外部 crate，你每次都要在各自的 `Cargo.toml` 里写，还要保证版本号一致——容易出错。
 
-从 Rust 1.64 起，可以在根 `Cargo.toml` 的 `[workspace.dependencies]` 里**统一声明依赖**，各成员直接继承：
+从 Rust 1.64 起，可以在根 `Cargo.toml` 的 `[workspace.dependencies]` 里**统一声明依赖和推荐配置**，各成员直接继承：
 
 ```toml
 # 根 Cargo.toml
@@ -122,26 +122,43 @@ members = ["my_lib", "my_cli"]
 resolver = "2"
 
 [workspace.dependencies]
+# 不仅声明版本，还声明这个库应该用哪些 features
 serde = { version = "1.0", features = ["derive"] }
 tokio = { version = "1", features = ["full"] }
 anyhow = "1.0"
 ```
 
-> **Features 小知识**：`features` 是依赖库的**可选功能模块**，编译时由你选择启用哪些（如 serde 的 derive 宏），未启用的代码完全不参与编译，可以减小二进制体积。文章后面会专门讲解。
+这里的 `features = ["derive"]` 和 `features = ["full"]` 是什么意思呢？
+
+**核心概念区分**：
+- 当你编写**库**时，你在库的 Cargo.toml 中定义 `[features]`，让用户选择"要不要 WebSocket"
+- 当你**使用**别人的库时，你需要指定"我要这个库的哪些 features"——这就是 `features = ["derive"]`
+
+在工作空间中：
+- `serde` 是第三方库，它定义了很多 features（如 derive、json 等）
+- 工作空间根在 workspace.dependencies 中说"我们工作空间推荐所有成员都用 serde 的 derive feature"
+- 这样各成员不用重复写相同的配置
 
 成员的 `Cargo.toml` 只需写 `workspace = true` 来继承：
 
 ```toml
 # my_lib/Cargo.toml
 [dependencies]
-serde = { workspace = true }      # 继承根的版本和 features
+serde = { workspace = true }      # 继承根的版本（1.0）和 features（["derive"]）
 anyhow = { workspace = true }
 
 # 可以在继承基础上追加额外 features
+# tokio 继承了 ["full"]，再加上 ["sync"]（虽然 full 已包含 sync，但展示语法）
 tokio = { workspace = true, features = ["sync"] }
 ```
 
+**逻辑总结**：
+- workspace.dependencies 中的 `features` 是"**我们建议使用这个库的这些功能**"
+- 比如 serde 的 derive feature 能自动生成序列化代码，这是大多数项目都需要的
+- 通过在工作空间级别配置一次，所有成员自动应用，避免每个成员都写一遍相同的配置
+
 > **features 是累加的**：继承 `workspace.dependencies` 时，你只能追加 features，不能删除根里已有的。这与 Cargo feature 的"累加"设计是一致的——features 只能开启，不能关闭。
+
 
 ## 虚拟工作空间
 
