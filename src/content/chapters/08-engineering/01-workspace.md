@@ -201,7 +201,17 @@ monorepo/             ← 根目录只是工作空间，不是 crate
 tokio = { version = "1", features = ["full"] }
 ```
 
-这里的 `features = ["full"]` 是什么意思？它表示："我要使用 tokio 这个库，但只启用它的 'full' 功能集"。
+这里的 `features = ["full"]` 表示："我要使用 tokio 这个库，并启用它的所有功能"。
+
+**关键澄清**：`"full"` 不是 Cargo 的内置关键字，而是 **tokio 库作者定义的一个特殊 feature 的名字**。这个 feature 的作用就是启用 tokio 提供的所有可选功能。
+
+如果用户不想要所有功能，可以只选择需要的：
+
+```toml
+[dependencies]
+# 只启用 sync 和 time 功能（不启用其他）
+tokio = { version = "1", features = ["sync", "time"] }
+```
 
 **背景**：很多库会提供多个可选功能。比如 tokio 库可以提供：
 - 异步运行时（rt）
@@ -215,7 +225,7 @@ tokio = { version = "1", features = ["full"] }
 - 二进制文件体积大
 - 可能有不需要的依赖被引入
 
-所以库提供了 **features** 机制：用户可以选择"我只要这些功能"。
+所以库提供了 **features** 机制：用户可以选择"我需要哪些功能"。
 
 ## 两个视角理解 Features
 
