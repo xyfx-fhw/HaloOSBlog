@@ -198,60 +198,73 @@ monorepo/             ← 根目录只是工作空间，不是 crate
 
 **Feature flag** 就是解决这个问题的机制。它让用户选择开启哪些功能模块，未开启的代码完全不会被编译。
 
-### 声明 Features
+### 声明 Features 和可选依赖
 
-Features 在 `[features]` 段落中声明：
+Features 需要在 `[features]` 段落中声明。关键点是：**某些外部库可以标记为 `optional`（可选的），然后通过 feature 来控制是否引入它们**。
+
+以网络库为例：
 
 ```toml
 [features]
-# default 是特殊名称：cargo build 时默认开启的 features
-default = ["http"]
-
-# 各个 feature 可以依赖其他 features
-http = []
-websocket = ["http"]       # websocket 开启时自动开启 http
-tls = []
-full = ["http", "websocket", "tls"]
+# 声明有哪些 feature
+default = ["http"]           # 默认开启 http feature
+http = []                    # http feature 不依赖任何其他库
+websocket = ["dep:tokio-tungstenite"]  # websocket feature 依赖 tokio-tungstenite 库
+tls = ["dep:native-tls"]     # tls feature 依赖 native-tls 库
 
 [dependencies]
-# 可选依赖：只在对应 feature 开启时才编译
+# 这些库标记为 optional = true（可选的）
+# 只有当对应的 feature 开启时才会被引入编译
 native-tls = { version = "0.2", optional = true }
 tokio-tungstenite = { version = "0.21", optional = true }
 ```
 
-> **可选依赖**：用 `optional = true` 声明一个依赖为可选，然后在 `[features]` 中用 `dep:crate_name` 来引用它（`dep:` 前缀从 Rust 1.60 起推荐使用）。
+**逻辑流程：**
 
-### 使用 Features
+1. **在 `[dependencies]` 中声明可选库** — `optional = true` 表示这个库默认不编译
+2. **在 `[features]` 中关联** — 用 `dep:库名` 的格式说"这个 feature 需要这个库"
+3. **最终效果** — 用户选择 feature 时，Cargo 才会自动引入对应的库
 
-在代码中，根据 feature 条件编译对应的模块：
-
-```rust
-// 只在 "tls" feature 开启时编译这个模块
-#[cfg(feature = "tls")]
-pub mod tls {
-    pub fn connect_secure(addr: &str) -> Result<(), String> {
-        println!("建立 TLS 连接到 {}", addr);
-        Ok(())
-    }
-}
-
-// 只在 "websocket" feature 开启时编译这个函数
-#[cfg(feature = "websocket")]
-pub fn connect_ws(url: &str) {
-    println!("WebSocket 连接：{}", url);
-}
-```
-
-用户在自己的项目里引用时，可以选择开启哪些 features：
+**用户使用时的三种场景：**
 
 ```toml
-[dependencies]
-# 关掉所有默认 features
-my_net_lib = { version = "1.0", default-features = false }
+# 场景 1：用默认配置（只有 http）
+my_net_lib = "1.0"
 
-# 只开启需要的 features
-my_net_lib = { version = "1.0", default-features = false, features = ["http", "tls"] }
+# 场景 2：同时要 websocket（自动引入 tokio-tungstenite）
+my_net_lib = { version = "1.0", features = ["websocket"] }
+
+# 场景 3：关掉默认的 http，只要 tls（自动引入 native-tls）
+my_net_lib = { version = "1.0", default-features = false, features = ["tls"] }
 ```
+
+### 在代码中使用 Features
+
+声明了 feature 后，需要在代码中用 `#[cfg(feature = "...")]` 来条件编译相应的功能：
+
+```rust
+// HTTP 功能（总是有，因为在 default features 里）
+pub fn http_get(url: &str) {
+    println!("HTTP GET: {}", url);
+}
+
+// WebSocket 功能：只在 websocket feature 开启时编译
+#[cfg(feature = "websocket")]
+pub fn ws_connect(url: &str) {
+    use tokio_tungstenite;  // 这个 use 也在条件编译下
+    println!("WebSocket 连接：{}", url);
+}
+
+// TLS 功能：只在 tls feature 开启时编译
+#[cfg(feature = "tls")]
+pub fn tls_connect(addr: &str) {
+    use native_tls;
+    println!("TLS 连接到 {}", addr);
+}
+```
+
+**重点**：如果用户没有启用 `websocket` feature，那么 `ws_connect` 函数根本不会被编译进二进制，`tokio-tungstenite` 库也不会被下载和编译。这就是"零成本"的含义。
+
 
 ### 从命令行启用 Features
 
