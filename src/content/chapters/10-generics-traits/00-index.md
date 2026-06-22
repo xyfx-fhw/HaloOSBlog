@@ -24,10 +24,12 @@ keywords: ["泛型", "trait", "trait 约束", "关联类型", "单态化", "impl
 
 4. **关联类型** — 泛型 Trait 参数过多时的困境；用 `type Item` 把类型绑定到实现，让签名和调用都更清晰
 
-5. **常见 Trait** — 标准库中最常用的 Trait：`Clone`、`Copy`、`Debug`、`Display`、`Iterator`、`PartialOrd` 等
+5. **dyn Trait：动态分发** — 泛型解决不了的两个场景；fat pointer 原理；`Box<dyn Trait>` 与 `&dyn Trait` 的选择；对象安全
 
-6. **转换 Trait** — `From`/`Into`、`TryFrom`/`TryInto`；Rust 类型转换的惯用模式
+6. **常见 Trait** — 标准库中最常用的 Trait：`Clone`、`Copy`、`Debug`、`Display`、`Iterator`、`PartialOrd` 等
 
-7. **自定义错误类型** — 用 Trait 实现完整的自定义错误：`Display` + `Error` + `From`，与 `?` 运算符无缝配合
+7. **转换 Trait** — `From`/`Into`、`TryFrom`/`TryInto`；Rust 类型转换的惯用模式
 
-8. **综合练习** — 动手巩固全章内容
+8. **自定义错误类型** — 用 Trait 实现完整的自定义错误：`Display` + `Error` + `From`，与 `?` 运算符无缝配合
+
+9. **综合练习** — 动手巩固全章内容

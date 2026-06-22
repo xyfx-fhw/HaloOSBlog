@@ -22,7 +22,34 @@ fn print_value<T>(val: T) {
 
 `T` 代表任意类型，"任意"意味着最大不确定性——编译器不知道 `T` 是否实现了 `Display`，是否支持 `+` 运算，还是什么能力都没有。
 
-**约束（bounds）**就是你对 `T` 做出的承诺：告诉编译器"这个 `T` 一定实现了某个 trait"。换来的是：编译器允许你在函数体内调用那个 trait 的方法。
+**约束（bounds）** 就是你对 `T` 做出的承诺：告诉编译器"这个 `T` 一定实现了某个 trait"。换来的是：编译器允许你在函数体内调用那个 trait 的方法。
+
+反过来说也成立：**你没有声明的约束，对应的能力就不能用**。加减乘除也不例外——`+` 运算符背后是 `std::ops::Add` trait，`>` 比较是 `PartialOrd`，`==` 是 `PartialEq`。想用哪个运算符，就加哪个约束：
+
+```rust runnable expect-error
+use std::ops::Add;
+
+fn double<T>(val: T) -> T {
+    val + val  // 错误！T 没有声明 Add 约束，不能用 +
+}
+
+# fn main() {}
+```
+
+```rust runnable
+use std::ops::Add;
+
+fn double<T: Add<Output = T> + Copy>(val: T) -> T {
+    val + val  // 合法：声明了 Add 约束
+}
+
+fn main() {
+    println!("{}", double(5_i32));   // 10
+    println!("{}", double(1.5_f64)); // 3
+}
+```
+
+这正是 Rust 约束系统的核心逻辑：**`T` 的能力由且仅由它的约束列表决定**，没有任何"隐式可用"的操作。
 
 ```rust runnable
 use std::fmt::Display;
@@ -161,21 +188,22 @@ fn main() {
 }
 ```
 
-## impl Trait：另一种约束写法
+# impl Trait：另一种约束写法
 
-除了泛型约束 `<T: Trait>`，Rust 还提供了 `impl Trait` 语法，用在参数位置和返回值位置：
+`impl Trait` 是专门用在**函数签名**里的语法，不能用在结构体字段、变量类型标注等地方。它有两种位置，行为不同：
 
-**参数位置**（和泛型约束等价）：
+## 参数位置：泛型的语法糖
+
+在参数位置，`impl Trait` 和泛型约束完全等价——选哪个只是风格问题：
 
 ```rust runnable
 use std::fmt::Display;
 
-// 两种写法完全等价
-fn notify_generic<T: Display>(item: &T) {
+fn notify_generic<T: Display>(item: &T) {   // 泛型写法
     println!("通知：{}", item);
 }
 
-fn notify_impl(item: &impl Display) {
+fn notify_impl(item: &impl Display) {        // impl Trait 写法，效果一样
     println!("通知：{}", item);
 }
 
@@ -185,21 +213,67 @@ fn main() {
 }
 ```
 
-**返回值位置**（隐藏具体返回类型）：
+但有一种情况只能用泛型：当**两个参数必须是同一类型**时：
+
+```rust runnable expect-error
+// ❌ 这样写 a 和 b 可以是不同类型，无法约束它们相同
+fn max_value(a: impl PartialOrd, b: impl PartialOrd) -> bool {
+    a > b  // 错误：不同 impl Trait 参数不能互相比较
+}
+
+# fn main() {}
+```
 
 ```rust runnable
-fn make_greeting(name: &str) -> impl Display {
-    format!("你好，{}！", name)
+// ✅ 用泛型明确两个参数必须是同一类型 T
+fn max_value<T: PartialOrd>(a: T, b: T) -> bool {
+    a > b
 }
 
 fn main() {
-    println!("{}", make_greeting("小明"));
+    println!("{}", max_value(3, 5));        // false
+    println!("{}", max_value("b", "a"));    // true
 }
 ```
 
-`-> impl Display` 的意思是："返回某个实现了 `Display` 的具体类型，但调用方只能把它当 `Display` 用，看不到它是 `String` 还是别的"。这在返回闭包或复杂迭代器链时特别有用，不需要把复杂的类型名写在签名里。
+## 返回值位置：隐藏具体类型
 
-> `impl Trait` 在参数位置是语法糖（和泛型等价）；在返回值位置是独立功能，和泛型不完全相同——它不允许调用方选择具体类型。
+在返回值位置，`impl Trait` 是独立功能，不只是语法糖。它让你隐藏返回的具体类型：
+
+```rust runnable
+fn make_greeting(name: &str) -> impl std::fmt::Display {
+    format!("你好，{}！", name)  // 实际返回 String，但调用方看不到
+}
+
+fn main() {
+    let g = make_greeting("小明");
+    println!("{}", g);  // 只能当 Display 用，不能当 String 用
+}
+```
+
+这在返回**闭包**或**迭代器链**时几乎是必须的——这类类型要么无法手写，要么写出来极其冗长：
+
+```rust runnable
+// 闭包类型无法手写，只能用 impl Fn
+fn make_adder(n: i32) -> impl Fn(i32) -> i32 {
+    move |x| x + n
+}
+
+// 迭代器链的实际类型是 Map<Filter<...>>，用 impl Iterator 隐藏
+fn even_squares(v: Vec<i32>) -> impl Iterator<Item = i32> {
+    v.into_iter().filter(|x| x % 2 == 0).map(|x| x * x)
+}
+
+fn main() {
+    let add5 = make_adder(5);
+    println!("{}", add5(3));  // 8
+
+    let result: Vec<i32> = even_squares(vec![1, 2, 3, 4, 5]).collect();
+    println!("{:?}", result); // [4, 16]
+}
+```
+
+> `impl Trait` 只能用在函数签名里（参数和返回值），不能用在结构体字段或变量类型标注。需要在这些地方存储"实现了某 trait 的任意类型"时，要用 `Box<dyn Trait>`（动态分发）。
 
 # 练习题
 
