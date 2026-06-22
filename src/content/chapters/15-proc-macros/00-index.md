@@ -25,6 +25,6 @@ keywords: ["过程宏", "proc-macro", "derive宏", "类属性宏", "类函数宏
 
 学习本章前，请确保已掌握：
 
-- 第 2 章：声明宏（`macro_rules!`）基础
-- 第 11 章：trait 与 trait 实现
-- 第 15 章：智能指针（了解 `TokenStream` 的所有权模型）
+- 声明宏（`macro_rules!`）基础（见[基础语法：宏](/RustCourse/chapters/02-basic-syntax/08-macros)）
+- trait 与 trait 实现（见[泛型与 Trait](/RustCourse/chapters/10-generics-traits/00-index)）
+- 智能指针基础，了解 `TokenStream` 的所有权模型（见[智能指针](/RustCourse/chapters/14-smart-pointers/00-index)）

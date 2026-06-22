@@ -193,15 +193,6 @@ Q: 以下哪个场景最适合直接使用 unwrap()？
 E: 测试代码中，如果一个操作失败了，测试本来就应该失败（panic），所以 unwrap 是合适的。其他三种情况都是可能失败的正常操作，应该用 Result 并给调用者机会处理错误。
 ```
 
-```quiz single
-Q: Guess 类型的 new 方法在收到越界值时调用 panic! 而不是返回 Err，这样做合理吗？
-- 不合理，应该返回 Result 让调用者处理
-+ 合理，因为传入越界值是调用者的 bug，panic 是对 bug 的正确响应
-- 取决于 Guess 是用在哪里
-- 不合理，应该直接截断值到有效范围内
-E: Guess::new 的文档应该明确说明："值必须在 1-100 之间"，这是函数契约。如果调用者传了越界值，说明调用者的代码有 bug，panic 会在开发阶段暴露这个 bug。如果改成返回 Err，就要在每个使用 Guess 的地方处理"无效值"的情况，而这种情况本不应该出现。
-```
-
 ```quiz multi
 Q: 下列哪些说法符合 Rust 错误处理的推荐实践？（多选）
 + 可恢复的错误（文件不存在、解析失败等）应该用 Result 传播
@@ -210,4 +201,32 @@ Q: 下列哪些说法符合 Rust 错误处理的推荐实践？（多选）
 + 在确认某值一定合法时，可以用 unwrap 并加注释说明理由
 - panic! 和返回 Err 对调用者来说效果一样，可以随意选择
 E: 核心原则是：可恢复的错误用 Result，不可恢复的 bug 用 panic。库代码要尽量返回 Result 保持灵活性。unwrap 在有明确逻辑保证时才合理，生产代码中的 unwrap 通常是潜在风险点。panic 和 Err 对调用者效果完全不同——panic 无法被调用者处理。
+```
+
+## 编程练习
+
+下面的函数签名已经改为返回 `Result<u32, String>`，但函数体里还在用 `panic!`。请将两处 `panic!` 改为返回 `Err(...)`，并把最后的返回值改为 `Ok(...)`，使代码能正常运行。
+
+```rust editable
+fn parse_age(s: &str) -> Result<u32, String> {
+    let n: i32 = match s.trim().parse() {
+        Ok(n)  => n,
+        Err(e) => panic!("解析失败：{}", e),
+    };
+    if n < 0 || n > 150 {
+        panic!("年龄 {} 不在有效范围内", n);
+    }
+    n as u32
+}
+
+fn main() {
+    println!("{:?}", parse_age("25"));
+    // 下面这行目前会 panic，改好后应该打印错误信息
+    // println!("{:?}", parse_age("abc"));
+}
+```
+
+```expected
+Ok(25)
+Err("解析失败：invalid digit found in string")
 ```

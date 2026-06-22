@@ -1,5 +1,5 @@
 ---
-title: "转换 Trait（From、Into、TryFrom、TryInto）"
+title: "转换 Trait"
 description: "掌握 Rust 中的转换 trait 系统，学会为自定义类型实现 From/Into/TryFrom/TryInto，理解它们的关系和使用场景。"
 difficulty: intermediate
 estimatedTime: 45
@@ -36,10 +36,10 @@ trait From<T> {
 fn main() {
     // String::from(&str)
     let s1 = String::from("hello");
-    
+
     // i32 实现了 From<u16>
     let num: i32 = 100u16.into();
-    
+
     println!("s1: {}, num: {}", s1, num);
 }
 ```
@@ -63,7 +63,7 @@ impl From<i32> for Number {
 fn main() {
     let num1 = Number::from(30);
     println!("方式 1 - from: {:?}", num1);
-    
+
     // 自动获得 into（不用手动实现）
     let num2: Number = 40.into();
     println!("方式 2 - into: {:?}", num2);
@@ -110,7 +110,7 @@ fn main() {
     let p1 = Point::from((1, 2));
     let p2: Point = (3, 4).into();
     let p3 = make_point((5, 6));
-    
+
     println!("p1: {:?}, p2: {:?}, p3: {:?}", p1, p2, p3);
 }
 ```
@@ -124,13 +124,13 @@ fn main() {
 ```rust
 trait TryFrom<T> {
     type Error;
-    
+
     fn try_from(value: T) -> Result<Self, Self::Error>;
 }
 
 trait TryInto<T> {
     type Error;
-    
+
     fn try_into(self) -> Result<T, Self::Error>;
 }
 ```
@@ -145,7 +145,7 @@ struct EvenNumber(i32);
 
 impl TryFrom<i32> for EvenNumber {
     type Error = &'static str;
-    
+
     fn try_from(value: i32) -> Result<Self, Self::Error> {
         if value % 2 == 0 {
             Ok(EvenNumber(value))
@@ -160,7 +160,7 @@ fn main() {
         Ok(num) => println!("成功：{:?}", num),
         Err(e) => println!("失败：{}", e),
     }
-    
+
     match EvenNumber::try_from(3) {
         Ok(num) => println!("成功：{:?}", num),
         Err(e) => println!("失败：{}", e),
@@ -180,7 +180,7 @@ struct PositiveNumber(u32);
 
 impl TryFrom<i32> for PositiveNumber {
     type Error = String;
-    
+
     fn try_from(value: i32) -> Result<Self, Self::Error> {
         if value > 0 {
             Ok(PositiveNumber(value as u32))
@@ -196,7 +196,7 @@ fn main() {
         Ok(n) => println!("try_from: {:?}", n),
         Err(e) => println!("错误：{}", e),
     }
-    
+
     // 方式 2：使用 try_into（自动提供）
     let result: Result<PositiveNumber, _> = 10i32.try_into();
     match result {
@@ -267,7 +267,7 @@ struct EvenNumber(i32);
 
 impl TryFrom<i32> for EvenNumber {
     type Error = String;
-    
+
     fn try_from(value: i32) -> Result<Self, Self::Error> {
         if value % 2 == 0 {
             Ok(EvenNumber(value))
@@ -319,7 +319,7 @@ fn main() {
     // 使用 From
     let rect1 = Rectangle::from((10, 20));
     println!("rect1: {:?}", rect1);
-    
+
     // 使用 Into（自动从 From 推导）
     let rect2: Rectangle = (15, 25).into();
     println!("rect2: {:?}", rect2);
@@ -352,13 +352,13 @@ fn main() {
         Ok(age) => println!("成功：{:?}", age),
         Err(e) => println!("错误：{}", e),
     }
-    
+
     // 失败情况
     match Age::try_from(200) {
         Ok(age) => println!("成功：{:?}", age),
         Err(e) => println!("错误：{}", e),
     }
-    
+
     // 使用 try_into
     let result: Result<Age, _> = 30i32.try_into();
     println!("try_into 结果：{:?}", result);
@@ -394,13 +394,13 @@ fn main() {
     // 使用 From
     let t1 = Temperature::from(25);
     println!("整数转温度：{:?}", t1);
-    
+
     // 使用 TryFrom - 成功
     match Temperature::try_from(100.0) {
         Ok(t) => println!("成功：{:?}", t),
         Err(e) => println!("错误：{}", e),
     }
-    
+
     // 使用 TryFrom - 失败
     match Temperature::try_from(-300.0) {
         Ok(t) => println!("成功：{:?}", t),

@@ -59,7 +59,7 @@ Rust 的占位符有两类，对应两种格式化 trait（后面章节会讲解
 
 简单记：**开发阶段看数据用 `{:?}`，给用户展示用 `{}`**。
 
-> trait 是 Rust 的核心概念，相当于其他语言的"接口"或"协议"。如何自定义 `Display`（控制 `{}` 输出格式）会在 **第 11 章 Trait** 中详细讲解。现在只需知道怎么用 `{:?}` 和 `{:#?}` 就够了。
+> trait 是 Rust 的核心概念，相当于其他语言的"接口"或"协议"。如何自定义 `Display`（控制 `{}` 输出格式）会在**泛型与 Trait 章节**中详细讲解。现在只需知道怎么用 `{:?}` 和 `{:#?}` 就够了。
 
 ```rust runnable
 fn main() {
@@ -81,11 +81,11 @@ fn main() {
 
 ## 为自定义类型启用调试输出
 
-> 自定义类型是用户自己定义的数据类型（通常是结构体、枚举等），将会在[第4章](/RustCourse/chapters/04-custom-types/00-index)讲解。现在只需要知道其并非 Rust 原生已经完全定义的类型即可。
+> 自定义类型是用户自己定义的数据类型（通常是结构体、枚举等），将会在[自定义数据类型](/RustCourse/chapters/04-custom-types/00-index)章节讲解。现在只需要知道其并非 Rust 原生已经完全定义的类型即可。
 
 通过 `#[derive(Debug)]` 属性，可以让编译器**自动生成** `Debug` trait 的实现，不需要手写任何代码。
 
-> `#[...]` 这种写法叫**属性（Attribute）**，会在本章[属性一节](/RustCourse/chapters/02-basic-syntax/08-attributes)详细讲解。现在只需要知道：把 `#[derive(Debug)]` 写在结构体上方，就能让它支持 `{:?}` 打印。
+> `#[...]` 这种写法叫**属性（Attribute）**，会在本章[属性一节](/RustCourse/chapters/02-basic-syntax/07-attributes)详细讲解。现在只需要知道：把 `#[derive(Debug)]` 写在结构体上方，就能让它支持 `{:?}` 打印。
 
 ```rust runnable
 // 加上这一行，编译器自动帮你实现 {:?} 格式化
@@ -204,7 +204,7 @@ fn main() {
 | 固定宽度 | `{:>10}` / `{:<10}` / `{:^10}` |
 | 小数位数 | `{:.2}` |
 
-实现自定义类型的 `Display`（控制 `{}` 的输出格式）属于进阶内容，会在[补充内容：格式化输出进阶](/RustCourse/chapters/23-supplements/02-advanced-formatting)中详细讲解。
+实现自定义类型的 `Display`（控制 `{}` 的输出格式）属于进阶内容，会在[补充内容：格式化输出进阶](/RustCourse/chapters/22-supplements/02-advanced-formatting)中详细讲解。
 
 # 练习题
 

@@ -20,6 +20,6 @@ keywords: ["错误处理", "panic", "Result", "?", "自定义错误"]
 
 4. **何时 panic，何时 Result** — 两种工具的决策框架；用类型系统编码不变量的思路
 
-5. **自定义错误类型** — 函数遇到多种错误来源时的处理方案；Box\<dyn Error\> 快速方案 vs 自定义枚举错误类型的规范做法
+5. **多种错误来源与遍历 Result** — `Box<dyn Error>` 快速处理多种错误来源；遍历集合时 filter_map/collect/partition 三种策略（完整的自定义错误类型需要 trait 知识，放在 trait 章节讲解）
 
 6. **综合练习** — 动手巩固全章内容
