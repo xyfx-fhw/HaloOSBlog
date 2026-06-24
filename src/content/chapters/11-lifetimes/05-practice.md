@@ -34,59 +34,37 @@ fn main() {
 
 ## 练习 2：添加生命周期标注
 
-`split_at_comma` 函数把一个字符串在第一个逗号处分成两半，返回前半部分。添加正确的生命周期标注（或利用省略规则），使其能够编译：
+`first_word` 函数接受两个 `&str` 参数：要搜索的文本和分隔符，返回第一个分隔符之前的部分。由于有两个引用参数，编译器无法推断返回值的生命周期——请添加正确的标注使其通过编译：
 
 ```rust editable
-// 提示：返回值是 s 的一部分，应该和 s 的生命周期关联
-fn split_at_comma(s: &str) -> &str {
-    match s.find(',') {
-        Some(pos) => &s[..pos],
-        None => s,
+// 这个函数无法编译，请添加生命周期标注
+// 提示：返回值只可能来自 text，和 separator 无关
+fn split_before(text: &str, separator: &str) -> &str {
+    match text.find(separator) {
+        Some(pos) => &text[..pos],
+        None => text,
     }
 }
 
 fn main() {
-    let data = String::from("Alice,Bob,Charlie");
-    let first = split_at_comma(&data);
-    println!("第一个：{}", first);
-
-    // 注意：这里 data 还在作用域，所以 first 有效
-    println!("原始数据：{}", data);
+    let sentence = String::from("Alice,Bob,Charlie");
+    let result;
+    {
+        let sep = String::from(",");
+        result = split_before(&sentence, &sep);
+        // sep 在这里销毁，但 result 来自 sentence，sentence 还活着
+    }
+    println!("第一段：{}", result);
+    println!("原始：{}", sentence);
 }
 ```
 
 ```expected
-第一个：Alice
-原始数据：Alice,Bob,Charlie
+第一段：Alice
+原始：Alice,Bob,Charlie
 ```
 
-## 练习 3：选择较短的字符串
-
-写一个函数 `shorter`，返回两个字符串 slice 中**较短**的那个（如果一样长，返回第一个）。注意正确标注生命周期：
-
-```rust editable
-// TODO: 实现这个函数，添加正确的生命周期标注
-fn shorter(a: &str, b: &str) -> &str {
-    todo!()
-}
-
-fn main() {
-    let s1 = String::from("hello");
-    let s2 = String::from("hi");
-    println!("较短的是：{}", shorter(&s1, &s2));
-
-    let s3 = String::from("rust");
-    let s4 = String::from("programming");
-    println!("较短的是：{}", shorter(&s3, &s4));
-}
-```
-
-```expected
-较短的是：hi
-较短的是：rust
-```
-
-## 练习 4：含引用的结构体
+## 练习 3：含引用的结构体
 
 `Parser` 结构体需要持有对输入字符串的引用，以便逐步解析。请添加生命周期标注并实现 `next_token` 方法，返回下一个以空格分隔的 token（每次调用后推进内部位置）：
 
@@ -102,10 +80,14 @@ impl Parser {
         Parser { input, pos: 0 }
     }
 
-    // TODO: 返回下一个 token（从 pos 开始的下一段不含空格的内容）
-    // 如果已经到末尾，返回 None
+    // 返回下一个 token（从 pos 开始的下一段不含空格的内容），如果已经到末尾，返回 None
     fn next_token(&mut self) -> Option<&str> {
-        todo!()
+        let start = self.pos
+            + self.input[self.pos..].find(|c: char| !c.is_whitespace())?;
+        let rest = &self.input[start..];
+        let end = rest.find(char::is_whitespace).unwrap_or(rest.len());
+        self.pos = start + end;
+        Some(&self.input[start..start + end])
     }
 }
 
@@ -125,7 +107,7 @@ token: world
 token: rust
 ```
 
-## 练习 5：生命周期与泛型结合
+## 练习 4：生命周期与泛型结合
 
 `Cache` 结构体用来缓存一个计算结果的引用。它持有一个对 `T` 类型数据的引用。请完成实现：
 
@@ -144,8 +126,12 @@ impl Cache {
     }
 }
 
-// TODO: 为 Cache 实现 Display trait
-// 格式："{label}: {value}"
+// 为 Cache 实现 Display trait，格式："{label}: {value}"
+impl Display for Cache {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}: {}", self.label, self.value)
+    }
+}
 
 fn main() {
     let result = 42;
@@ -159,7 +145,7 @@ fn main() {
 答案: 42
 ```
 
-## 练习 6：识别省略规则
+## 练习 5：识别省略规则
 
 下面有四个函数签名，其中有的可以省略生命周期，有的不能。判断哪些能通过编译（无需修改），哪些需要手动添加生命周期标注才能编译，并在注释中解释原因：
 
