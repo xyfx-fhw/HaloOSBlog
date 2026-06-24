@@ -208,7 +208,7 @@ fn main() {
 
 ## 转换 Trait 关系图
 
-```
+```text
 From<T> for A  ←→  Into<A> for T
      ↓                    ↓
 TryFrom<T> for A  ←→  TryInto<A> for T
@@ -218,8 +218,6 @@ TryFrom<T> for A  ←→  TryInto<A> for T
 - 实现 `TryFrom<T>` 自动获得 `TryInto`
 - `From`/`Into` 用于**总是成功**的转换
 - `TryFrom`/`TryInto` 用于**可能失败**的转换
-
----
 
 # 练习题
 
@@ -298,119 +296,30 @@ E: TryFrom 必须定义 Error 关联类型。自动获得 TryInto，使用 try_i
 
 ## 编程练习
 
-### 练习 1：实现 From 和 Into
-
-为自定义类型实现 From trait，并使用 Into：
+为 `Point` 实现 `From<(i32, i32)>`，然后分别用 `From::from()` 和 `.into()` 两种方式创建 `Point`：
 
 ```rust editable
-use std::convert::From;
-
 #[derive(Debug)]
-struct Rectangle {
-    width: u32,
-    height: u32,
+struct Point {
+    x: i32,
+    y: i32,
 }
 
-// TODO: 为 Rectangle 实现 From<(u32, u32)>
-// from 方法应该接受一个元组 (width, height)
+// TODO: 为 Point 实现 From<(i32, i32)>
 
 
 fn main() {
-    // 使用 From
-    let rect1 = Rectangle::from((10, 20));
-    println!("rect1: {:?}", rect1);
+    // 用 From 显式转换
+    let p1 = Point::from((1, 2));
+    println!("p1: {:?}", p1);
 
-    // 使用 Into（自动从 From 推导）
-    let rect2: Rectangle = (15, 25).into();
-    println!("rect2: {:?}", rect2);
+    // 用 Into 隐式转换（由 From 自动推导，需标注目标类型）
+    let p2: Point = (3, 4).into();
+    println!("p2: {:?}", p2);
 }
 ```
 
 ```expected
-rect1: Rectangle { width: 10, height: 20 }
-rect2: Rectangle { width: 15, height: 25 }
-```
-
-### 练习 2：实现 TryFrom
-
-为自定义类型实现 TryFrom，用于可能失败的转换：
-
-```rust editable
-use std::convert::TryFrom;
-
-#[derive(Debug, PartialEq)]
-struct Age(u8);
-
-// TODO: 为 Age 实现 TryFrom<i32>
-// 如果值不在 0-150 范围内，返回错误信息 "年龄超出范围"
-// 如果成功，创建 Age 结构体
-
-
-fn main() {
-    // 成功情况
-    match Age::try_from(25) {
-        Ok(age) => println!("成功：{:?}", age),
-        Err(e) => println!("错误：{}", e),
-    }
-
-    // 失败情况
-    match Age::try_from(200) {
-        Ok(age) => println!("成功：{:?}", age),
-        Err(e) => println!("错误：{}", e),
-    }
-
-    // 使用 try_into
-    let result: Result<Age, _> = 30i32.try_into();
-    println!("try_into 结果：{:?}", result);
-}
-```
-
-```expected
-成功：Age(25)
-错误：年龄超出范围
-try_into 结果：Ok(Age(30))
-```
-
-### 练习 3：综合使用
-
-实现一个完整的转换系统：
-
-```rust editable
-use std::convert::{From, TryFrom};
-
-#[derive(Debug)]
-struct Temperature(f64);  // 摄氏度
-
-// TODO: 为 Temperature 实现 From<i32>
-// 将整数转为摄氏度
-
-
-// TODO: 为 Temperature 实现 TryFrom<f64>
-// 只接受 -273.15 以上的温度（绝对零度）
-// 错误类型使用 &'static str
-
-
-fn main() {
-    // 使用 From
-    let t1 = Temperature::from(25);
-    println!("整数转温度：{:?}", t1);
-
-    // 使用 TryFrom - 成功
-    match Temperature::try_from(100.0) {
-        Ok(t) => println!("成功：{:?}", t),
-        Err(e) => println!("错误：{}", e),
-    }
-
-    // 使用 TryFrom - 失败
-    match Temperature::try_from(-300.0) {
-        Ok(t) => println!("成功：{:?}", t),
-        Err(e) => println!("错误：{}", e),
-    }
-}
-```
-
-```expected
-整数转温度：Temperature(25)
-成功：Temperature(100)
-错误：温度低于绝对零度
+p1: Point { x: 1, y: 2 }
+p2: Point { x: 3, y: 4 }
 ```

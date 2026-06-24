@@ -1,7 +1,7 @@
 ---
 title: "dyn Trait：动态分发"
 description: "理解 Rust 动态分发：为什么需要 dyn Trait、fat pointer 原理、对象安全限制，以及与泛型的选择时机"
-difficulty: intermediate
+difficulty: advanced
 estimatedTime: 25
 keywords: ["dyn Trait", "动态分发", "trait object", "fat pointer", "类型擦除", "对象安全"]
 ---
@@ -150,29 +150,14 @@ fn main() {
 `dyn Trait` 在内存中是一个 **fat pointer（胖指针）**，由两个指针组成：
 
 ```text
-Box<dyn Widget>（内部是 &dyn Widget）
-┌─────────────────────────────────────────┐
-│  data ptr ──────────────→ Button { ... } │  ← 指向堆上的实际数据
-│  vtable ptr ────────────→ vtable         │  ← 指向虚函数表
-└─────────────────────────────────────────┘
-
-vtable for Button + Widget:
-┌──────────────────────────┐
-│  drop(Button)            │  析构函数
-│  size = 32               │  Button 的大小
-│  align = 8               │  对齐要求
-│  draw  → Button::draw    │  ← 方法指针
-│  area  → Button::area    │  ← 方法指针
-└──────────────────────────┘
+Box<dyn Widget>
+┌───────────────┐
+│  data ptr  ───┼──→  Button { ... }   ← 堆上的实际数据
+│  vtable ptr ──┼──→  { draw, area, … } ← 方法地址表
+└───────────────┘
 ```
 
-每种具体类型（`Button`、`TextBox`、`Checkbox`）都有自己的 vtable。调用 `widget.draw()` 时：
-
-1. 从 fat pointer 取出 vtable 指针
-2. 在 vtable 中找到 `draw` 对应的函数地址
-3. 跳转过去执行
-
-这比泛型多了步骤 1 和 2，这就是"运行时开销"的来源——每次方法调用多一次内存间接跳转。
+调用 `widget.draw()` 时，Rust 先通过 vtable 找到 `Button::draw` 的地址，再跳转执行——这就是"运行时开销"的来源。
 
 ## Box\<dyn Trait\> 与 \&dyn Trait
 

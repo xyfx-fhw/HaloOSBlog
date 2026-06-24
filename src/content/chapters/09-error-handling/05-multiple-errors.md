@@ -59,9 +59,59 @@ fn main() {
 
 ## 需要精确错误类型时怎么办
 
-对外暴露 API 的库，往往需要让调用者能精确 `match` 不同的错误情况，这时候就要**定义自己的错误枚举**，并为它实现 `Display`、`Error`、`From` 等 trait。
+对外暴露 API 的库，往往需要让调用者能精确 `match` 不同的错误情况。这时候要**定义自己的错误枚举**，并实现三个 trait：
 
-这部分涉及 trait 的实现语法，放在 trait 章节会讲得更清楚——详见[《实战：自定义错误类型》](/RustCourse/chapters/10-generics-traits/07-custom-errors)，那里有完整的四步骤实现和原理解析。
+| Trait | 为什么需要 |
+|-------|-----------|
+| `Display` | 控制 `{}` 打印的内容，即面向用户的错误描述 |
+| `Error` | 把你的类型标记为"合法的错误类型"，`?` 和标准库才认识它 |
+| `From<底层错误>` | 让 `?` 遇到 `io::Error` 时自动转成你的类型，不用手动 `map_err` |
+
+最简单的例子：
+
+```rust runnable
+use std::fmt;
+
+#[derive(Debug)]
+enum AppError {
+    Io(std::io::Error),
+    Parse(std::num::ParseIntError),
+}
+
+impl fmt::Display for AppError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            AppError::Io(e)    => write!(f, "文件错误：{}", e),
+            AppError::Parse(e) => write!(f, "解析错误：{}", e),
+        }
+    }
+}
+
+impl std::error::Error for AppError {}
+
+impl From<std::io::Error> for AppError {
+    fn from(e: std::io::Error) -> Self { AppError::Io(e) }
+}
+impl From<std::num::ParseIntError> for AppError {
+    fn from(e: std::num::ParseIntError) -> Self { AppError::Parse(e) }
+}
+
+fn double_from_file(path: &str) -> Result<i32, AppError> {
+    let content = std::fs::read_to_string(path)?; // io::Error 自动转 AppError::Io
+    let n: i32 = content.trim().parse()?;          // ParseIntError 自动转 AppError::Parse
+    Ok(n * 2)
+}
+
+fn main() {
+    match double_from_file("number.txt") {
+        Ok(n)               => println!("结果：{}", n),
+        Err(AppError::Io(e))    => println!("文件问题，可重试：{}", e),
+        Err(AppError::Parse(e)) => println!("内容格式错误：{}", e),
+    }
+}
+```
+
+> 这里用到了 trait 实现语法（`impl Xxx for Yyy`），目前看不懂细节很正常——trait 章节会完整讲解。这里有个印象即可，在实际项目使用到的时候再回头深入学习即可。
 
 # 遍历 Result
 

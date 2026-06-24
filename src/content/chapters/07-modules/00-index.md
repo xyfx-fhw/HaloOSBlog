@@ -6,8 +6,6 @@ estimatedTime: 5
 keywords: ["模块系统", "package", "crate", "pub", "use", "路径"]
 ---
 
-# 模块系统
-
 Rust 提供了强大的**模块系统**来帮助你组织和管理代码。本章包含四个核心主题：
 
 1. **Package 和 Crate** — 理解编译单元和项目组织的基本概念

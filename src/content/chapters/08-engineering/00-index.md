@@ -6,8 +6,6 @@ estimatedTime: 10
 keywords: ["workspace", "features", "build.rs", "文档注释", "doctest", "cargo"]
 ---
 
-# 项目工程化
-
 当你的 Rust 项目从"单个文件"成长为"多个 crate 协作"的大型工程项目时，就需要掌握 Rust 的工程化能力。本章介绍四个核心主题：
 
 1. **工作空间（Workspace）** — 用一个根 `Cargo.toml` 管理多个相关 crate，共享依赖版本、统一编译缓存

@@ -1,12 +1,10 @@
 ---
 title: "错误处理"
-description: "掌握 Rust 错误处理体系：panic!/Result/?/自定义错误类型，写出健壮可维护的代码。"
+description: "掌握 Rust 错误处理体系：panic!/Result/?，写出健壮可维护的代码。"
 difficulty: beginner
 estimatedTime: 5
-keywords: ["错误处理", "panic", "Result", "?", "自定义错误"]
+keywords: ["错误处理", "panic", "Result", "?"]
 ---
-
-# 错误处理
 
 程序运行中不可避免地会遇到各种错误。不同于很多语言依赖异常（exception）机制，Rust 把错误分成了**不可恢复**和**可恢复**两类，分别用不同的工具处理，让错误处理从"猜测"变成"明确"。
 
@@ -20,6 +18,6 @@ keywords: ["错误处理", "panic", "Result", "?", "自定义错误"]
 
 4. **何时 panic，何时 Result** — 两种工具的决策框架；用类型系统编码不变量的思路
 
-5. **多种错误来源与遍历 Result** — `Box<dyn Error>` 快速处理多种错误来源；遍历集合时 filter_map/collect/partition 三种策略（完整的自定义错误类型需要 trait 知识，放在 trait 章节讲解）
+5. **多种错误来源与遍历 Result** — `Box<dyn Error>` 快速处理多种错误来源；遍历集合时 filter_map/collect/partition 三种策略
 
 6. **综合练习** — 动手巩固全章内容

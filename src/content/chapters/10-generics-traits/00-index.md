@@ -6,8 +6,6 @@ estimatedTime: 5
 keywords: ["泛型", "trait", "trait 约束", "关联类型", "单态化", "impl Trait"]
 ---
 
-# 泛型与 Trait
-
 泛型和 Trait 是 Rust 抽象能力的两根支柱，天然咬合在一起：
 
 - **泛型**（`<T>`）让你写一份代码适配多种类型，编译器在使用时自动展开——零运行时开销
@@ -22,14 +20,6 @@ keywords: ["泛型", "trait", "trait 约束", "关联类型", "单态化", "impl
 
 3. **Trait 约束与 impl Trait** — 用 `T: Trait` 限制泛型参数，多重约束、`where` 子句；`impl Trait` 语法
 
-4. **关联类型** — 泛型 Trait 参数过多时的困境；用 `type Item` 把类型绑定到实现，让签名和调用都更清晰
+4. **转换 Trait** — `From`/`Into`、`TryFrom`/`TryInto`；Rust 类型转换的惯用模式
 
-5. **dyn Trait：动态分发** — 泛型解决不了的两个场景；fat pointer 原理；`Box<dyn Trait>` 与 `&dyn Trait` 的选择；对象安全
-
-6. **常见 Trait** — 标准库中最常用的 Trait：`Clone`、`Copy`、`Debug`、`Display`、`Iterator`、`PartialOrd` 等
-
-7. **转换 Trait** — `From`/`Into`、`TryFrom`/`TryInto`；Rust 类型转换的惯用模式
-
-8. **自定义错误类型** — 用 Trait 实现完整的自定义错误：`Display` + `Error` + `From`，与 `?` 运算符无缝配合
-
-9. **综合练习** — 动手巩固全章内容
+5. **综合练习** — 动手巩固全章内容

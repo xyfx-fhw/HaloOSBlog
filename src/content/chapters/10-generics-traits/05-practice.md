@@ -6,19 +6,7 @@ estimatedTime: 15
 keywords: ["泛型练习", "综合"]
 ---
 
-# 概念回顾
-
-## 核心知识点速查
-
-**泛型语法**
-- 函数：`fn foo<T>(val: T) -> T`
-- 结构体：`struct Pair<T> { first: T, second: T }`
-- 多类型参数：`struct Point<T, U> { x: T, y: U }`
-- impl 块：`impl<T> Pair<T> { ... }`（`impl<T>` 引入 T，`Pair<T>` 使用 T）
-- 具体类型 impl：`impl Point<f64> { ... }`
-- 单态化：编译期展开，运行时零开销
-
-# 综合测验
+# 综合判断题
 
 ## 泛型语法测验
 
