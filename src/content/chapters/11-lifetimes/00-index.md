@@ -1,9 +1,9 @@
 ---
 title: "生命周期"
-description: ""
-difficulty: intermediate
-estimatedTime: 10
-keywords: []
+description: "生命周期是 Rust 最独特的特性之一，它让编译器能够在不需要垃圾回收器的情况下，保证所有引用永远不会成为悬垂指针。"
+difficulty: beginner
+estimatedTime: 5
+keywords: ["生命周期", "借用检查器", "内存安全", "悬垂指针", "省略规则", "'static 生命周期"]
 ---
 
 生命周期是 Rust 最独特的特性之一——它让编译器能够在**不需要垃圾回收器**的情况下，保证所有引用永远不会成为悬垂指针。
