@@ -1,7 +1,7 @@
 ---
 title: "FFI 基础"
 description: "学习如何让 Rust 与 C 语言代码进行互操作，掌握 extern \"C\"、ABI 和类型映射。"
-difficulty: intermediate
+difficulty: beginner
 estimatedTime: 25
 keywords: ["FFI", "ABI", "extern C", "C-Interop", "libc"]
 ---

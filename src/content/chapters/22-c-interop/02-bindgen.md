@@ -1,7 +1,7 @@
 ---
 title: "自动生成绑定：bindgen"
 description: "学习使用 bindgen 工具自动从 C 头文件生成 Rust 绑定代码，大幅提升开发效率。"
-difficulty: intermediate
+difficulty: beginner
 estimatedTime: 25
 keywords: ["bindgen", "FFI", "build.rs", "自动化", "C-headers"]
 ---

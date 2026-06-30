@@ -1,8 +1,8 @@
 ---
 title: "闭包与迭代器"
 description: "闭包让你捕获上下文、传递行为；迭代器让你惰性处理序列——两者配合构成 Rust 函数式编程的核心"
-difficulty: intermediate
-estimatedTime: 10
+difficulty: beginner
+estimatedTime: 5
 keywords: ["闭包", "迭代器", "Fn", "Iterator", "map", "filter", "零开销抽象"]
 ---
 

@@ -1,7 +1,7 @@
 ---
 title: "暴露 Rust 给 C：cbindgen"
 description: "学习将 Rust 库打包为 C 动态库，并使用 cbindgen 自动生成 C/C++ 接口头文件。"
-difficulty: intermediate
+difficulty: beginner
 estimatedTime: 25
 keywords: ["cbindgen", "FFI", "cdylib", "no_mangle", "extern C"]
 ---

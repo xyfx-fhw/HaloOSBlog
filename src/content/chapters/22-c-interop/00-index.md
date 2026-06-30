@@ -1,7 +1,7 @@
 ---
 title: "与 C 语言互操作"
 description: "探索 Rust 与 C 语言的深度融合：从调用遗留 C 库到将 Rust 模块嵌入现有系统。"
-difficulty: intermediate
+difficulty: beginner
 estimatedTime: 5
 keywords: ["FFI", "bindgen", "cbindgen", "互操作性"]
 ---
