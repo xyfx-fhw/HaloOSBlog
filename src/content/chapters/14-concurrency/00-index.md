@@ -6,8 +6,6 @@ estimatedTime: 60
 keywords: ["并发", "多线程", "Arc", "Mutex", "Channels", "线程安全"]
 ---
 
-# 第 14 章：并发编程
-
 Rust 的设计目标之一就是「无畏并发」（Fearless Concurrency）。通过所有权系统，Rust 在编译期就能消除绝大多数并发错误（如数据竞争）。
 
 ## 章节目录
