@@ -1,12 +1,10 @@
 ---
-title: "嵌入式 Rust 开发"
+title: "嵌入式 Rust"
 description: "跨越硬件与软件的边界：学习如何使用 Rust 编写裸机程序、操作寄存器以及构建高效的嵌入式系统。"
 difficulty: advanced
 estimatedTime: 10
 keywords: ["嵌入式", "Bare-metal", "no_std", "微控制器", "物联网"]
 ---
-
-# 第 23 章：嵌入式 Rust 开发
 
 在这一章中，我们将离开操作系统的「舒适区」，直接在裸机（Bare-metal）硬件上编写 Rust 代码。嵌入式开发是 Rust 的核心战场之一，它将 Rust 的内存安全性与硬件级的控制能力完美结合。
 
@@ -26,11 +24,11 @@ keywords: ["嵌入式", "Bare-metal", "no_std", "微控制器", "物联网"]
 
 我们将分模块深入探讨嵌入式开发的各个环节：
 
-1. **[裸机开发基础](/RustCourse/chapters/22-embedded/01-no-std-basics)**：了解 `no_std` 环境、Panic 处理以及程序入口点。
-2. **[内存布局与链接脚本](/RustCourse/chapters/22-embedded/02-memory-layout)**：深入了解内存映射、`memory.x` 以及启动时的内存段初始化。
-3. **[硬件抽象与寄存器](/RustCourse/chapters/22-embedded/03-hardware-abstraction)**：学习 PAC、HAL 以及如何像操作对象一样操作寄存器。
-4. **[中断与内存安全](/RustCourse/chapters/22-embedded/04-interrupts-concurrency)**：掌握嵌入式并发、原子操作以及如何在中断中安全访问数据。
-5. **[异步嵌入式：Embassy](/RustCourse/chapters/22-embedded/05-async-embassy)**：了解现代化的异步方案，让嵌入式开发像写高级语言一样高效。
-6. **[嵌入式实战：从裸机到微内核](/RustCourse/chapters/22-embedded/06-toolchain-debug)**：通过一个教学实验性质的项目，将本章所学的硬件操作、中断和并发知识串联起来。
+1. **[裸机开发基础](/RustCourse/chapters/20-embedded/01-no-std-basics)**：了解 `no_std` 环境、Panic 处理以及程序入口点。
+2. **[内存布局与链接脚本](/RustCourse/chapters/20-embedded/02-memory-layout)**：深入了解内存映射、`memory.x` 以及启动时的内存段初始化。
+3. **[硬件抽象与寄存器](/RustCourse/chapters/20-embedded/03-hardware-abstraction)**：学习 PAC、HAL 以及如何像操作对象一样操作寄存器。
+4. **[中断与内存安全](/RustCourse/chapters/20-embedded/04-interrupts-concurrency)**：掌握嵌入式并发、原子操作以及如何在中断中安全访问数据。
+5. **[异步嵌入式：Embassy](/RustCourse/chapters/20-embedded/05-async-embassy)**：了解现代化的异步方案，让嵌入式开发像写高级语言一样高效。
+6. **[嵌入式实战：从裸机到微内核](/RustCourse/chapters/20-embedded/06-toolchain-debug)**：通过一个教学实验性质的项目，将本章所学的硬件操作、中断和并发知识串联起来。
 
 准备好让你的代码在微小的芯片上跳动了吗？

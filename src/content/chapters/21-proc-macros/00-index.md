@@ -6,8 +6,6 @@ estimatedTime: 10
 keywords: ["过程宏", "proc-macro", "derive宏", "类属性宏", "类函数宏", "syn", "quote"]
 ---
 
-# 过程宏
-
 过程宏（Procedural Macros）是 Rust 元编程的高级形式。与基于模式匹配的声明宏不同，过程宏是**真正的 Rust 程序**——它接收编译器传入的 token 流，运行任意代码逻辑，输出新的 token 流让编译器继续编译。
 
 ## 本章内容
