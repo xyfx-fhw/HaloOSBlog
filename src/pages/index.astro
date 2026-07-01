@@ -24,6 +24,7 @@ const difficultyColor: Record<string, string> = {
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const firstChapterHref = navTree[0]?.href ?? `${base}/chapters`;
 const totalArticles = navTree.reduce((sum, ch) => sum + 1 + ch.articles.length, 0);
+const articleSlugs = navTree.flatMap(ch => [ch.indexSlug, ...ch.articles.map(a => a.slug)]);
 ---
 
 <BaseLayout title="首页" description="RUST 互动教程 — 零基础系统学习 Rust 语言">
@@ -70,7 +71,7 @@ const totalArticles = navTree.reduce((sum, ch) => sum + 1 + ch.articles.length, 
     <div class="outline-inner">
       <div class="outline-header">
         <p class="section-label">课程目录</p>
-        <div class="overall-progress" id="overall-progress" data-total={totalArticles}>
+        <div class="overall-progress" id="overall-progress" data-total={totalArticles} data-slugs={JSON.stringify(articleSlugs)}>
           <div class="overall-progress-track">
             <div class="overall-progress-fill" id="overall-progress-fill" style="width:0%"></div>
           </div>
@@ -686,7 +687,8 @@ const totalArticles = navTree.reduce((sum, ch) => sum + 1 + ch.articles.length, 
 
     const progressEl = document.getElementById('overall-progress');
     const total = Number(progressEl?.dataset.total ?? 0);
-    const pct = getOverallProgress(total);
+    const validSlugs = new Set<string>(JSON.parse(progressEl?.dataset.slugs ?? '[]'));
+    const pct = getOverallProgress(total, validSlugs);
     const fill = document.getElementById('overall-progress-fill');
     const pctEl = document.getElementById('overall-progress-pct');
     if (fill) fill.style.width = `${pct}%`;
