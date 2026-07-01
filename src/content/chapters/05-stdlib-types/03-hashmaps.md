@@ -108,7 +108,7 @@ fn main() {
 }
 ```
 
-> **学习提示**：`iter().cloned().collect()` 是一个很常用的模式。不用现在完全理解迭代器的细节，后续章节会详细讲解。
+> **学习提示**：`iter().cloned().collect()` 是一个很常用的模式。不用现在完全理解迭代器的细节，[闭包与迭代器](/RustCourse/chapters/12-closures-iterators/00-index)章节会详细讲解。
 
 ## 访问 HashMap 中的值
 
