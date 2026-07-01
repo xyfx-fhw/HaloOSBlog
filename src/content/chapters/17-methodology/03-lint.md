@@ -1,16 +1,16 @@
 ---
-title: "Lint：让编译器帮你审查代码"
-description: "了解 Rust 的 lint 系统，掌握 cargo clippy 的使用方法、常见 lint 分类与属性控制，养成高质量代码习惯。"
+title: "代码质量：Lint、Clippy 与 rustfmt"
+description: "掌握 Rust 的 lint 系统、Clippy 静态分析与 rustfmt 格式化，用工具自动化代码规范。"
 difficulty: beginner
-estimatedTime: 25
-keywords: ["lint", "clippy", "cargo clippy", "#[allow]", "#[warn]", "#[deny]", "代码质量"]
+estimatedTime: 30
+keywords: ["lint", "clippy", "rustfmt", "cargo fmt", "#[allow]", "#[deny]", "代码质量"]
 ---
+
+# Lint 基础
 
 编译器会帮你检查代码能不能运行，而 **lint** 工具则会进一步检查代码**写得好不好**——即使编译通过，lint 也能发现潜在的 bug、低效写法或不符合惯例的代码。
 
 Rust 内置了两层 lint 系统：编译器自带的警告，以及功能更强大的 **Clippy** 工具。
-
-# Lint 基础
 
 ## 编译器内置 lint
 
@@ -183,6 +183,66 @@ fn main() {
 | `clippy::dbg_macro` | 发布前移除 `dbg!()` 调用 |
 | `clippy::todo` | 提醒 `todo!()` 未完成的代码 |
 
+# rustfmt
+
+`rustfmt` 是 Rust 官方的代码格式化工具。它和 Clippy 解决的是不同层面的问题：Clippy 关注**代码逻辑和最佳实践**，rustfmt 关注**代码排版外观**——缩进、空格、换行、括号位置等。
+
+两者的配合：先用 rustfmt 统一格式，消除格式噪音；再用 Clippy 关注实质性的逻辑问题。
+
+## 什么是 rustfmt
+
+rustfmt 按照 Rust 社区约定的风格重新排版代码，消除团队内部的格式争论（"括号要不要换行？""缩进用 2 还是 4 个空格？"）。
+
+安装（随 rustup 自动安装）：
+
+```bash
+rustup component add rustfmt
+```
+
+运行：
+
+```bash
+cargo fmt           # 格式化整个项目（直接修改文件）
+cargo fmt --check   # 只检查，不修改（CI 中使用）
+```
+
+`cargo fmt --check` 在文件格式不符合规范时以非零退出码退出，适合放入 CI 流水线，强制所有提交都经过格式检查。
+
+## rustfmt.toml 配置
+
+在项目根目录创建 `rustfmt.toml`（或 `.rustfmt.toml`）可以自定义格式规则。大多数项目使用默认规则即可，常见的调整有：
+
+```toml
+# rustfmt.toml
+edition = "2021"          # Rust 版本（影响部分格式规则）
+max_width = 100           # 最大行宽（默认 100）
+use_small_heuristics = "Max"  # 尽量把短表达式放在同一行
+imports_granularity = "Crate" # 将同一 crate 的 use 合并
+group_imports = "StdExternalCrate"  # use 分组：std / 外部 / 本地
+```
+
+> **团队项目的建议**：把 `rustfmt.toml` 提交进版本库，保证所有人使用相同的格式规则。同时在 CI 中加上 `cargo fmt --check`，不符合格式的 PR 无法通过。
+
+## 在 CI 中强制格式检查
+
+格式化的最大价值在于**自动化强制**——不依赖每个人手动运行，而是让 CI 帮你把关。典型的 CI 格式检查步骤：
+
+```bash
+cargo fmt --check          # 检查格式（不修改文件）
+cargo clippy -- -D warnings  # 检查 lint（警告视为错误）
+```
+
+当开发者忘记格式化时，CI 会失败，提示其本地运行 `cargo fmt` 后重新提交。
+
+## 与编辑器集成
+
+rustfmt 最常见的使用方式不是手动运行，而是**保存时自动格式化**：
+
+- **VS Code**：安装 rust-analyzer 后，在设置中开启 `editor.formatOnSave = true`，并将 Rust 文件的默认格式化器设为 rust-analyzer
+- **其他编辑器**：大多数主流编辑器（Vim、Emacs、IntelliJ）都有对应的 Rust 插件支持保存时格式化
+
+保存时自动格式化后，你几乎不需要再思考格式问题——代码永远保持规范，`cargo fmt --check` 在 CI 中也永远通过。
+
 # 练习题
 
 ## Lint 级别
@@ -207,17 +267,6 @@ Q: 变量命名为 `_result` 而不是 `result`，主要目的是什么？
 E: 以 _ 开头的变量名是 Rust 的约定，明确告诉编译器"我知道这个值可能用不到"，从而抑制 unused_variables lint。注意 _ 本身（不带名字）会直接丢弃值，而 _result 仍然绑定了值。
 ```
 
-## Clippy 分类
-
-```quiz multi
-Q: 下列哪些是 Clippy 的 lint 分类？
-+ correctness（正确性，默认为错误）
-+ perf（性能建议）
-- memory（内存安全）
-+ style（代码风格）
-E: Clippy 的主要分类有 correctness、suspicious、style、complexity、perf、pedantic、nursery、restriction。没有专门的 memory 分类——内存安全由所有权系统和编译器保证，不归 Clippy 管。
-```
-
 ## cargo clippy 与 cargo build 的区别
 
 ```quiz single
@@ -238,4 +287,24 @@ Q: `#[forbid(lint_name)]` 与 `#[deny(lint_name)]` 的区别是什么？
 + deny 可以被内层的 allow 覆盖，forbid 不能被覆盖
 - forbid 会产生运行时错误，deny 只有编译时错误
 E: deny 和 forbid 都将 lint 变成编译错误，但 deny 可以在子模块或函数上用 #[allow] 覆盖掉，而 forbid 一旦设置就无法被任何 allow 撤销——适合用于绝对不允许的行为（如 unsafe 代码）。
+```
+
+## rustfmt 使用
+
+```quiz single
+Q: `cargo fmt` 和 `cargo fmt --check` 的区别是什么？
+- 两者功能相同，--check 只是输出更详细
++ cargo fmt 直接修改文件；cargo fmt --check 只检查格式是否符合规范，不修改文件，格式不对时以错误码退出
+- --check 会检查 Clippy 规则，不带参数只检查格式
+- cargo fmt --check 需要 CI 权限才能运行
+E: CI 中使用 --check 是标准做法，避免 CI 直接修改代码。开发者本地运行 cargo fmt 格式化后提交，CI 用 --check 验证。
+```
+
+```quiz single
+Q: 为什么推荐把 rustfmt.toml 提交进版本库？
+- rustfmt 没有 rustfmt.toml 就无法运行
+- 提交后可以减少 CI 运行时间
++ 保证团队所有成员和 CI 使用相同的格式规则，避免格式不一致
+- rustfmt.toml 包含安全配置，必须版本控制
+E: 如果不提交 rustfmt.toml，每个开发者的本地格式化结果可能不同，造成无意义的格式差异 diff，增加代码审查噪音。统一配置是团队协作的基础。
 ```

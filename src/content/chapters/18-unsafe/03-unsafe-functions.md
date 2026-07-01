@@ -42,14 +42,18 @@ fn main() {
 
 ## unsafe fn 内部也需要 unsafe 块
 
-即使在 `unsafe fn` 内部，执行 unsafe 操作时也需要显式的 `unsafe {}` 块——这迫使你明确每一步危险操作的位置：
+**Rust 2021 和 2024 edition 在这里行为不同：**
+
+- **2021 edition**：`unsafe fn` 的函数体是一个隐式的 unsafe 块，内部的危险操作不需要额外的 `unsafe {}`
+- **2024 edition**：即使在 `unsafe fn` 内，每个危险操作也必须显式加 `unsafe {}` 块
+
+2024 edition 的改动是故意的——强迫你精确标出每一个危险点，而不是让整个函数体"默认危险"，更容易做代码审查。本教程使用 2024 edition，所以你会看到 `unsafe fn` 内部仍然有 `unsafe {}` 块：
 
 ```rust runnable
 unsafe fn process(ptr: *mut i32, count: usize) {
-    // 这个函数本身是 unsafe 的，但内部操作仍需要 unsafe 块
+    // 2024 edition：即使在 unsafe fn 内，危险操作也要显式标出
     for i in 0..count {
         unsafe {
-            // 明确标出这里在解引用裸指针
             *ptr.add(i) *= 2;
         }
     }
@@ -224,21 +228,21 @@ E: 函数本身能编译，但语义上有问题：当 slice 为空时，as_ptr(
 ```
 
 ```quiz multi
-Q: 关于 Send 和 Sync，以下哪些说法是正确的？
-+ Send 表示类型可以安全地移动到另一个线程
-+ Sync 表示类型可以安全地被多个线程同时共享引用（即 &T 是 Send）
-+ 如果所有字段都是 Send，编译器会自动实现 Send
-- unsafe impl Send for T 会让 T 在多线程下自动变得线程安全
-E: unsafe impl Send/Sync 只是告诉编译器"我保证这个类型是线程安全的"，让编译器停止报错。但实际的线程安全由你的实现保证，写错了照样会有数据竞争，只是编译器不会拦截了。这就是"unsafe"的含义——责任在你。
+Q: 关于 unsafe trait，以下哪些说法是正确的？
++ unsafe trait 附带了一条编译器无法验证的安全承诺，实现时必须写 unsafe impl
++ 写下 unsafe impl 后，如果承诺是错的，程序照样会出错——编译器只是不再阻拦
++ unsafe trait 可以没有任何方法，只是一个"标记承诺"
+- 实现了 unsafe trait 之后，这个类型的所有操作都自动变得安全
+E: unsafe trait 的核心是"承诺"而不是"魔法"。unsafe impl 只是让编译器信任你说的话，真正的安全仍然由你的代码保证。unsafe trait 也不需要有方法，像 Zeroable 这样的标记 trait 只是在说"我满足某个条件"，没有任何方法体。
 ```
 
 ```quiz single
-Q: 在 unsafe fn 内部，执行 unsafe 操作（如解引用裸指针）需要额外的 unsafe {} 块吗？
-+ 需要，即使在 unsafe fn 内，不安全操作也应该用 unsafe 块显式标出
+Q: 在 unsafe fn 内部（2024 edition），执行 unsafe 操作需要额外的 unsafe {} 块吗？
++ 需要，2024 edition 要求即使在 unsafe fn 内，危险操作也必须显式标出
 - 不需要，unsafe fn 内所有操作都默认是 unsafe 的
-- 取决于 Rust 版本，旧版本不需要
+- 不需要，unsafe fn 已经声明了整个函数不安全，内部无需再标
 - 只有解引用裸指针需要，其他操作不需要
-E: 即使在 unsafe fn 内，编译器仍然要求用 unsafe {} 块包裹具体的不安全操作。这个设计是故意的：强迫你精确标出每一个危险点，而不是让整个函数体"默认危险"，有助于代码审查和维护。
+E: 2024 edition 改变了这个行为。2021 及更早版本中，unsafe fn 的函数体是隐式 unsafe 块，内部不需要再套 unsafe {}。2024 edition 要求显式标出每个危险操作，目的是让代码审查者能一眼定位真正的危险点，而不是整个函数体"默认危险"。
 ```
 
 ## 编程练习
