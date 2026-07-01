@@ -2,7 +2,7 @@
 title: "类型别名（type）"
 description: "使用 type 关键字为复杂类型起别名，提高代码可读性和可维护性，掌握何时使用别名的最佳实践。"
 difficulty: beginner
-estimatedTime: 15
+estimatedTime: 10
 keywords: ["类型别名", "type", "别名", "可读性"]
 ---
 

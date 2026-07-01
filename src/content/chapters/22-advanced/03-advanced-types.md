@@ -2,7 +2,7 @@
 title: "高级类型"
 description: "掌握类型别名、newtype 模式、Never 类型与动态大小类型，让 Rust 的类型系统为代码提供更强的安全保障"
 difficulty: advanced
-estimatedTime: 30
+estimatedTime: 35
 keywords: ["类型别名", "newtype", "Never类型", "动态大小类型", "DST", "type alias"]
 ---
 
@@ -176,6 +176,8 @@ fn main() {
 ```
 
 ## 动态大小类型（DST）
+
+讲完了永不产生值的 `!` 类型，再来看另一类特殊情况：有些类型的大小在编译时是未知的，只有运行时才能确定。
 
 Rust 的大多数类型在编译时大小就已固定：`i32` 是 4 字节，`(u8, f64)` 是 16 字节。
 

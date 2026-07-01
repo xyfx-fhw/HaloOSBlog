@@ -2,7 +2,7 @@
 title: "unsafe 块与超能力"
 description: "理解 unsafe 块的作用范围、Rust 的五大 unsafe 超能力，以及何时才真正需要 unsafe"
 difficulty: advanced
-estimatedTime: 35
+estimatedTime: 50
 keywords: ["unsafe", "超能力", "裸指针", "mutable static", "FFI", "不安全代码"]
 ---
 

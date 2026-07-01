@@ -2,7 +2,7 @@
 title: "Box<T>：堆内存分配"
 description: "通过 Box<T> 将数据存储在堆上，解决递归类型的大小未知问题，是最简单也是最基础的智能指针。"
 difficulty: intermediate
-estimatedTime: 25
+estimatedTime: 20
 keywords: ["Box", "堆分配", "递归类型", "cons list", "所有权"]
 ---
 

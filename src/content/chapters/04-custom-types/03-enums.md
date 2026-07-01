@@ -2,7 +2,7 @@
 title: "枚举"
 description: "理解 Rust 枚举的定义、成员、关联数据和方法，掌握用枚举模型一组离散的状态或选择。"
 difficulty: beginner
-estimatedTime: 40
+estimatedTime: 25
 keywords: ["枚举", "enum", "成员", "变体", "关联数据"]
 ---
 

@@ -2,7 +2,7 @@
 title: "自定义 derive 宏"
 description: "学会为自定义 trait 编写 #[derive(...)] 支持，使用 syn 解析结构体定义并自动生成 trait 实现代码。"
 difficulty: advanced
-estimatedTime: 45
+estimatedTime: 40
 keywords: ["derive宏", "proc_macro_derive", "syn", "quote", "自动实现trait"]
 ---
 
@@ -85,6 +85,8 @@ quote = "1"
 
 - **`syn`**：解析 `TokenStream` 为 Rust 语法树（AST），让你能方便地提取"类型名"等信息
 - **`quote`**：用模板语法生成新的 `TokenStream`，比手动拼接 token 简单得多
+
+有了这两个工具，实现 Describe 宏的思路就清晰了：用 syn 把输入解析成语法树、从中读出类型名，再用 quote 拼出 impl 块返回给编译器。
 
 ## 写最简单的 derive 宏
 

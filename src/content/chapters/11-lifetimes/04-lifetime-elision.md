@@ -2,7 +2,7 @@
 title: "省略规则与 'static"
 description: "掌握三条生命周期省略规则，理解 'static 的含义与正确用法，写出更简洁的 Rust 代码"
 difficulty: intermediate
-estimatedTime: 25
+estimatedTime: 20
 keywords: ["lifetime elision", "生命周期省略", "static", "'static", "省略规则"]
 ---
 

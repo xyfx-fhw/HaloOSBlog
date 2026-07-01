@@ -1,7 +1,7 @@
 ---
 title: "开发方法论"
 description: "以大工程视角串联 Rust 项目的完整生命周期：架构设计、编码流程、代码规范、持续集成到性能优化。"
-difficulty: intermediate
+difficulty: beginner
 estimatedTime: 5
 keywords: ["开发方法论", "工程化", "架构", "CI", "TDD"]
 ---

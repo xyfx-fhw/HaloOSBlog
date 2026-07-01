@@ -2,7 +2,7 @@
 title: "Fn trait 与闭包的高阶用法"
 description: "理解 Fn/FnMut/FnOnce 三个 trait 的区别，学会用闭包作为函数参数和返回值"
 difficulty: intermediate
-estimatedTime: 25
+estimatedTime: 20
 keywords: ["Fn", "FnMut", "FnOnce", "闭包参数", "impl Fn", "高阶函数"]
 ---
 

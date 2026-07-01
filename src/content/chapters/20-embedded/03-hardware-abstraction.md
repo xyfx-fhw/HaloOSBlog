@@ -2,7 +2,7 @@
 title: "硬件抽象：PAC 与 HAL"
 description: "掌握 Rust 嵌入式开发的三层模型，学习如何通过类型安全的方法操作硬件外设和寄存器。"
 difficulty: advanced
-estimatedTime: 30
+estimatedTime: 25
 keywords: ["PAC", "HAL", "寄存器", "svd2rust", "类型状态模式"]
 ---
 

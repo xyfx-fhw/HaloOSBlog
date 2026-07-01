@@ -2,7 +2,7 @@
 title: "数据建模"
 description: "从需求出发设计 Todo 结构体和 Command 枚举，学会用 Rust 的类型系统表达命令行工具的数据与行为"
 difficulty: intermediate
-estimatedTime: 35
+estimatedTime: 25
 keywords: ["数据建模", "结构体", "枚举", "命令行参数", "serde", "Todo"]
 ---
 

@@ -2,7 +2,7 @@
 title: "模式匹配与 match 表达式"
 description: "掌握 Rust 强大的模式匹配机制，学习 match 表达式如何安全地解构枚举和 Option，以及编译器如何确保穷尽性。"
 difficulty: beginner
-estimatedTime: 40
+estimatedTime: 30
 keywords: ["match", "模式", "穷尽性", "绑定", "通配符"]
 ---
 

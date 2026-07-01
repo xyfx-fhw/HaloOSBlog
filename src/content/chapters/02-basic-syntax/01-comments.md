@@ -2,7 +2,7 @@
 title: "注释"
 description: "学习 Rust 的四种注释形式：行注释、块注释、文档注释，了解它们的使用场景与区别。"
 difficulty: beginner
-estimatedTime: 15
+estimatedTime: 10
 keywords: ["注释", "行注释", "块注释", "文档注释", "///", "//!"]
 ---
 

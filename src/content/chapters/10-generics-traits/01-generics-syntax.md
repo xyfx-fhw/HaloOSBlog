@@ -2,7 +2,7 @@
 title: "泛型语法基础"
 description: "用泛型消除代码重复：函数、结构体、枚举和方法中的 <T> 写法，以及零开销单态化原理"
 difficulty: beginner
-estimatedTime: 25
+estimatedTime: 20
 keywords: ["泛型", "generics", "类型参数", "单态化", "monomorphization"]
 ---
 

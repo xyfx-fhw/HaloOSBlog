@@ -2,7 +2,7 @@
 title: "IDE 调试器（rust-analyzer）"
 description: "在 VS Code 中配置 Rust 调试环境，掌握断点、单步执行、变量观察等核心调试操作。"
 difficulty: beginner
-estimatedTime: 25
+estimatedTime: 20
 keywords: ["IDE调试", "rust-analyzer", "CodeLLDB", "断点", "单步调试", "VS Code"]
 ---
 

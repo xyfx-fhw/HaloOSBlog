@@ -2,7 +2,7 @@
 title: "dyn Trait：动态分发"
 description: "理解 Rust 动态分发：为什么需要 dyn Trait、fat pointer 原理、对象安全限制，以及与泛型的选择时机"
 difficulty: advanced
-estimatedTime: 25
+estimatedTime: 35
 keywords: ["dyn Trait", "动态分发", "trait object", "fat pointer", "类型擦除", "对象安全"]
 ---
 
@@ -145,6 +145,8 @@ fn main() {
 
 # 原理与限制
 
+了解了 `dyn Trait` 能做什么、以及类型擦除的限制，来看看它在内存里的实现——这有助于理解为什么有运行时开销，也解释了对象安全规则背后的原因。
+
 ## fat pointer：内存中的样子
 
 `dyn Trait` 在内存中是一个 **fat pointer（胖指针）**，由两个指针组成：
@@ -204,6 +206,8 @@ fn main() {
 |------|--------|----------|----------|
 | `&dyn Trait` | 借用 | 调用者决定 | 函数参数，只需临时访问 |
 | `Box<dyn Trait>` | 拥有 | 堆 | 返回值、集合元素、长期持有 |
+
+前面的例子都能正常工作，但不是所有 trait 都能用于 `dyn`——有一条叫**对象安全**的限制需要了解。
 
 ## 对象安全
 

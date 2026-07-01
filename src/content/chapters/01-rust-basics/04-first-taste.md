@@ -2,7 +2,7 @@
 title: "示例：今天是星期几？"
 description: "用一个完整的日期计算程序感受 Rust 编程的样子，看懂大致逻辑，动手修改一个日期，无需先掌握语法。"
 difficulty: beginner
-estimatedTime: 15
+estimatedTime: 10
 keywords: ["初探", "第一个程序", "日期计算", "星期几"]
 ---
 

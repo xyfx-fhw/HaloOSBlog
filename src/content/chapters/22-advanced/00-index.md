@@ -1,8 +1,8 @@
 ---
 title: "高级特性"
 description: "深入 Rust 类型系统的高级机制：关联类型、dyn Trait、高级类型技巧、async 入门、高级模式匹配与格式化。"
-difficulty: advanced
-estimatedTime: 10
+difficulty: beginner
+estimatedTime: 5
 keywords: ["关联类型", "dyn Trait", "高级类型", "async", "模式匹配", "格式化"]
 ---
 

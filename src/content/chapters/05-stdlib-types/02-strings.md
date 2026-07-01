@@ -2,7 +2,7 @@
 title: "String 与 &str——Rust 的两种字符串"
 description: "理解 Rust 为什么有两种字符串类型、掌握它们的区别与适用场景、学会安全地创建、修改和操作字符串数据。"
 difficulty: beginner
-estimatedTime: 45
+estimatedTime: 35
 keywords: ["字符串", "String", "&str", "字符串切片", "所有权", "UTF-8", "字符编码"]
 ---
 

@@ -2,7 +2,7 @@
 title: "变量与可变性"
 description: "学习 Rust 的变量声明（let/mut/const）、作用域、遮蔽与冻结，理解「默认不可变」的设计哲学。"
 difficulty: beginner
-estimatedTime: 30
+estimatedTime: 25
 keywords: ["let", "mut", "const", "shadowing", "遮蔽", "作用域", "变量绑定"]
 ---
 

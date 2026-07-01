@@ -1,8 +1,8 @@
 ---
 title: "性能分析与基准测试"
 description: "学会用 criterion 编写基准测试，用 flamegraph 定位热点，建立量化驱动的性能优化习惯。"
-difficulty: intermediate
-estimatedTime: 25
+difficulty: beginner
+estimatedTime: 20
 keywords: ["性能分析", "基准测试", "criterion", "flamegraph", "perf", "profiling"]
 ---
 

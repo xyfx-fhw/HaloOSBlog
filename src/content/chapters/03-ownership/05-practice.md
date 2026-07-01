@@ -2,7 +2,7 @@
 title: "综合练习"
 description: "综合检验对所有权、移动、拷贝、借用、引用和切片的理解，包含代码判断题与编程练习。"
 difficulty: intermediate
-estimatedTime: 45
+estimatedTime: 30
 keywords: ["所有权", "移动", "借用", "引用", "切片", "Copy", "Clone"]
 ---
 

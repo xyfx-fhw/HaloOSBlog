@@ -2,7 +2,7 @@
 title: "测试"
 description: "掌握 Rust 测试体系：从编写单元测试、控制测试运行方式，到组织集成测试。"
 difficulty: beginner
-estimatedTime: 15
+estimatedTime: 5
 keywords: ["测试", "单元测试", "集成测试", "cargo test", "assert", "should_panic"]
 ---
 

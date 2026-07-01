@@ -2,7 +2,7 @@
 title: "使用Cargo"
 description: "学会用 Cargo 创建和管理 Rust 项目，掌握 cargo build、run、check 等核心命令及 Cargo.toml 配置。"
 difficulty: beginner
-estimatedTime: 25
+estimatedTime: 20
 keywords: ["Cargo", "cargo new", "cargo build", "cargo run", "cargo check", "Cargo.toml"]
 ---
 

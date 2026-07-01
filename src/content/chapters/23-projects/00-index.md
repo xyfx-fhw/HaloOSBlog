@@ -1,8 +1,8 @@
 ---
 title: "综合项目"
 description: "用 Rust 从零构建一个实用的命令行 Todo 工具，综合运用结构体、枚举、迭代器、错误处理、文件 I/O、JSON 序列化与单元测试"
-difficulty: intermediate
-estimatedTime: 15
+difficulty: beginner
+estimatedTime: 5
 keywords: ["综合项目", "CLI", "任务管理器", "todo", "serde", "JSON", "命令行", "搜索"]
 ---
 

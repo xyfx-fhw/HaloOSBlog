@@ -2,7 +2,7 @@
 title: "实现命令"
 description: "把 add、list、done、remove、search 五个命令逐一实现，把前两章写好的数据结构和持久化层连接成一个完整可用的 CLI 工具"
 difficulty: intermediate
-estimatedTime: 50
+estimatedTime: 35
 keywords: ["命令实现", "CRUD", "搜索", "迭代器", "错误处理", "CLI", "结构体方法"]
 ---
 

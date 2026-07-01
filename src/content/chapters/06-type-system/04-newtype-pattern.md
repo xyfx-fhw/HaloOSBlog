@@ -2,7 +2,7 @@
 title: "Newtype 模式"
 description: "用 newtype 为相同底层类型赋予不同语义，让编译器在类型层面阻止混用错误"
 difficulty: beginner
-estimatedTime: 15
+estimatedTime: 10
 keywords: ["newtype", "元组结构体", "类型安全", "类型包装"]
 ---
 

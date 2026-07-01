@@ -2,7 +2,7 @@
 title: "综合练习"
 description: "综合运用 Rust 基础语法，完成 5 道经典算法题，涵盖循环、函数与递归。"
 difficulty: intermediate
-estimatedTime: 60
+estimatedTime: 30
 keywords: ["练习", "算法", "斐波那契", "质数", "递归", "排序", "函数"]
 ---
 

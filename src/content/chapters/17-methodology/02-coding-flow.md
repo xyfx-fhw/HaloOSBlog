@@ -1,8 +1,8 @@
 ---
 title: "编码流程与 TDD"
 description: "掌握 Rust 项目的编码推进顺序（数据结构→Trait→签名→实现）与测试驱动开发的 Red-Green-Refactor 循环。"
-difficulty: intermediate
-estimatedTime: 25
+difficulty: beginner
+estimatedTime: 20
 keywords: ["编码流程", "TDD", "测试驱动开发", "Trait 先行", "Red Green Refactor"]
 ---
 

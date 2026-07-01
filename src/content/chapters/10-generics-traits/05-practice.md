@@ -2,7 +2,7 @@
 title: "综合练习"
 description: "综合运用泛型语法，巩固本章核心概念"
 difficulty: intermediate
-estimatedTime: 15
+estimatedTime: 10
 keywords: ["泛型练习", "综合"]
 ---
 

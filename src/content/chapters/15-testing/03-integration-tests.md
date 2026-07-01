@@ -2,7 +2,7 @@
 title: "集成测试"
 description: "理解单元测试与集成测试的分工，掌握 tests/ 目录结构、共享辅助模块和运行指定集成测试文件的方法。"
 difficulty: beginner
-estimatedTime: 20
+estimatedTime: 15
 keywords: ["集成测试", "tests目录", "单元测试", "#[cfg(test)]", "测试组织", "cargo test"]
 ---
 

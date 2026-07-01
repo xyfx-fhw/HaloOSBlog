@@ -2,7 +2,7 @@
 title: "项目工程化"
 description: "掌握 Cargo 工程化能力：工作空间、条件编译 Features、构建脚本 build.rs 和文档注释，让项目可扩展、可维护。"
 difficulty: beginner
-estimatedTime: 10
+estimatedTime: 5
 keywords: ["workspace", "features", "build.rs", "文档注释", "doctest", "cargo"]
 ---
 

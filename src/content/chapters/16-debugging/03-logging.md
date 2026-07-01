@@ -2,7 +2,7 @@
 title: "日志输出（log + env_logger）"
 description: "掌握用 log 门面库和 env_logger 给 Rust 程序添加可分级、可过滤的结构化日志。"
 difficulty: beginner
-estimatedTime: 25
+estimatedTime: 20
 keywords: ["log", "env_logger", "RUST_LOG", "日志", "tracing", "调试"]
 ---
 

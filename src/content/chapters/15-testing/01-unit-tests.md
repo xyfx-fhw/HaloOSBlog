@@ -2,7 +2,7 @@
 title: "编写单元测试"
 description: "掌握 Rust 测试函数的基本结构、常用断言宏、should_panic 属性，以及用 Result 编写测试。"
 difficulty: beginner
-estimatedTime: 25
+estimatedTime: 20
 keywords: ["单元测试", "#[test]", "assert!", "assert_eq!", "should_panic", "cargo test"]
 ---
 

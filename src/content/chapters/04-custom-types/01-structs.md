@@ -2,7 +2,7 @@
 title: "结构体"
 description: "学习 Rust 结构体的定义、实例化、字段访问与修改，理解结构体如何比元组提供更清晰的代码组织。"
 difficulty: beginner
-estimatedTime: 40
+estimatedTime: 30
 keywords: ["结构体", "struct", "字段", "实例化", "元组结构体", "类单元结构体"]
 ---
 

@@ -1,8 +1,8 @@
 ---
 title: "过程宏"
 description: "深入理解 Rust 过程宏的三种形式：自定义 derive 宏、类属性宏和类函数宏。学会使用 syn 和 quote 构建自己的过程宏。"
-difficulty: advanced
-estimatedTime: 10
+difficulty: beginner
+estimatedTime: 5
 keywords: ["过程宏", "proc-macro", "derive宏", "类属性宏", "类函数宏", "syn", "quote"]
 ---
 

@@ -99,6 +99,8 @@ trait Future {
 - **`async fn`**：将一个函数标记为异步，函数体可以"暂停等待"
 - **`.await`**：在异步函数内等待一个 `Future` 完成，等待期间可以切换去做别的
 
+> 下面示例用到了 `tokio::time::sleep`——tokio 是 Rust 最常用的异步运行时，下一节会详细介绍。这里先把它当作"等待一段时间"的工具，关注 `async`/`.await` 的写法即可。
+
 ```rust
 // async fn 的返回类型变成 impl Future<Output = i32>
 async fn fetch_data() -> i32 {

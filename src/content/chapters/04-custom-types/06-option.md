@@ -2,7 +2,7 @@
 title: "Option<T> 枚举"
 description: "掌握 Option 类型如何表示值的存在或缺失，理解 Rust 为何不用 null，以及如何安全地处理可选值。"
 difficulty: beginner
-estimatedTime: 35
+estimatedTime: 20
 keywords: ["Option", "Some", "None", "null", "可选值"]
 ---
 

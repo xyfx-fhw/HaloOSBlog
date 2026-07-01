@@ -2,7 +2,7 @@
 title: "数据持久化"
 description: "用 serde_json 把任务列表序列化到 JSON 文件，学会处理文件读写中的各种错误情况，让数据在程序重启后依然保留"
 difficulty: intermediate
-estimatedTime: 40
+estimatedTime: 30
 keywords: ["持久化", "serde_json", "文件读写", "JSON", "错误处理", "PathBuf"]
 ---
 

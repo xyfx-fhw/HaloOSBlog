@@ -2,7 +2,7 @@
 title: "Vec<T>——动态数组"
 description: "掌握 Rust 向量的创建、初始化、元素访问与修改，理解向量中的所有权规则，学会安全高效地使用动态集合。"
 difficulty: beginner
-estimatedTime: 50
+estimatedTime: 35
 keywords: ["向量", "Vec", "动态数组", "所有权", "借用", "迭代"]
 ---
 

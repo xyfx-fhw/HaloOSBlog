@@ -2,7 +2,7 @@
 title: "Package 和 Crate"
 description: "理解 Rust 中 Package 和 Crate 的概念，学会它们的关系、Cargo 约定，掌握如何组织单个或多个二进制项目。"
 difficulty: beginner
-estimatedTime: 25
+estimatedTime: 20
 keywords: ["package", "crate", "cargo", "项目组织", "二进制", "库"]
 ---
 

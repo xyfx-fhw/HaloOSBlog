@@ -2,7 +2,7 @@
 title: "输出与测试"
 description: "用 Display trait 规范化输出格式，用彩色终端提升体验，再为核心逻辑编写单元测试，确保 CRUD 操作的正确性"
 difficulty: intermediate
-estimatedTime: 40
+estimatedTime: 30
 keywords: ["Display", "单元测试", "彩色输出", "crossterm", "测试驱动", "格式化"]
 ---
 

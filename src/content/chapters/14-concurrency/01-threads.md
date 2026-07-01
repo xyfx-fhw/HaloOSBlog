@@ -2,7 +2,7 @@
 title: "线程"
 description: "学习如何用 thread::spawn 创建线程、用 join 等待线程完成，以及用 move 闭包安全地跨线程传递数据。"
 difficulty: intermediate
-estimatedTime: 30
+estimatedTime: 25
 keywords: ["线程", "thread::spawn", "JoinHandle", "move 闭包", "并发"]
 ---
 

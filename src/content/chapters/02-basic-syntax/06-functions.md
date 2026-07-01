@@ -2,7 +2,7 @@
 title: "函数"
 description: "学习 Rust 函数的定义、参数声明、语句与表达式的区别，以及如何正确返回值。"
 difficulty: beginner
-estimatedTime: 30
+estimatedTime: 20
 keywords: ["fn", "函数", "参数", "返回值", "语句", "表达式", "snake_case"]
 ---
 

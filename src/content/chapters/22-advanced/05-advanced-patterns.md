@@ -38,7 +38,7 @@ fn main() {
 
 有时候你想**同时检测**一个值在不在某个范围内，**并且保留**这个值做后续使用。普通的范围匹配做不到：
 
-```rust runnable expect-error
+```rust runnable
 fn describe_score(score: u32) -> String {
     match score {
         0..=59 => format!("不及格：{}", score), // ✅ 用到了 score

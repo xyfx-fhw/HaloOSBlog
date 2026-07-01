@@ -2,7 +2,7 @@
 title: "综合练习"
 description: "将一道 for 循环解法改写为闭包 + 迭代器风格，感受两种写法的差异"
 difficulty: intermediate
-estimatedTime: 15
+estimatedTime: 10
 keywords: ["Iterator", "闭包", "filter", "map", "collect", "综合练习"]
 ---
 

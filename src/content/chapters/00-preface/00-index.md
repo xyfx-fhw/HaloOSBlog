@@ -2,7 +2,7 @@
 title: "前言"
 description: "为什么要写这套教程，它和其他 Rust 教程有什么不同，以及你能从中得到什么"
 difficulty: beginner
-estimatedTime: 15
+estimatedTime: 5
 keywords: ["前言", "教程简介", "学习方法"]
 ---
 

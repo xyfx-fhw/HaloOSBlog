@@ -2,7 +2,7 @@
 title: "适配器"
 description: "理解消费适配器与迭代器适配器的本质区别，掌握 sum/collect/fold 与 map/filter/zip 等常用方法"
 difficulty: intermediate
-estimatedTime: 45
+estimatedTime: 40
 keywords: ["消费适配器", "迭代器适配器", "map", "filter", "collect", "fold", "zip", "enumerate", "Iterator"]
 ---
 

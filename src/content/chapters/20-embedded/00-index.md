@@ -1,8 +1,8 @@
 ---
 title: "嵌入式 Rust"
 description: "跨越硬件与软件的边界：学习如何使用 Rust 编写裸机程序、操作寄存器以及构建高效的嵌入式系统。"
-difficulty: advanced
-estimatedTime: 10
+difficulty: beginner
+estimatedTime: 5
 keywords: ["嵌入式", "Bare-metal", "no_std", "微控制器", "物联网"]
 ---
 

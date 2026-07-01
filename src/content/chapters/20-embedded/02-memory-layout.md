@@ -2,7 +2,7 @@
 title: "内存布局与链接脚本"
 description: "深入底层：了解嵌入式系统的内存映射，学习如何编写和配置 memory.x 链接脚本以控制代码和数据的存放位置。"
 difficulty: advanced
-estimatedTime: 25
+estimatedTime: 20
 keywords: ["内存布局", "链接脚本", "memory.x", "FLASH", "RAM", "段"]
 ---
 

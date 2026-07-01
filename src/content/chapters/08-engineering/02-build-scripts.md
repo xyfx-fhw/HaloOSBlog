@@ -2,7 +2,7 @@
 title: "构建脚本 build.rs"
 description: "掌握 Cargo 构建脚本：在编译前运行自定义 Rust 代码，实现代码生成、检测系统环境、链接原生库等高级构建需求。"
 difficulty: intermediate
-estimatedTime: 30
+estimatedTime: 35
 keywords: ["build.rs", "构建脚本", "代码生成", "原生库", "OUT_DIR", "cargo指令"]
 ---
 

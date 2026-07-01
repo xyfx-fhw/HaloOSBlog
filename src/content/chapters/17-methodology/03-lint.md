@@ -2,7 +2,7 @@
 title: "代码质量：Lint、Clippy 与 rustfmt"
 description: "掌握 Rust 的 lint 系统、Clippy 静态分析与 rustfmt 格式化，用工具自动化代码规范。"
 difficulty: beginner
-estimatedTime: 30
+estimatedTime: 25
 keywords: ["lint", "clippy", "rustfmt", "cargo fmt", "#[allow]", "#[deny]", "代码质量"]
 ---
 

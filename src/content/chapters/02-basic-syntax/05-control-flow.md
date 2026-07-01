@@ -2,7 +2,7 @@
 title: "控制流"
 description: "学习 Rust 的 if 表达式与 loop、while、for 三种循环，掌握条件分支和迭代的核心写法。"
 difficulty: beginner
-estimatedTime: 35
+estimatedTime: 30
 keywords: ["if", "else", "loop", "while", "for", "控制流", "循环", "条件分支"]
 ---
 

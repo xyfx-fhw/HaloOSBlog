@@ -2,7 +2,7 @@
 title: "中断与并发安全"
 description: "学习如何在没有操作系统的裸机环境下，利用 Rust 的所有权和 Critical Section 安全地处理硬件中断和数据共享。"
 difficulty: advanced
-estimatedTime: 30
+estimatedTime: 25
 keywords: ["中断", "ISR", "Mutex", "CriticalSection", "并发控制"]
 ---
 

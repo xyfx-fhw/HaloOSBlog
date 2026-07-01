@@ -2,7 +2,7 @@
 title: "为什么需要生命周期"
 description: "理解生命周期的本质——它不是程序员发明的，而是编译器检查悬垂引用的语言表达"
 difficulty: intermediate
-estimatedTime: 20
+estimatedTime: 15
 keywords: ["lifetime", "生命周期", "悬垂引用", "借用检查器", "borrow checker"]
 ---
 

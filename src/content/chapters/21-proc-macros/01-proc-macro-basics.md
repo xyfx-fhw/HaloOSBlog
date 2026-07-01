@@ -32,7 +32,7 @@ fn main() {
 
 ## 过程宏：真正的 Rust 程序
 
-**过程宏（Procedural Macro）**是完全不同的一种宏。
+**过程宏（Procedural Macro）** 是完全不同的一种宏。
 
 它是一段真正运行的 Rust 程序，在**编译时**被调用：
 
@@ -58,6 +58,8 @@ fn main() {
 | 能力 | 只能做文本模板替换 | 可以分析 AST、运行逻辑、生成任意代码 |
 | 错误提示 | 有限 | 可自定义详细错误信息 |
 | 典型用途 | 简单代码生成 | `#[derive(Serialize)]`、`#[test]`、`sqlx::query!` |
+
+表格里多次出现了 `TokenStream` 这个词。要理解过程宏，必须先搞清楚它是什么。
 
 ## TokenStream：一串 token
 

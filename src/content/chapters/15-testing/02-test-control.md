@@ -2,7 +2,7 @@
 title: "控制测试运行"
 description: "学会通过命令行参数控制 cargo test 的行为：并行与串行、查看输出、按名称过滤测试、忽略耗时测试。"
 difficulty: beginner
-estimatedTime: 20
+estimatedTime: 15
 keywords: ["cargo test", "测试过滤", "并行测试", "ignore", "show-output", "test-threads"]
 ---
 

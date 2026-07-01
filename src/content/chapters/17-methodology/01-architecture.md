@@ -1,7 +1,7 @@
 ---
 title: "Rust 工程架构设计"
 description: "学会从需求出发规划 Rust 工程的模块划分、Trait 接口设计与 Cargo Workspace 结构。"
-difficulty: intermediate
+difficulty: beginner
 estimatedTime: 20
 keywords: ["架构设计", "模块划分", "Cargo Workspace", "Trait 先行", "依赖方向"]
 ---

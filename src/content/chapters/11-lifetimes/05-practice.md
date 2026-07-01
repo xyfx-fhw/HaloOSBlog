@@ -2,7 +2,7 @@
 title: "综合练习"
 description: "通过一组难度递进的编程练习，综合运用函数生命周期、结构体生命周期和省略规则"
 difficulty: intermediate
-estimatedTime: 30
+estimatedTime: 20
 keywords: ["lifetime", "生命周期练习", "综合练习", "编程练习"]
 ---
 

@@ -1,8 +1,8 @@
 ---
 title: "并发编程"
 description: "探索 Rust 的无畏并发：从多线程基础到消息传递与共享状态。"
-difficulty: intermediate
-estimatedTime: 60
+difficulty: beginner
+estimatedTime: 5
 keywords: ["并发", "多线程", "Arc", "Mutex", "Channels", "线程安全"]
 ---
 

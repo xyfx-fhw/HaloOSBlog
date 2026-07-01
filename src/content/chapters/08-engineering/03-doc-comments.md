@@ -2,7 +2,7 @@
 title: "文档注释与 doctest"
 description: "掌握 Rust 文档注释的写法：/// 与 //! 的区别、Markdown 格式、标准章节，以及如何用 cargo test 自动验证文档中的代码示例。"
 difficulty: beginner
-estimatedTime: 25
+estimatedTime: 20
 keywords: ["文档注释", "doctest", "///", "//!", "cargo doc", "cargo test"]
 ---
 

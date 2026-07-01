@@ -2,7 +2,7 @@
 title: "自定义数据类型"
 description: "学习 Rust 的自定义类型系统：结构体、枚举、方法、Option、模式匹配和常量，是面向对象编程的基础。"
 difficulty: beginner
-estimatedTime: 10
+estimatedTime: 5
 keywords: ["结构体", "枚举", "Option", "模式匹配", "类型系统"]
 ---
 

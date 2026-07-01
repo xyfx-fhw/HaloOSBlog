@@ -2,7 +2,7 @@
 title: "unsafe 函数与 Trait"
 description: "学习 unsafe fn 的设计规范、# Safety 文档约定，以及 unsafe trait 与 Send/Sync 的实现原理"
 difficulty: advanced
-estimatedTime: 25
+estimatedTime: 30
 keywords: ["unsafe fn", "unsafe trait", "Send", "Sync", "Safety 文档", "extern fn"]
 ---
 

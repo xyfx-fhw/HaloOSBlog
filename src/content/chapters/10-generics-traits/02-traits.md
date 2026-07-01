@@ -2,7 +2,7 @@
 title: "Trait：定义共享行为"
 description: "掌握 Rust trait 核心机制：定义行为契约、为类型实现 trait、默认方法、派生宏、运算符重载和父 trait"
 difficulty: intermediate
-estimatedTime: 30
+estimatedTime: 35
 keywords: ["trait", "impl for", "derive", "运算符重载", "父 trait", "孤儿规则"]
 ---
 

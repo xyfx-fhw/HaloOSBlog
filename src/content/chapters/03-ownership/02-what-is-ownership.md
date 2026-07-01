@@ -2,7 +2,7 @@
 title: "什么是所有权"
 description: "理解 Rust 所有权的三条核心规则、变量作用域与 String 类型，以及所有权与可变性之间的区别。"
 difficulty: intermediate
-estimatedTime: 25
+estimatedTime: 30
 keywords: ["所有权", "作用域", "String", "drop", "可变性", "let mut", "遮蔽"]
 ---
 

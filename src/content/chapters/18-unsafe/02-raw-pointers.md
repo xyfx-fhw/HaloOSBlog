@@ -2,7 +2,7 @@
 title: "裸指针"
 description: "掌握 *const T 与 *mut T 裸指针的创建、解引用规则及常见使用模式"
 difficulty: advanced
-estimatedTime: 25
+estimatedTime: 30
 keywords: ["裸指针", "raw pointer", "*const T", "*mut T", "unsafe", "指针算术"]
 ---
 

@@ -2,7 +2,7 @@
 title: "格式化输出"
 description: "掌握 println! 等五个打印宏、{} 与 {:?} 占位符、调试输出、位置/命名参数及常用格式规范。"
 difficulty: beginner
-estimatedTime: 25
+estimatedTime: 20
 keywords: ["println!", "format!", "格式化", "{:?}", "Debug", "#[derive(Debug)]", "格式规范"]
 ---
 

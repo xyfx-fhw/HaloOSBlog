@@ -34,6 +34,8 @@ proc-macro2 = "1"  # syn 和 quote 内部使用的增强版 TokenStream
 
 # syn 深入
 
+前面的章节里，我们直接上手用了 syn 的 `parse_macro_input!` 和 `DeriveInput`。这一节深入看看 syn 能解析哪些语法结构，以及如何从解析结果中读出需要的信息。
+
 ## syn 能解析什么
 
 `syn` 可以把 `TokenStream` 解析成各种 Rust 语法结构：
@@ -202,6 +204,8 @@ pub fn describe_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
 这样无论是 `struct Point<T>` 还是 `struct Cache<K, V: Hash>` 都能正确生成 impl。
 
 # quote 深入
+
+有了 syn 负责"读"，quote 负责"写"——它提供一套模板语法，让你用接近普通 Rust 代码的写法生成 `TokenStream`，不需要手动拼接 token。
 
 ## quote! 的基本插值
 

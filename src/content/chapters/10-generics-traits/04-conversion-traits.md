@@ -2,7 +2,7 @@
 title: "转换 Trait"
 description: "掌握 Rust 中的转换 trait 系统，学会为自定义类型实现 From/Into/TryFrom/TryInto，理解它们的关系和使用场景。"
 difficulty: intermediate
-estimatedTime: 45
+estimatedTime: 30
 keywords: ["转换", "trait", "From", "Into", "TryFrom", "TryInto", "类型转换"]
 ---
 

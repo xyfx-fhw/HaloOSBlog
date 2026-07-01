@@ -2,7 +2,7 @@
 title: "消息传递"
 description: "学习用 mpsc 通道在线程间传递数据，理解所有权如何让消息传递天然安全。"
 difficulty: intermediate
-estimatedTime: 25
+estimatedTime: 20
 keywords: ["通道", "mpsc", "消息传递", "发送者", "接收者", "并发"]
 ---
 

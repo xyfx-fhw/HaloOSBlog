@@ -2,7 +2,7 @@
 title: "类型铸造（as 关键字）"
 description: "掌握 Rust 中的显式类型转换（as 关键字），理解整数转换规则、浮点转换和指针转换，避免数据溢出等常见陷阱。"
 difficulty: beginner
-estimatedTime: 30
+estimatedTime: 20
 keywords: ["类型转换", "类型铸造", "as", "转换规则", "溢出"]
 ---
 

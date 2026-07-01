@@ -2,7 +2,7 @@
 title: "综合练习"
 description: "综合检验对 Vec<T>、String 和 HashMap 的理解，通过完整的编程项目掌握标准库集合类型，学会在实际场景中灵活应用所有权规则。"
 difficulty: intermediate
-estimatedTime: 90
+estimatedTime: 50
 keywords: ["向量", "字符串", "哈希表", "综合应用", "所有权", "集合"]
 ---
 

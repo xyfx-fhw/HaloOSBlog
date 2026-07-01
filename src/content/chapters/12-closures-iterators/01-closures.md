@@ -2,7 +2,7 @@
 title: "闭包语法与捕获"
 description: "掌握闭包的基本语法、类型推断，以及三种捕获环境变量的方式和 move 关键字"
 difficulty: intermediate
-estimatedTime: 25
+estimatedTime: 20
 keywords: ["closure", "闭包", "捕获", "move", "FnOnce", "捕获环境"]
 ---
 

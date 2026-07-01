@@ -2,7 +2,7 @@
 title: "属性"
 description: "学习 Rust 属性的语法与用途，掌握 dead_code 警告处理和 cfg 条件编译的核心写法。"
 difficulty: intermediate
-estimatedTime: 30
+estimatedTime: 35
 keywords: ["属性", "attribute", "cfg", "dead_code", "allow", "条件编译", "derive"]
 ---
 

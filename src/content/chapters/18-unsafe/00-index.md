@@ -1,8 +1,8 @@
 ---
 title: "不安全 Rust"
 description: "学习 unsafe 块的作用范围、裸指针操作、unsafe 函数与 trait，以及如何在 unsafe 实现上构建安全接口"
-difficulty: advanced
-estimatedTime: 10
+difficulty: beginner
+estimatedTime: 5
 keywords: ["unsafe", "裸指针", "Send", "Sync", "安全抽象", "不变量"]
 ---
 

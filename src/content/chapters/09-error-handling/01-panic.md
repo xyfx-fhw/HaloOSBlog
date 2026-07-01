@@ -2,7 +2,7 @@
 title: "panic! 与不可恢复错误"
 description: "理解 Rust 错误处理的第一层：panic! 的触发时机、如何读懂 panic 输出、如何用 backtrace 定位问题根源。"
 difficulty: beginner
-estimatedTime: 20
+estimatedTime: 15
 keywords: ["panic", "错误处理", "backtrace", "不可恢复错误", "index out of bounds"]
 ---
 

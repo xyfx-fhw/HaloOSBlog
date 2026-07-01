@@ -2,7 +2,7 @@
 title: "Result<T, E>"
 description: "掌握 Rust 可恢复错误处理的核心：Result 枚举、match 处理、unwrap/expect 快捷方法，以及如何向调用者传播错误。"
 difficulty: beginner
-estimatedTime: 30
+estimatedTime: 20
 keywords: ["Result", "Ok", "Err", "unwrap", "expect", "错误处理", "match", "错误传播"]
 ---
 

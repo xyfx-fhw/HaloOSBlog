@@ -2,7 +2,7 @@
 title: "静态混合编译：Rust 与 C 的深度链接"
 description: "学习如何在工程中进行静态混合编译：无论是将 C 源码打包进 Rust，还是将 Rust 编译为静态库供 C 使用。"
 difficulty: intermediate
-estimatedTime: 25
+estimatedTime: 20
 keywords: ["cc-crate", "staticlib", "静态链接", "混合构建", "Cargo.toml"]
 ---
 

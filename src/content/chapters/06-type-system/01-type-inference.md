@@ -2,7 +2,7 @@
 title: "类型推导（类型推断）"
 description: "理解 Rust 强大的类型推导系统，学会在何时显式标注类型、何时让编译器自动推断，掌握推导的限制和最佳实践。"
 difficulty: beginner
-estimatedTime: 25
+estimatedTime: 20
 keywords: ["类型推导", "类型推断", "类型标注", "编译器推理"]
 ---
 

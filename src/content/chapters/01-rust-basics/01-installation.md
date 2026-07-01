@@ -2,7 +2,7 @@
 title: "安装 Rust"
 description: "用 rustup 在 macOS、Linux、Windows 上安装 Rust 工具链，并验证环境是否就绪"
 difficulty: beginner
-estimatedTime: 15
+estimatedTime: 10
 keywords: ["rustup", "安装", "工具链", "cargo", "rustc", "环境配置"]
 ---
 

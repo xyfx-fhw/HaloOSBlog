@@ -2,7 +2,7 @@
 title: "dbg! 宏：快速打印调试"
 description: "学会用 dbg! 宏替代 println! 进行快速调试，理解其返回值特性与使用技巧。"
 difficulty: beginner
-estimatedTime: 20
+estimatedTime: 15
 keywords: ["dbg!", "调试", "打印调试", "宏"]
 ---
 

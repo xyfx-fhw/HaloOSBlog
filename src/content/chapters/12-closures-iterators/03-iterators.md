@@ -2,7 +2,7 @@
 title: "迭代器基础"
 description: "理解 Rust 迭代器的惰性求值机制、Iterator trait 与 next 方法，并学会实现自定义迭代器"
 difficulty: intermediate
-estimatedTime: 45
+estimatedTime: 40
 keywords: ["迭代器", "Iterator", "next", "iter", "into_iter", "惰性求值", "自定义迭代器"]
 ---
 

@@ -2,7 +2,7 @@
 title: "综合练习"
 description: "综合检验对结构体、方法、枚举、Option、match 和 if let 的理解，通过完整的编程项目巩固所学知识。"
 difficulty: intermediate
-estimatedTime: 60
+estimatedTime: 35
 keywords: ["结构体", "枚举", "Option", "match", "综合"]
 ---
 

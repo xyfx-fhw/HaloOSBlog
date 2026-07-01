@@ -2,7 +2,7 @@
 title: "基础语法"
 description: "从注释、变量、数据类型到控制流、函数、宏，系统掌握 Rust 程序的基本构成要素。"
 difficulty: beginner
-estimatedTime: 10
+estimatedTime: 5
 keywords: ["基础语法", "变量", "数据类型", "控制流", "函数", "宏"]
 ---
 

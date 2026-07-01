@@ -2,7 +2,7 @@
 title: "HashMap<K, V>——键值对集合"
 description: "掌握 Rust 中最常用的键值对数据结构 HashMap，学会创建、插入、查询、修改和遍历，理解所有权规则和常见使用模式。"
 difficulty: beginner
-estimatedTime: 50
+estimatedTime: 40
 keywords: ["哈希表", "HashMap", "键值对", "字典", "所有权", "entry API", "迭代"]
 ---
 

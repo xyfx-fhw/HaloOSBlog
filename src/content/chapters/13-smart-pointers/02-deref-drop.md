@@ -2,7 +2,7 @@
 title: "Deref 与 Drop：智能指针的两翼"
 description: "深入理解 Deref 和 Drop 这两个核心 Trait，它们赋予了自定义类型像指针一样工作的能力。"
 difficulty: intermediate
-estimatedTime: 35
+estimatedTime: 30
 keywords: ["Deref", "Drop", "解引用", "解引用强制转换", "RAII", "析构"]
 ---
 

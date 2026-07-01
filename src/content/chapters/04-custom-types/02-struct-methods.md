@@ -2,7 +2,7 @@
 title: "方法与关联函数"
 description: "学习如何在结构体上定义方法和关联函数，理解 impl 块、self 参数和自动引用解引用机制。"
 difficulty: beginner
-estimatedTime: 35
+estimatedTime: 25
 keywords: ["方法", "impl", "self", "关联函数", "接收者"]
 ---
 

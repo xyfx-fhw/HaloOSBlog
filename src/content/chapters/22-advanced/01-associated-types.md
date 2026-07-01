@@ -2,7 +2,7 @@
 title: "关联类型"
 description: "从问题出发，一步步推导出关联类型的设计动机与语法，理解 type Item 的作用和 C::Output 的意义"
 difficulty: advanced
-estimatedTime: 35
+estimatedTime: 45
 keywords: ["关联类型", "associated types", "type 关键字", "Self::Output"]
 ---
 

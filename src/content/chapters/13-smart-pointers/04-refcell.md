@@ -2,7 +2,7 @@
 title: "RefCell<T> 与内部可变性"
 description: "探索内部可变性模式：在持有不可变引用的情况下，安全地修改内部数据。"
 difficulty: intermediate
-estimatedTime: 35
+estimatedTime: 25
 keywords: ["RefCell", "内部可变性", "运行时借用检查", "Rc<RefCell<T>>"]
 ---
 

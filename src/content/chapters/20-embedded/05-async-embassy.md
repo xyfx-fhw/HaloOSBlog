@@ -2,7 +2,7 @@
 title: "异步嵌入式：Embassy 框架"
 description: "让嵌入式开发进入异步时代：学习如何使用 Embassy 构建低功耗、高性能的异步嵌入式应用。"
 difficulty: advanced
-estimatedTime: 25
+estimatedTime: 20
 keywords: ["Embassy", "async/await", "异步嵌入式", "执行器", "低功耗"]
 ---
 
