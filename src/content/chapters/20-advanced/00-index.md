@@ -1,9 +1,9 @@
 ---
 title: "高级特性"
-description: "深入 Rust 类型系统的高级机制：关联类型、dyn Trait、高级类型技巧、async 入门。"
+description: "深入 Rust 类型系统的高级机制：关联类型、dyn Trait、高级类型技巧、async 入门、高级模式匹配与格式化。"
 difficulty: advanced
 estimatedTime: 10
-keywords: ["关联类型", "dyn Trait", "高级类型", "async"]
+keywords: ["关联类型", "dyn Trait", "高级类型", "async", "模式匹配", "格式化"]
 ---
 
 # 高级特性
@@ -20,4 +20,6 @@ keywords: ["关联类型", "dyn Trait", "高级类型", "async"]
 
 5. **async 入门** — 异步编程基础概念
 
-6. **综合练习** — 动手巩固全章内容
+6. **高级模式匹配** — `@` 绑定、守卫、解构嵌套结构等进阶模式
+
+7. **高级格式化** — 自定义 `Display`、格式化参数、调试输出技巧
