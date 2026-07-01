@@ -8,6 +8,7 @@ const CERTIFICATE_ENABLED = true;
 const navTree = await buildNavTree();
 const flatList = await getFlatArticleList(navTree);
 const totalArticles = flatList.length;
+const articleSlugs = flatList.map(a => a.slug);
 ---
 
 <BaseLayout title="学习证书">
@@ -111,7 +112,8 @@ const totalArticles = flatList.length;
   </div>
 </BaseLayout>
 
-<script define:vars={{ totalArticles }} is:inline>
+<script define:vars={{ totalArticles, articleSlugs }} is:inline>
+  /* global articleSlugs, totalArticles */
   // ── 内联进度 localStorage 逻辑 ─────────────────────────
   const STORAGE_KEY = 'rust-tutorial-progress';
 
@@ -127,8 +129,11 @@ const totalArticles = flatList.length;
     if (total === 0) return 0;
     const store = loadStore();
     const articles = store.articles || {};
+    // 只统计当前课程中实际存在的文章，过滤 localStorage 里的历史废弃条目
+    const validSlugs = new Set(articleSlugs);
     let weight = 0;
-    for (const ap of Object.values(articles)) {
+    for (const [slug, ap] of Object.entries(articles)) {
+      if (!validSlugs.has(slug)) continue;
       const vals = Object.values(ap.sections || {});
       if (vals.length > 0) {
         weight += vals.filter(Boolean).length / vals.length;
@@ -136,7 +141,7 @@ const totalArticles = flatList.length;
         weight += 1;
       }
     }
-    return Math.round(weight / total * 100);
+    return Math.min(100, Math.round(weight / total * 100));
   }
 
   function getCert() {

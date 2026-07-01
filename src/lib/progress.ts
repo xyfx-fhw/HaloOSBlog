@@ -230,13 +230,15 @@ export function resetQuiz(slug: string): void {
 /**
  * 返回 0-100 的整体进度百分比，精确到小节粒度。
  * 每篇文章权重相等（1），有 H2 的文章按已读小节占比折算，无 H2 的文章完成即得满分。
+ * validSlugs：当前课程实际存在的文章 slug 集合，传入后自动过滤 localStorage 里的废弃条目。
  */
-export function getOverallProgress(totalArticles: number): number {
+export function getOverallProgress(totalArticles: number, validSlugs?: Set<string>): number {
   if (totalArticles === 0) return 0;
   const store = load();
   let completedWeight = 0;
 
-  for (const ap of Object.values(store.articles)) {
+  for (const [slug, ap] of Object.entries(store.articles)) {
+    if (validSlugs && !validSlugs.has(slug)) continue;
     const sectionVals = Object.values(ap.sections);
     if (sectionVals.length > 0) {
       completedWeight += sectionVals.filter(Boolean).length / sectionVals.length;

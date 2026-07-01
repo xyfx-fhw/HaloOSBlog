@@ -2,9 +2,10 @@
 interface Props {
   firstChapterHref?: string;
   totalArticles?: number;
+  articleSlugs?: string[];
 }
 
-const { firstChapterHref = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/chapters`, totalArticles = 0 } = Astro.props;
+const { firstChapterHref = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/chapters`, totalArticles = 0, articleSlugs = [] } = Astro.props;
 const currentPath = Astro.url.pathname;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
@@ -30,7 +31,9 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
         教程
       </a>
     </nav>
-    <a href={`${base}/certificate`} class="nav-progress" id="nav-progress" data-total={totalArticles}>
+    <a href={`${base}/certificate`} class="nav-progress" id="nav-progress"
+      data-total={totalArticles}
+      data-slugs={JSON.stringify(articleSlugs)}>
       <span id="nav-progress-text">总进度：0%</span>
       <span class="nav-progress-tip">100% 后可获得证书</span>
     </a>
@@ -53,10 +56,11 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     if (!el) return;
     const total = parseInt(el.dataset.total ?? '0', 10);
     if (total === 0) return;
+    const validSlugs = new Set<string>(JSON.parse(el.dataset.slugs ?? '[]'));
 
     function update() {
       if (!el) return;
-      const pct = getOverallProgress(total);
+      const pct = getOverallProgress(total, validSlugs);
       const textEl = document.getElementById('nav-progress-text');
       const tipEl = el.querySelector('.nav-progress-tip') as HTMLElement | null;
       if (pct >= 100) {
