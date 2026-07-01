@@ -242,37 +242,37 @@ fn clone_it(x: &dyn Clone) {
 
 ```quiz single
 Q: 什么时候应该用 Box<dyn Trait> 而不是泛型 <T: Trait>？
-- 想要更好的运行时性能
 + 需要把不同的具体类型放入同一个集合，或根据条件返回不同类型
 - 泛型语法太复杂，想写得简洁一些
 - 总是应该优先使用 Box<dyn Trait>
+- 想要更好的运行时性能
 E: 泛型在编译期确定类型，速度更快但每个调用点只能对应一种具体类型。Box<dyn Trait> 在运行时确定，有额外开销，但能处理运行时才知道具体类型的场景。
 ```
 
 ```quiz single
 Q: Box<dyn Animal> 中，"类型擦除"是指什么？
-- Animal trait 被编译器删除了
 + 存入后只能通过 Animal 定义的方法访问，具体类型（Dog/Cat）的其他方法不可见
 - Box 会把对象复制一份存在栈上
 - 只有实现了 Clone 的类型才能被擦除
+- Animal trait 被编译器删除了
 E: 类型擦除指的是把 Dog 装入 Box<dyn Animal> 后，使用方只能通过 Animal 的方法访问它，Dog 独有的方法对外不可见——好像具体类型"消失"了一样。
 ```
 
 ```quiz single
 Q: fat pointer（胖指针）由哪两部分组成？
-- 指向数据的指针 + 数据长度
-+ 指向数据的指针 + 指向 vtable 的指针
-- 指向 vtable 的指针 + 引用计数
 - 两个分别指向不同数据的指针
+- 指向数据的指针 + 数据长度
+- 指向 vtable 的指针 + 引用计数
++ 指向数据的指针 + 指向 vtable 的指针
 E: dyn Trait 的 fat pointer = 数据指针（指向堆上的具体值）+ vtable 指针（指向该类型对该 trait 的方法表）。通过 vtable，运行时才能找到正确的方法实现。
 ```
 
 ```quiz single
 Q: 为什么 Clone trait 不满足对象安全，不能用作 dyn Clone？
-- Clone 是标准库的 trait，不允许用作 trait object
-+ Clone 的 clone() 方法返回 Self，运行时无法确定 Self 的具体大小
 - Clone 没有提供默认实现
 - dyn 只支持最多两个方法的 trait
+- Clone 是标准库的 trait，不允许用作 trait object
++ Clone 的 clone() 方法返回 Self，运行时无法确定 Self 的具体大小
 E: 对象安全要求方法不能返回 Self，因为运行时通过 dyn 使用时已经擦除了具体类型，编译器无法知道 Self 是多大，也无法生成对应的代码。Clone::clone 的签名 fn clone(&self) -> Self 违反了这条规则。
 ```
 

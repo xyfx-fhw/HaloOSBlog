@@ -105,45 +105,45 @@ include = ["CalculationResult", "calculate_sqrt"]
 
 ```quiz single
 Q: cbindgen 与 bindgen 的区别是什么？
-- 没有区别，只是名字不同。
-- bindgen 用于导出 Rust 给 C，cbindgen 则相反。
 + bindgen 是从 C 头文件产生 Rust 声明；cbindgen 是从 Rust 代码产生 C 头文件。
 - cbindgen 专门用于嵌入式系统，bindgen 用于桌面端。
+- bindgen 用于导出 Rust 给 C，cbindgen 则相反。
+- 没有区别，只是名字不同。
 E: cbindgen 的 "c" 代表 "C Output"，它是为 C 代码准备接口的。
 ```
 
 ```quiz single
 Q: 在导出给 C 的结构体上，为什么必须标注 `#[repr(C)]`？
-- 为了让代码运行得更快。
-- 为了开启所有权检查。
 + 为了确保结构体成员在内存中的排版顺序与 C 编译器一致。
 - 为了让结构体变成私有的。
+- 为了开启所有权检查。
+- 为了让代码运行得更快。
 E: Rust 默认的内存布局由于其灵活性，可能与 C 不同（如字段重排以压缩空间）。通过 `#[repr(C)]` 强制使用 C 兼容布局。
 ```
 
 ```quiz multi
 Q: 要让 Rust 函数能被 C 正确链接，哪些条件是必须的？
-+ 标注 `#[no_mangle]`。
-+ 标注 `extern "C"` 或 `pub extern "C"`。
 - 函数必须返回 `Result`。
++ 标注 `extern "C"` 或 `pub extern "C"`。
++ 标注 `#[no_mangle]`。
 - 函数必须使用泛型。
 E: `#[no_mangle]` 保证符号名不变，`extern "C"` 保证调用约定匹配。
 ```
 
 ```quiz single
 Q: 在 `Cargo.toml` 中，`crate-type = ["cdylib"]` 的作用是？
-- 把程序编译成浏览器可运行的 WASM。
-+ 告诉 Cargo 编译一个符合标准 C 接口的动态库。
-- 允许 Cargo 使用外部依赖。
 - 自动生成头文件。
+- 允许 Cargo 使用外部依赖。
++ 告诉 Cargo 编译一个符合标准 C 接口的动态库。
+- 把程序编译成浏览器可运行的 WASM。
 E: `cdylib` 是专为 FFI 场景设计的库类型，它会剥离 Rust 特有的元数据，只保留标准的链接符号。
 ```
 
 ```quiz single
 Q: 关于内存管理，下列哪种做法在 FFI 中是安全的？
 - 在 Rust 中 Box 一个对象返回，然后在 C 中用 `free()`。
-+ 在 Rust 中提供一个专门的 `drop_obj(ptr)` 函数供 C 代码在结束时调用。
 - 直接在 C 中修改 Rust 传来的 `&str` 的内容。
++ 在 Rust 中提供一个专门的 `drop_obj(ptr)` 函数供 C 代码在结束时调用。
 - 在 C 中申请内存，并在 Rust 中用 `Drop` 释放。
 E: 跨语言调用的原则是「谁申请，谁释放」。Rust 分配的内存必须回到 Rust 代码中由 Rust 的释放机制（如 Drop）处理。
 ```

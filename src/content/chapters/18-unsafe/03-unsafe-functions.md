@@ -207,8 +207,8 @@ fn main() {
 Q: 为什么外部函数（extern "C" 声明的函数）调用需要 unsafe 块？
 - 因为 C 函数运行速度快，需要特殊标注
 - 因为 extern "C" 语法本身就是 unsafe 的
-+ 因为 Rust 编译器无法验证 C 代码的内存安全性，需要调用者承担责任
 - 因为外部函数可能抛出异常
++ 因为 Rust 编译器无法验证 C 代码的内存安全性，需要调用者承担责任
 E: Rust 的安全保证依赖于编译器对代码的完整分析。对于 C 函数，编译器看不到实现，无法验证它是否会产生悬垂指针、缓冲区溢出等问题，所以保守地要求所有调用都在 unsafe 块内，由程序员承诺"我知道这个 C 函数在这里调用是安全的"。
 ```
 
@@ -221,8 +221,8 @@ unsafe fn get_first(slice: &[i32]) -> i32 {
 ```quiz single
 Q: 上面的 unsafe fn 有什么问题？
 - 没有问题，代码完全正确
-+ slice 为空时 slice.as_ptr() 仍然"有效"但解引用越界，应该检查长度或在 # Safety 注释中说明调用者必须保证 slice 非空
 - unsafe fn 内部不需要额外的 unsafe 块，所以 *slice.as_ptr() 会报错
++ slice 为空时 slice.as_ptr() 仍然"有效"但解引用越界，应该检查长度或在 # Safety 注释中说明调用者必须保证 slice 非空
 - as_ptr() 不能用于切片
 E: 函数本身能编译，但语义上有问题：当 slice 为空时，as_ptr() 返回一个"有效的但不可解引用"的指针（Rust 规范允许这样的指针存在），解引用它是未定义行为。正确做法是要么加 assert!(!slice.is_empty())，要么在 # Safety 文档里明确要求调用者保证非空。
 ```
@@ -230,17 +230,17 @@ E: 函数本身能编译，但语义上有问题：当 slice 为空时，as_ptr(
 ```quiz multi
 Q: 关于 unsafe trait，以下哪些说法是正确的？
 + unsafe trait 附带了一条编译器无法验证的安全承诺，实现时必须写 unsafe impl
-+ 写下 unsafe impl 后，如果承诺是错的，程序照样会出错——编译器只是不再阻拦
 + unsafe trait 可以没有任何方法，只是一个"标记承诺"
++ 写下 unsafe impl 后，如果承诺是错的，程序照样会出错——编译器只是不再阻拦
 - 实现了 unsafe trait 之后，这个类型的所有操作都自动变得安全
 E: unsafe trait 的核心是"承诺"而不是"魔法"。unsafe impl 只是让编译器信任你说的话，真正的安全仍然由你的代码保证。unsafe trait 也不需要有方法，像 Zeroable 这样的标记 trait 只是在说"我满足某个条件"，没有任何方法体。
 ```
 
 ```quiz single
 Q: 在 unsafe fn 内部（2024 edition），执行 unsafe 操作需要额外的 unsafe {} 块吗？
-+ 需要，2024 edition 要求即使在 unsafe fn 内，危险操作也必须显式标出
 - 不需要，unsafe fn 内所有操作都默认是 unsafe 的
 - 不需要，unsafe fn 已经声明了整个函数不安全，内部无需再标
++ 需要，2024 edition 要求即使在 unsafe fn 内，危险操作也必须显式标出
 - 只有解引用裸指针需要，其他操作不需要
 E: 2024 edition 改变了这个行为。2021 及更早版本中，unsafe fn 的函数体是隐式 unsafe 块，内部不需要再套 unsafe {}。2024 edition 要求显式标出每个危险操作，目的是让代码审查者能一眼定位真正的危险点，而不是整个函数体"默认危险"。
 ```

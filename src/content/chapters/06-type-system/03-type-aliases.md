@@ -211,37 +211,37 @@ fn main() {
 
 ```quiz single
 Q: 下列代码会编译通过吗？
-+ 会，因为别名不提供类型安全
-- 不会，UserId 和 ProductId 是不同类型
 - 不会，u32 不支持这样的操作
+- 不会，UserId 和 ProductId 是不同类型
++ 会，因为别名不提供类型安全
 - 需要显式转换
 E: 类型别名只是现有类型的新名字，不创建新类型。所以 UserId 和 ProductId 本质上都是 u32，完全兼容。
 ```
 
 ```quiz single
 Q: 类型别名的正确命名规范是什么？
-- 使用 snake_case（蛇形命名法）
-+ 使用 CamelCase（驼峰命名法）
-- 使用 SCREAMING_SNAKE_CASE
 - 没有特定规范
+- 使用 snake_case（蛇形命名法）
+- 使用 SCREAMING_SNAKE_CASE
++ 使用 CamelCase（驼峰命名法）
 E: Rust 的类型别名应遵循 CamelCase 命名规范，与结构体、枚举等类型名一致。不按规范会产生编译警告。
 ```
 
 ```quiz single
 Q: 下列哪个是定义类型别名的正确方式？
-- `type UserId<u32>;`
 - `alias UserId = u32;`
 + `type UserId = u32;`
+- `type UserId<u32>;`
 - `new type UserId = u32;`
 E: Rust 使用 `type 别名名 = 具体类型;` 语法定义类型别名。
 ```
 
 ```quiz multi
 Q: 下列关于类型别名的说法，正确的是？（多选）
+- 别名可以有自己的方法实现
 + 类型别名提高代码可读性，特别是对复杂泛型类型
 + 别名可以是泛型的，例如 `type Pair<T> = (T, T);`
 - 类型别名创建全新的类型，提供类型安全
-- 别名可以有自己的方法实现
 E: 别名不创建新类型，只是现有类型的新名字。如需类型安全，应使用 newtype 模式（结构体）。别名本身可以是泛型，但不能 impl 方法（那需要结构体）。
 ```
 

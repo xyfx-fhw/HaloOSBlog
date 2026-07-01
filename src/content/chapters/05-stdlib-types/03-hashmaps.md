@@ -494,37 +494,37 @@ fn main() {
 
 ```quiz single
 Q: 下列哪个选项正确描述了 HashMap 与 Vec 的主要区别？
-- HashMap 和 Vec 都可以用索引访问，没有本质区别
 + HashMap 通过键快速查找，Vec 通过位置查找，HashMap 查找更高效
 - HashMap 只能存储整数，Vec 可以存储任何类型
 - Vec 的内存开销更小，应该总是优先使用 Vec
+- HashMap 和 Vec 都可以用索引访问，没有本质区别
 E: HashMap 使用哈希函数将键映射到值，查找时间复杂度 O(1)；Vec 需要遍历，时间复杂度 O(n)。选择 HashMap 还是 Vec 取决于你是按位置还是按内容查找。
 ```
 
 ```quiz single
 Q: 下列关于 HashMap 中键的说法，正确的是？
-- 键可以是任何类型，包括浮点数和自定义结构体
-+ 键必须实现 Eq 和 Hash trait，大多数内置类型满足这个条件
 - 键可以重复，相同的键可以存储多个值
 - 键必须是字符串类型
++ 键必须实现 Eq 和 Hash trait，大多数内置类型满足这个条件
+- 键可以是任何类型，包括浮点数和自定义结构体
 E: HashMap 要求键能进行相等比较（Eq）和哈希运算（Hash），才能正确地进行查找和存储。String、&str、i32 等内置类型都满足。
 ```
 
 ```quiz multi
 Q: 下列关于 HashMap 的所有权规则，正确的是？（多选）
-+ HashMap 拥有其键和值的所有权
 + 如果键是 Copy 类型（如 i32），插入后原变量仍可用
-+ 如果键是 String，插入后原变量的所有权被转移
++ HashMap 拥有其键和值的所有权
 - HashMap 通过借用存储数据，不会转移所有权
++ 如果键是 String，插入后原变量的所有权被转移
 E: HashMap 获得键和值的完整所有权。Copy 类型被复制，非 Copy 类型（如 String）的所有权被转移。
 ```
 
 ```quiz single
 Q: 如果想在键不存在时才插入值，应该用哪个方法？
-- map.insert("key", value)
-+ map.entry("key").or_insert(value)
 - map.get("key").or_insert(value)
 - map["key"] = value
+- map.insert("key", value)
++ map.entry("key").or_insert(value)
 E: entry().or_insert() 是优化的方法，只在键不存在时才插入。直接 insert() 会覆盖已存在的值。
 ```
 
@@ -537,19 +537,19 @@ map.entry("count").and_modify(|e| *e += 1).or_insert(0);
 
 ```quiz single
 Q: 下列代码运行后，map 中会有什么值？
-- 0
-+ 2
 - 1
++ 2
 - 编译错误
+- 0
 E: entry("count").and_modify() 会修改存在的值。两次执行都会将值加 1，最终结果是 2。
 ```
 
 ```quiz multi
 Q: 关于遍历 HashMap，下列说法正确的是？（多选）
-+ for (key, value) in &map 可以遍历所有键值对
-+ for key in map.keys() 可以只遍历键
-+ HashMap 遍历顺序不固定，无法保证顺序
 - 在遍历 HashMap 的循环中可以安全地删除或添加键值对
++ for key in map.keys() 可以只遍历键
++ for (key, value) in &map 可以遍历所有键值对
++ HashMap 遍历顺序不固定，无法保证顺序
 E: 不可变借用遍历不会转移所有权。在遍历时修改 HashMap 的大小（添加/删除）会导致迭代器失效，就像向量一样。HashMap 本身不保证遍历顺序，每次可能不同。
 ```
 

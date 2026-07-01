@@ -377,13 +377,13 @@ fn main() {
 
 ```quiz multi
 Q: 下列哪些方法是迭代器适配器（惰性，返回新迭代器）？
-+ map()
-+ filter()
 + zip()
-+ enumerate()
 + take()
-- sum()
 - collect()
++ enumerate()
++ map()
+- sum()
++ filter()
 - find()
 E: sum()、collect()、find() 是消费适配器——调用后迭代器被消耗，返回最终结果。map、filter、zip、enumerate、take 都是迭代器适配器——返回新迭代器，不立即执行，必须被消费才会运行。
 ```
@@ -395,10 +395,10 @@ v.iter().map(|x| x * 2);
 
 ```quiz single
 Q: 上面代码会产生什么结果？
-- [2, 4, 6]
-- 打印 2 4 6
-+ 什么都不做，编译器会发出警告
 - 编译错误
+- [2, 4, 6]
++ 什么都不做，编译器会发出警告
+- 打印 2 4 6
 E: 迭代器适配器是惰性的。没有消费适配器（collect、sum 等）驱动，整条链不会运行。Rust 编译器对此发出 "unused Map" 警告，但不报错。
 ```
 
@@ -406,10 +406,10 @@ E: 迭代器适配器是惰性的。没有消费适配器（collect、sum 等）
 
 ```quiz single
 Q: 调用 sum() 之后，原来的迭代器还能使用吗？
-+ 不能，sum() 获取了迭代器的所有权并消耗它
-- 能，sum() 只是读取了值，不影响迭代器
-- 能，但迭代器会被重置到开头
 - 取决于迭代器的类型
+- 能，sum() 只是读取了值，不影响迭代器
++ 不能，sum() 获取了迭代器的所有权并消耗它
+- 能，但迭代器会被重置到开头
 E: 消费适配器获取迭代器的所有权并消耗掉它。调用 sum() 之后，迭代器变量不再有效，再次使用会报编译错误 "use of moved value"。
 ```
 
@@ -421,17 +421,17 @@ let result = v.iter().find(|&&x| x % 2 == 0);
 ```quiz single
 Q: result 的值是什么？
 - None
-+ Some(&6)
 - Some(6)
 - Some(&5)
++ Some(&6)
 E: find() 返回第一个满足条件的元素的引用。v.iter() 产生 &i32，所以 find 返回 Option<&&i32>，即 Some(&6)（指向 v 中的 6）。
 ```
 
 ```quiz single
 Q: fold(0, |acc, x| acc + x) 等价于哪个消费适配器？
+- product()
 + sum()
 - count()
-- product()
 - max()
 E: fold 以 0 为初始值，每步将累加器加上当前元素，这正是求和的定义，等价于 sum()。fold(1, |acc, x| acc * x) 等价于 product()。
 ```
@@ -442,8 +442,8 @@ E: fold 以 0 为初始值，每步将累加器加上当前元素，这正是求
 Q: filter 的闭包应该返回什么类型？
 - Option<T>
 - T
-+ bool
 - Result<T, E>
++ bool
 E: filter 的闭包返回 bool：true 保留，false 丢弃。filter_map 的闭包返回 Option<T>，可以同时做筛选和变换。
 ```
 
@@ -457,8 +457,8 @@ let result: Vec<_> = a.iter().zip(b.iter()).collect();
 Q: result 的长度是多少？
 - 3
 + 2
-- 6
 - 5
+- 6
 E: zip 以两个迭代器中较短的为准。a 有 3 个元素，b 有 2 个，zip 产生 2 对后停止，a 的第 3 个元素被丢弃。
 ```
 

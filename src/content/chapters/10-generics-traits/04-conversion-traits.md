@@ -239,19 +239,19 @@ fn main() {
 
 ```quiz single
 Q: 下列代码会编译通过吗？
-+ 会，into() 会自动从 From 实现推导
-- 不会，需要显式实现 Into trait
 - 不会，(u8, u8, u8) 无法转为 Color
 - 需要显式标注类型
++ 会，into() 会自动从 From 实现推导
+- 不会，需要显式实现 Into trait
 E: From 自动提供 Into。所以 (255, 0, 0).into() 能找到 From<(u8, u8, u8)> for Color 的实现。
 ```
 
 ```quiz single
 Q: 下列关于 From 和 Into 的说法，正确的是？
-- 两个 trait 完全独立，没有关系
-+ 实现 From<T> 会自动获得 Into
 - 必须同时实现 From 和 Into
 - Into 是主要 trait，From 是衍生品
++ 实现 From<T> 会自动获得 Into
+- 两个 trait 完全独立，没有关系
 E: 如果为类型 A 实现了 From<B>，编译器会自动为 B 实现 Into<A>。只需实现 From，不用手动实现 Into。
 ```
 
@@ -278,10 +278,10 @@ impl TryFrom<i32> for EvenNumber {
 
 ```quiz single
 Q: TryFrom 和 From 的主要区别是什么？
-- TryFrom 更快
-+ TryFrom 返回 Result，用于可能失败的转换
-- TryFrom 只用于内置类型
 - 没有本质区别
++ TryFrom 返回 Result，用于可能失败的转换
+- TryFrom 更快
+- TryFrom 只用于内置类型
 E: From 用于总是成功的转换，TryFrom 返回 Result<T, E> 用于可能失败的转换。
 ```
 

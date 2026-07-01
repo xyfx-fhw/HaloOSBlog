@@ -291,18 +291,18 @@ fn main() {
 Q: unsafe 块会关闭 Rust 的借用检查器吗？
 - 会，unsafe 块内可以同时拥有多个可变引用
 + 不会，借用检查器在 unsafe 块内照常工作，只是额外解锁了 5 种操作
-- 会，但只关闭生命周期检查
 - 取决于编译器优化级别
+- 会，但只关闭生命周期检查
 E: unsafe 块不禁用任何安全检查。借用规则、生命周期、类型检查全部保持有效。unsafe 唯一做的是允许执行五种平时被禁止的操作：解引用裸指针、调用 unsafe 函数、访问可变静态变量、实现 unsafe trait、访问 union 字段。
 ```
 
 ```quiz multi
 Q: 以下哪些操作必须在 unsafe 块或 unsafe 函数中才能执行？
-+ 解引用 *const i32 类型的裸指针
-+ 调用标注了 unsafe fn 的函数
-+ 修改 static mut 全局变量
 - 创建 *const i32 类型的裸指针（不解引用）
++ 调用标注了 unsafe fn 的函数
 + 调用通过 extern "C" 声明的 C 函数
++ 修改 static mut 全局变量
++ 解引用 *const i32 类型的裸指针
 E: 创建裸指针本身是安全的（只是记录了一个地址），只有解引用才需要 unsafe。通过 extern "C" 声明的 C 函数调用需要 unsafe，因为 Rust 编译器看不到 C 的实现，无法验证调用是否安全，责任由你承担。
 ```
 
@@ -316,28 +316,28 @@ fn add(n: i32) {
 
 ```quiz single
 Q: 上面的代码能编译通过吗？
-+ 不能，修改 static mut 变量必须在 unsafe 块内
 - 能，这是普通的全局变量修改
 - 能，但运行时会 panic
++ 不能，修改 static mut 变量必须在 unsafe 块内
 - 不能，static 变量不能被修改
 E: static mut 是可变的全局静态变量，读写它都需要 unsafe 块，因为在多线程环境下存在数据竞争的潜在风险。正确写法是在 add 函数体里加 unsafe { TOTAL += n; }，或者改用线程安全的 Mutex<i32>。
 ```
 
 ```quiz single
 Q: 关于 unsafe fn，以下说法哪个正确？
+- 只有涉及裸指针的函数才需要标注 unsafe fn
+- unsafe fn 等价于 C 语言中的函数
 - unsafe fn 内部可以不遵守借用规则
 + unsafe fn 要求调用者满足函数注释中说明的安全前提条件
-- unsafe fn 等价于 C 语言中的函数
-- 只有涉及裸指针的函数才需要标注 unsafe fn
 E: unsafe fn 是一种契约：函数作者在文档（通常是 # Safety 注释）中说明调用者必须保证的条件，编译器无法自动验证这些条件。标注 unsafe fn 不只用于裸指针，任何具有无法静态验证的安全前提的函数都应该标注。
 ```
 
 ```quiz single
 Q: 以下哪个操作不需要 unsafe？
-- 解引用 *mut u8 类型的裸指针
-- 调用 extern "C" 声明的 C 函数
 + 把引用转换为裸指针（不解引用）
 - 实现 Send trait（当编译器未自动实现时）
+- 解引用 *mut u8 类型的裸指针
+- 调用 extern "C" 声明的 C 函数
 E: 把引用转换为裸指针（如 &x as *const i32）是安全操作——只是记录了一个内存地址，没有做任何危险的内存访问。真正危险的是解引用，那才需要 unsafe。
 ```
 

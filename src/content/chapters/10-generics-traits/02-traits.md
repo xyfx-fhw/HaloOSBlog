@@ -467,10 +467,10 @@ fn main() {
 
 ```quiz single
 Q: 以下关于 trait 的说法，哪个是错误的？
-- trait 用来定义一组方法签名，实现方必须提供具体实现
 - 同一个 trait 可以被多种不同的类型实现
-+ 一个 trait 只能被定义在当前 crate 中的类型实现
+- trait 用来定义一组方法签名，实现方必须提供具体实现
 - trait 中的方法可以有默认实现
++ 一个 trait 只能被定义在当前 crate 中的类型实现
 E: 孤儿规则要求 trait 或类型中至少有一个在当前 crate 中定义，但这不等于"只能被本 crate 类型实现"。外部 crate 也可以为其自己的类型实现你的 trait。
 ```
 
@@ -494,18 +494,18 @@ impl Greet for Bob {
 ```quiz single
 Q: 上面的代码，调用 Bob{}.greeting() 会输出什么？
 + "你好！"（使用默认实现）
+- 编译错误：greeting 没有返回 name
 - 编译错误：Bob 没有实现 greeting
 - 空字符串
-- 编译错误：greeting 没有返回 name
 E: Bob 只实现了必须的 name 方法，greeting 有默认实现可以直接继承，所以输出 "你好！"。
 ```
 
 ```quiz multi
 Q: 关于孤儿规则，以下哪些操作是允许的？
++ 在自己的 crate 中为自定义的 MyStruct 实现 std::fmt::Display
 - 在自己的 crate 中为 Vec<T> 实现 std::fmt::Display
 + 在自己的 crate 中为 Vec<T> 实现自己定义的 MyTrait
 - 在自己的 crate 中为 i32 实现 std::ops::Add
-+ 在自己的 crate 中为自定义的 MyStruct 实现 std::fmt::Display
 E: MyTrait 是本地定义的 trait，可以为任何类型实现它（包括 Vec<T>）。MyStruct 是本地类型，可以为它实现任何外部 trait（包括 Display）。而 Vec<T> 和 Display 都来自标准库，两者都不是本地定义的，不能在一起实现。
 ```
 
@@ -518,28 +518,28 @@ struct Color(u8, u8, u8);
 
 ```quiz multi
 Q: 上面的 Color 类型，哪些操作是合法的？
-+ let c = Color(255, 0, 0); println!("{:?}", c);
-+ let c1 = Color(0, 255, 0); let c2 = c1.clone();
 + let a = Color(1, 2, 3); let b = Color(1, 2, 3); assert!(a == b);
++ let c1 = Color(0, 255, 0); let c2 = c1.clone();
 - let c = Color(0, 0, 255); println!("{}", c);
++ let c = Color(255, 0, 0); println!("{:?}", c);
 E: 派生了 Debug 可用 {:?}，派生了 Clone 可 .clone()，派生了 PartialEq 可用 ==。但没有实现 Display，所以 {} 格式化会编译失败。
 ```
 
 ```quiz single
 Q: trait Student: Person 这行代码的含义是什么？
-- Student 继承了 Person 的所有方法实现
 + 实现 Student 的类型也必须实现 Person
 - Student 是 Person 的子类型，可以用在需要 Person 的地方
+- Student 继承了 Person 的所有方法实现
 - Person 是可选的，不实现也能通过编译
 E: Rust 没有继承，trait 父子关系表示的是约束：想实现 Student，必须先满足 Person 的要求。这是对实现者的前提条件，不是方法实现的继承。
 ```
 
 ```quiz single
 Q: 调用同名方法出现歧义时，正确的消除方式是？
-- 重命名其中一个 trait 的方法
-- 用 self.method_name::<TraitName>() 标注
 + 使用完全限定语法：<Type as TraitName>::method_name(&value)
 - 删除其中一个 trait 的实现
+- 重命名其中一个 trait 的方法
+- 用 self.method_name::<TraitName>() 标注
 E: 完全限定语法 <Type as TraitName>::method_name(&value) 明确指定了"以哪个 trait 的身份"调用方法，从而消除歧义。
 ```
 

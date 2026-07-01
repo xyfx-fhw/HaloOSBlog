@@ -146,45 +146,45 @@ fn main() {
 
 ```quiz single
 Q: mpsc 是什么意思？
-- Multiple Process, Single Channel
-+ Multiple Producer, Single Consumer
-- Message Passing Standard Channel
 - Multi-thread Parallel Safety Channel
+- Multiple Process, Single Channel
+- Message Passing Standard Channel
++ Multiple Producer, Single Consumer
 E: mpsc = Multiple Producer, Single Consumer，即多个发送端、单个接收端。这是 Rust 标准库通道的设计。
 ```
 
 ```quiz single
 Q: 以下关于 send(val) 的说法，哪个正确？
-+ send 会消耗 val 的所有权，之后 val 不可再用
-- send 会复制 val，原变量仍然有效
-- send 只发送引用，val 仍归发送方所有
 - send 返回 val 的一个克隆
++ send 会消耗 val 的所有权，之后 val 不可再用
+- send 只发送引用，val 仍归发送方所有
+- send 会复制 val，原变量仍然有效
 E: send 的参数是 T（不是引用），调用后所有权转移给通道，这防止了发送方在发送后继续修改数据，消除了数据竞争的可能。
 ```
 
 ```quiz single
 Q: recv() 和 try_recv() 的主要区别是什么？
-- recv 是异步的，try_recv 是同步的
 + recv 会阻塞等待消息，try_recv 立即返回（无消息则返回 Err）
-- recv 只能接收一条消息，try_recv 可以接收多条
 - 两者完全相同，只是名字不同
+- recv 只能接收一条消息，try_recv 可以接收多条
+- recv 是异步的，try_recv 是同步的
 E: recv() 阻塞当前线程直到有消息；try_recv() 立即返回，如果通道里没有消息就返回 Err，适合在等待消息的同时还要做其他事情的场景。
 ```
 
 ```quiz single
 Q: 当所有发送端都被丢弃后，接收端的 recv() 会？
-- 永久阻塞
-- panic
 + 返回 Err，表示通道已关闭
 - 返回 Ok(None)
+- 永久阻塞
+- panic
 E: 所有 Sender 都 drop 了，说明不会再有新消息了。此时 recv() 返回 Err，for received in rx 的迭代也会自然结束。
 ```
 
 ```quiz single
 Q: 如果想让 3 个线程都往同一个通道发消息，应该怎么做？
-- 创建 3 个独立的通道
-- 用 Arc<Sender<T>> 包装发送端
 + 克隆发送端两次，每个线程持有一个克隆
+- 用 Arc<Sender<T>> 包装发送端
+- 创建 3 个独立的通道
 - 不可能实现，mpsc 只支持一个发送者
 E: tx.clone() 可以创建多个发送端，每个线程 move 进去一个即可。这就是 mpsc 中 "Multiple Producer" 的含义。
 ```
@@ -192,8 +192,8 @@ E: tx.clone() 可以创建多个发送端，每个线程 move 进去一个即可
 ```quiz single
 Q: 把 rx 用于 for 循环（for msg in rx）时，循环何时结束？
 - 接收到 10 条消息后
++ 通道关闭时（所有发送端都被 drop）
 - 程序退出时
 - 手动调用 break 时
-+ 通道关闭时（所有发送端都被 drop）
 E: Receiver<T> 实现了 Iterator，当通道关闭（即所有 Sender 都 drop 了）时，迭代器返回 None，for 循环自然结束。
 ```

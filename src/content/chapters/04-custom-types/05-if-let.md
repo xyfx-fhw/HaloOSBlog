@@ -158,10 +158,10 @@ if let Some(y) = x {
 
 ```quiz single
 Q: 这段代码的输出是什么？
-- 编译错误
+- Some(5)
 - None
 + 5
-- Some(5)
+- 编译错误
 E: if let Some(y) = x 会将 x 中的值（5）绑定到 y。所以输出是 5。
 ```
 
@@ -177,10 +177,10 @@ if let Some(file) = config {
 
 ```quiz multi
 Q: 关于这段代码的说法，正确的是？（多选）
-+ file 只在 if 块中可用
-+ 如果 config 是 None，会执行 else 块
-- else 块中 config 仍然可用
 + 这里用 if let ... else 比用 match 更简洁
+- else 块中 config 仍然可用
++ 如果 config 是 None，会执行 else 块
++ file 只在 if 块中可用
 E: if let 创建新的作用域，绑定的变量只在该作用域中有效。else 块是模式不匹配时执行的代码。如果用 match，需要写更多的分支代码。
 ```
 
@@ -192,9 +192,9 @@ while let Some(x) = some_iterator {
 
 ```quiz single
 Q: 这个循环会在何时结束？
+- 循环会无限执行
 - 当 x 等于某个值时
 + 当 some_iterator 返回 None 时
-- 循环会无限执行
 - 编译错误
 E: while let 循环在模式不再匹配（即返回 None）时自动结束，无需显式 break。
 ```

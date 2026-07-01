@@ -6,20 +6,14 @@ estimatedTime: 5
 keywords: ["泛型", "trait", "trait 约束", "关联类型", "单态化", "impl Trait"]
 ---
 
-泛型和 Trait 是 Rust 抽象能力的两根支柱，天然咬合在一起：
+泛型和 Trait 是 Rust 抽象能力的两根支柱，天然咬合：**泛型**（`<T>`）让一份代码适配多种类型，**Trait** 定义"某类型能做什么"的行为契约，**Trait 约束**把二者联结起来——泛型代码可以调用约束所保证的方法，编译器在使用时展开为具体类型，零运行时开销。
 
-- **泛型**（`<T>`）让你写一份代码适配多种类型，编译器在使用时自动展开——零运行时开销
-- **Trait** 定义一组行为契约，规定"某类型能做什么"
-- **Trait 约束**（`T: Display`）把两者联结：泛型代码可以调用约束所保证的方法
+## 本章目录
 
-本章从泛型语法出发，逐步深入 Rust 的 Trait 系统：
-
-1. **泛型语法基础** — 函数、结构体、枚举、impl 块中的 `<T>` 写法；单态化为什么让泛型零开销
-
-2. **Trait：定义共享行为** — 什么是 Trait，如何定义和实现；默认方法；`Display` 和 `Debug` 背后的机制
-
-3. **Trait 约束与 impl Trait** — 用 `T: Trait` 限制泛型参数，多重约束、`where` 子句；`impl Trait` 语法
-
-4. **转换 Trait** — `From`/`Into`、`TryFrom`/`TryInto`；Rust 类型转换的惯用模式
-
-5. **综合练习** — 动手巩固全章内容
+| 文章 | 主要内容 |
+| --- | --- |
+| [泛型语法](./01-generics-syntax) | 函数、结构体、枚举和 impl 块中的泛型写法，单态化原理 |
+| [Trait：定义共享行为](./02-traits) | 定义与实现 Trait，默认方法，`Display` 与 `Debug` 背后的机制 |
+| [Trait 约束](./03-trait-bounds) | `T: Trait` 语法，多重约束，`where` 子句，`impl Trait` |
+| [转换 Trait](./04-conversion-traits) | `From`/`Into`、`TryFrom`/`TryInto` 的惯用模式 |
+| [综合练习](./05-practice) | 综合运用泛型与 Trait 解决实际问题 |

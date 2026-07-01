@@ -197,19 +197,19 @@ fn parse_age(s: &str) -> Result<u32, ParseIntError> {
 
 ```quiz single
 Q: 上面代码中，Result<u32, ParseIntError> 的含义是？
-- 函数可能返回 u32 类型的错误
-+ 函数成功时返回 u32，失败时返回 ParseIntError 类型的错误
 - 函数总是返回 u32，ParseIntError 是备选类型
 - 这是语法错误，Result 只能有一个类型参数
++ 函数成功时返回 u32，失败时返回 ParseIntError 类型的错误
+- 函数可能返回 u32 类型的错误
 E: Result<T, E> 是 Rust 的错误处理枚举：Ok(T) 携带成功值，Err(E) 携带错误值。这里 T=u32 是成功时返回的类型，E=ParseIntError 是失败时的错误类型。
 ```
 
 ```quiz single
 Q: unwrap() 和 expect("消息") 的区别是？
-- unwrap 更安全，expect 更危险
-+ 两者都在 Err 时 panic，但 expect 在 panic 时显示你指定的自定义消息
-- unwrap 会忽略错误，expect 会重新抛出错误
 - expect 只能用在 Option 上，unwrap 可以用在 Result 上
+- unwrap 会忽略错误，expect 会重新抛出错误
++ 两者都在 Err 时 panic，但 expect 在 panic 时显示你指定的自定义消息
+- unwrap 更安全，expect 更危险
 E: 两者行为相同：Ok 时返回值，Err 时 panic。区别只在于 panic 信息：unwrap 使用默认格式，expect 使用你提供的字符串，通常更有帮助。在代码里更推荐用 expect，方便定位是哪个地方触发了 panic。
 ```
 
@@ -222,8 +222,8 @@ fn get_value() -> i32 {
 
 ```quiz single
 Q: 上面的代码能编译通过吗？
-- 能，因为 Result 会自动转换为 i32
 + 不能，函数签名要求返回 i32，但实际返回了 Result<i32, String>
+- 能，因为 Result 会自动转换为 i32
 - 能，因为 Ok(42) 里面包含了 i32
 - 不能，因为 result 不是 mut 的
 E: 类型必须严格匹配。函数声明返回 i32，但实际返回了 Result<i32, String>，这是类型不匹配的错误。要返回 i32，需要用 result.unwrap() 或 match result { Ok(v) => v, ... }。
@@ -232,8 +232,8 @@ E: 类型必须严格匹配。函数声明返回 i32，但实际返回了 Result
 ```quiz multi
 Q: 关于错误传播，下列说法正确的是？（多选）
 + 函数可以选择把错误向上传递，让调用者决定如何处理
-+ 传播错误时，函数的返回类型必须是 Result（或 Option）
 - 错误传播只能用于 panic! 产生的错误
++ 传播错误时，函数的返回类型必须是 Result（或 Option）
 + 相比每次都 panic，传播错误让代码更灵活，调用者可以按自己的需求处理
 E: 错误传播是 Rust 错误处理的核心模式之一。函数把 Err 值原样返回给调用者，让调用者根据上下文决定怎么处理——是恢复、是记录日志、还是继续传播。这要求函数返回 Result 类型。
 ```
@@ -242,8 +242,8 @@ E: 错误传播是 Rust 错误处理的核心模式之一。函数把 Err 值原
 Q: 什么情况下用 unwrap() 是合理的？
 - 任何时候都合理，Rust 会自动处理 panic
 - 只有在不关心错误信息时
-+ 在你通过代码逻辑确定某个 Result 一定是 Ok 的情况下，或者在原型/测试代码中
 - 从来都不合理，应该总是用 match 处理
++ 在你通过代码逻辑确定某个 Result 一定是 Ok 的情况下，或者在原型/测试代码中
 E: unwrap() 在两种情况下合理：(1) 你比编译器知道得更多，通过逻辑可以确定这里不会失败（比如解析一个写死的已知合法字符串）；(2) 写原型或测试时，错误处理不是当前关注点，可以先用 unwrap 留作后续完善的标记。
 ```
 

@@ -361,18 +361,18 @@ mod restaurant {
 
 ```quiz single
 Q: 以下哪个调用是正确的？
+- kitchen::cook();
 - restaurant::kitchen::cook();
 - restaurant::eat();
-- kitchen::cook();
 + 这里会有编译问题，eat() 无法使用 cook()
 E: eat() 虽然在 restaurant 内，但只能获取到 kitchen 这一层，cook 必须 pub 才能使用。
 ```
 
 ```quiz single
 Q: 要在文件系统中组织嵌套模块，正确的目录结构是什么？
+- 必须在 Cargo.toml 中声明每个模块
 - 所有模块都放在 src/ 目录下的 .rs 文件
 + 模块放在名称对应的文件夹中，如 src/restaurant/hosting.rs
-- 必须在 Cargo.toml 中声明每个模块
 - 模块文件名必须是 mod.rs
 E: 嵌套模块应放在对应名称的目录中。父模块用 `mod child_name;` 声明，Rust 会在 child_name/ 目录中查找。
 ```
@@ -381,17 +381,17 @@ E: 嵌套模块应放在对应名称的目录中。父模块用 `mod child_name;
 Q: 下列关于 pub 关键字的说法，正确的是？（多选）
 + 没有 pub 时，模块项默认是私有的
 + 结构体的每个字段需要单独标记 pub 才能被外部访问
-+ 如果父模块是私有的，子模块中的 pub 项也无法从外部访问
 - 枚举的变体需要单独标记 pub
++ 如果父模块是私有的，子模块中的 pub 项也无法从外部访问
 E: 默认私有。结构体字段需单独 pub。嵌套模块需要完整的公开路径。枚举的 pub 变体自动对外开放。
 ```
 
 ```quiz single
 Q: 要让结构体的某些字段对外部可见，应该怎么做？
-- 给整个结构体标记 pub 就足够了
 + 需要分别标记要公开的每个字段为 pub
-- 结构体中所有字段必须都是 pub
+- 给整个结构体标记 pub 就足够了
 - 使用 #[derive(pub)]
+- 结构体中所有字段必须都是 pub
 E: 结构体是 pub 不代表字段是 pub。每个字段需要独立标记。这样的设计让你可以隐藏内部字段。
 ```
 

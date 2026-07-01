@@ -174,45 +174,45 @@ src/
 
 ```quiz single
 Q: 集成测试文件放在哪里？
-- src/tests/ 目录下
 - src/ 目录下，与源码同文件
-+ 项目根目录的 tests/ 目录下（与 src/ 同级）
 - 任意位置，用 #[integration_test] 标注
++ 项目根目录的 tests/ 目录下（与 src/ 同级）
+- src/tests/ 目录下
 E: 集成测试放在 tests/ 目录下，Cargo 会自动识别并在 cargo test 时编译运行。不需要 #[cfg(test)]，也不需要任何特殊标注。
 ```
 
 ```quiz single
 Q: 集成测试文件中为什么不需要 #[cfg(test)]？
-- 因为集成测试总是编译进最终二进制
 + 因为 tests/ 目录本身就是特殊目录，Cargo 只在 cargo test 时编译它
-- 因为集成测试不能有条件编译
 - 因为 #[cfg(test)] 只用于 struct 和 enum
+- 因为集成测试不能有条件编译
+- 因为集成测试总是编译进最终二进制
 E: Cargo 把 tests/ 目录视为特殊目录，只在执行 cargo test 时才编译里面的文件。单元测试需要 #[cfg(test)] 是因为它们和源码在同一文件里，必须用条件编译把测试代码隔开。
 ```
 
 ```quiz single
 Q: 集成测试和单元测试相比，主要限制是什么？
+- 不能有多个测试函数
 - 不能使用 assert! 宏
 - 不能并行运行
 + 只能访问库的公有 API，不能访问私有函数
-- 不能有多个测试函数
 E: 集成测试是从库的"外部"调用的，就像真实用户一样，所以只能访问 pub 标记的公有 API。私有函数只有单元测试（在同一文件内）才能直接测试。
 ```
 
 ```quiz single
 Q: 想要多个集成测试文件共享辅助函数，应该怎么做？
-- 创建 tests/common.rs 并写 pub fn
+- 每个测试文件重复写辅助函数
 + 创建 tests/common/mod.rs 并写 pub fn
 - 把辅助函数放在 src/lib.rs 里 pub 导出
-- 每个测试文件重复写辅助函数
+- 创建 tests/common.rs 并写 pub fn
 E: tests/common.rs 会被 Cargo 当成独立的测试 crate，测试输出里会出现 "running 0 tests" 的噪音。正确做法是 tests/common/mod.rs——子目录下的文件是普通模块，不会被单独运行。
 ```
 
 ```quiz single
 Q: 下面关于"薄 main + 厚 lib"结构的说法，哪个是正确的？
-- 这样可以让程序运行更快
 - main.rs 和 lib.rs 可以互相调用，没有区别
 + main.rs 尽量精简，核心逻辑放 lib.rs，方便集成测试通过 use 引入
+- 这样可以让程序运行更快
 - 这只是代码风格建议，对测试没有实际影响
 E: 集成测试只能通过 use 引入库 crate（lib.rs），无法引入二进制 crate（main.rs）。把核心逻辑放在 lib.rs 里，集成测试就能覆盖到；main.rs 只负责入口，代码少，不需要专门测试。
 ```

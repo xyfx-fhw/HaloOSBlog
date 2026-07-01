@@ -147,10 +147,10 @@ fn get_age(name: &str) -> Option<u32> {
 
 ```quiz single
 Q: 如果调用 get_age("Charlie")，返回值是什么？
-- 返回 0
+- 返回 None 会导致 panic
 - 返回一个错误
 + 返回 None
-- 返回 None 会导致 panic
+- 返回 0
 E: 模式 _ 匹配任何其他情况，在这个函数中返回 None。None 是完全合法的返回值，不会 panic。
 ```
 
@@ -163,17 +163,17 @@ let y = x.unwrap();
 Q: 变量 y 的值是什么？
 - None
 + 5
-- x（Option 本身）
 - 编译错误
+- x（Option 本身）
 E: unwrap() 方法提取 Option 中的值。因为 x 是 Some(5)，所以 y 是 5。如果 x 是 None，unwrap() 会 panic。
 ```
 
 ```quiz multi
 Q: 下列关于 Option 的说法，正确的是？（多选）
-+ Option<T> 可以表示值的存在或缺失
-+ 使用 match 时必须处理 Some 和 None 两种情况
-- Rust 的 Option 和其他语言的 null 是一样的，只是名字不同
 + if let 可以只处理 Some 的情况，忽略 None
++ Option<T> 可以表示值的存在或缺失
+- Rust 的 Option 和其他语言的 null 是一样的，只是名字不同
++ 使用 match 时必须处理 Some 和 None 两种情况
 E: Option 必须被处理，但处理的方式有多种：match 要穷尽所有情况，if let 只关心某个模式。None 与 null 的根本区别在于编译器强制检查——你不能"忘记"处理 None。
 ```
 

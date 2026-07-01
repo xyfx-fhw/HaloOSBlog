@@ -212,37 +212,37 @@ fn double_number(s: &str) -> Result<i32, ParseIntError> {
 
 ```quiz single
 Q: 上面代码中，如果 s = "abc"，调用 double_number("abc") 会发生什么？
-- 程序 panic
-- 返回 Ok(0)
-+ 返回 Err(ParseIntError)，因为 "abc" 无法解析为 i32，? 触发提早返回
 - 返回 Ok("abc" * 2)
+- 返回 Ok(0)
+- 程序 panic
++ 返回 Err(ParseIntError)，因为 "abc" 无法解析为 i32，? 触发提早返回
 E: "abc" 无法被解析为 i32，parse() 返回 Err(ParseIntError)。遇到 Err 时，? 立即从函数返回这个 Err，不会继续执行 Ok(n * 2)。
 ```
 
 ```quiz single
 Q: ? 运算符和手写 `match { Ok(v) => v, Err(e) => return Err(e) }` 的核心区别是？
-- ? 只能用在 Result 上，match 可以用在任何类型
 - ? 会忽略错误类型，match 会保留
-+ ? 在返回 Err 之前会自动做错误类型转换，而手写 match 不会
 - 两者完全等价，没有区别
++ ? 在返回 Err 之前会自动做错误类型转换，而手写 match 不会
+- ? 只能用在 Result 上，match 可以用在任何类型
 E: ? 在提早返回 Err 时，会自动把错误转换成函数声明的返回错误类型（前提是两种类型之间存在转换关系）。手写 match 只是原样返回 Err，不做转换。这个自动转换让不同来源的错误可以统一成一种类型。
 ```
 
 ```quiz single
 Q: 下面哪段代码是正确的？（? 运算符的使用）
 - `fn foo() -> i32 { let r: Result<i32,_> = Ok(1); r? }`
-+ `fn foo() -> Result<i32, String> { let r: Result<i32,String> = Ok(1); Ok(r?) }`
 - `fn foo() -> Option<i32> { let r: Result<i32,_> = Ok(1); r? }`
 - `fn foo() { let r: Result<i32,_> = Ok(1); r?; }`
++ `fn foo() -> Result<i32, String> { let r: Result<i32,String> = Ok(1); Ok(r?) }`
 E: ? 只能在返回类型匹配的函数中使用。第一个返回 i32 不是 Result，第三个把 Result 用在 Option 函数里，第四个 main 返回 ()——都不对。只有第二个返回类型和 ? 的使用匹配。r 是 Ok(1)，执行 r? 后成功解包，提取出内部的值 1。然后通过 Ok(r?) 变成了 Ok(1)。函数的最后一行为表达式 Ok(1)，其类型是 Result<i32, String>，刚好与函数签名的返回值类型 Result<i32, String> 完美匹配。如果 r 碰巧是 Err，? 会提前返回该 Err，其类型也是 Result<i32, String>，同样符合函数签名。
 ```
 
 ```quiz multi
 Q: 下列关于 ? 运算符的说法，哪些是正确的？（多选）
 + 可以用于 Result 类型
+- 可以在任何函数里使用，不需要关心函数返回类型
++ 遇到 Err/None 时立即从当前函数返回，不再执行后续代码
 + 可以用于 Option 类型
 - 可以同时在 Option 和 Result 混用（比如在返回 Result 的函数里，对 Option 用 ?）
-+ 遇到 Err/None 时立即从当前函数返回，不再执行后续代码
-- 可以在任何函数里使用，不需要关心函数返回类型
 E: ? 只能在返回 Result 的函数里用于 Result，在返回 Option 的函数里用于 Option。不能混用（在返回 Result 的函数里对 Option 用 ?），因为类型不兼容。要转换，需要手动调用 .ok_or()（Option → Result）或 .ok()（Result → Option）。
 ```

@@ -187,36 +187,36 @@ fn main() {
 
 ```quiz single
 Q: log 和 env_logger 的关系是什么？
-- 它们是同一个 crate 的两个模块
 - log 是输出实现，env_logger 是接口定义
 + log 定义接口（宏和 trait），env_logger 是一种具体的日志输出实现
 - env_logger 已包含 log，只需要加 env_logger 依赖
+- 它们是同一个 crate 的两个模块
 E: log 是"门面"（Facade）设计模式的体现：定义接口，不绑定实现。这样库代码只依赖 log，应用程序可以自由选择 env_logger、tracing 等任意实现。
 ```
 
 ```quiz single
 Q: 下列 RUST_LOG 设置中，哪个会同时显示 TRACE、DEBUG、INFO、WARN、ERROR？
-- RUST_LOG=all
-+ RUST_LOG=trace
 - RUST_LOG=debug,trace
 - RUST_LOG=5
+- RUST_LOG=all
++ RUST_LOG=trace
 E: 日志级别是有序的：trace < debug < info < warn < error。设置 RUST_LOG=trace 意味着显示 trace 及以上所有级别，即全部级别。
 ```
 
 ```quiz single
 Q: 为什么库代码（lib.rs）不应该调用 env_logger::init()？
-- 因为库不能添加依赖
-+ 初始化只能调用一次，由应用程序决定使用哪种日志实现
 - 因为库代码不支持日志
+- 因为库不能添加依赖
 - 因为 env_logger 不稳定
++ 初始化只能调用一次，由应用程序决定使用哪种日志实现
 E: 日志系统是全局单例，只能初始化一次。如果库自己初始化，就剥夺了应用程序选择日志后端的权利，还可能因为重复初始化而 panic。
 ```
 
 ```quiz single
 Q: 运行 cargo run 时没有任何日志输出，最可能的原因是什么？
-- env_logger 版本太旧
-- 代码中没有 use log::info; 等导入
-+ 没有设置 RUST_LOG 环境变量，env_logger 默认不输出任何内容
 - main 函数中忘记了 println!
+- 代码中没有 use log::info; 等导入
+- env_logger 版本太旧
++ 没有设置 RUST_LOG 环境变量，env_logger 默认不输出任何内容
 E: env_logger 默认完全静默。需要设置 RUST_LOG=info（或其他级别）才会开始输出日志。这是有意的设计，避免库日志在生产环境意外泄漏调试信息。
 ```

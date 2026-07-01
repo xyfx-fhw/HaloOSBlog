@@ -23,10 +23,10 @@ fn main() {
 
 ```quiz single
 Q: 这段代码能编译吗？
-- 能，push 不影响现有元素
-+ 不能，first 是对 vec 的不可变借用，而 vec.push(4) 试图可变修改 vec
-- 能，first 已经复制了值
 - 能，但运行时会 panic
+- 能，first 已经复制了值
++ 不能，first 是对 vec 的不可变借用，而 vec.push(4) 试图可变修改 vec
+- 能，push 不影响现有元素
 E: Rust 的借用规则：当存在不可变借用时，不能进行可变借用。first 引用了 vec 的元素，所以 push 无法执行。
 ```
 
@@ -47,8 +47,8 @@ fn main() {
 Q: 这段代码的问题是什么？
 - modify_string 函数没有 impl 块
 + 字符串字面量 "Hello" 的类型是 &str，不是 String，无法可变借用
-- s 没有声明为 mut
 - 编译时会产生内存泄漏
+- s 没有声明为 mut
 E: 字符串字面量 "Hello" 是 &str 类型，本身是不可变的。函数期望 &mut String，类型不匹配。
 ```
 
@@ -70,9 +70,9 @@ fn main() {
 ```quiz single
 Q: 这段代码能编译吗？
 - 能，key 被复制了
-+ 不能，key 的所有权被转移给了 HashMap
 - 能，但会输出 null
 - 不能，HashMap 不支持 String 作为键
++ 不能，key 的所有权被转移给了 HashMap
 E: 当把 String 插入 HashMap 时，String 的所有权转移给了 HashMap。之后无法再使用 key。
 ```
 
@@ -114,10 +114,10 @@ fn main() {
 
 ```quiz single
 Q: 这段代码的输出是？
-- 编译错误
-+ 找到了
 - 什么也不输出
 - panic
+- 编译错误
++ 找到了
 E: String 类型的 contains() 方法接受 &str，sub 会自动转换为 &str。"hello" 确实包含 "ll"。
 ```
 

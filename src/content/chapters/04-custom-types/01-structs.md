@@ -487,17 +487,17 @@ struct Book {
 Q: 下列关于上面结构体定义的说法，正确的是？
 - 结构体名应该用小驼峰，如 `book` 而不是 `Book`
 + 字段名按惯例用蛇形命名，如 `Book_Title`（虽然这里没用）
-- 每个结构体定义必须有至少三个字段
 - title 和 author 字段必须存储引用，不能存储 String
+- 每个结构体定义必须有至少三个字段
 E: 结构体名遵循大驼峰惯例（Book），字段名遵循蛇形惯例。String 是拥有所有权的类型，完全可以作为结构体字段。
 ```
 
 ```quiz multi
 Q: 下列哪些关于结构体实例化的说法是正确的？（多选）
 - 字段初始化顺序必须与结构体定义中的顺序相同
-+ 字段初始化顺序可以与定义顺序不同，因为用的是字段名
-+ 使用 `mut` 可以让所有字段都可修改
 - 可以只让某个字段可修改，其他字段不可修改
++ 使用 `mut` 可以让所有字段都可修改
++ 字段初始化顺序可以与定义顺序不同，因为用的是字段名
 E: 由于使用字段名而非位置，初始化顺序不受限制（第一个说法是错的，第二个正确）。可变性作用于整个实例，不能部分可变。
 ```
 
@@ -517,10 +517,10 @@ fn main() {
 
 ```quiz single
 Q: 如果要创建 user2，只改邮箱其他复用 user1，下面哪种写法正确？
-- let user2 = User { email: "new@example.com", user1 };
-+ let user2 = User { email: String::from("new@example.com"), ..user1 };
 - let user2 = User { ..user1, email: String::from("new@example.com") };
 - let user2 = { ..user1, email: String::from("new@example.com") };
++ let user2 = User { email: String::from("new@example.com"), ..user1 };
+- let user2 = User { email: "new@example.com", user1 };
 E: 结构体更新语法是 `..instance`，必须放在最后。第二和第三选项中，只有第二个把 `..user1` 放在正确位置。
 ```
 

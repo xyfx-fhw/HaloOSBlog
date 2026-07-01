@@ -12,11 +12,11 @@ keywords: ["泛型练习", "综合"]
 
 ```quiz single
 Q: 下面哪个函数签名能正确编译？
-- fn first<T>(list: &[T]) -> T { list[0] }
 + fn first<T: Clone>(list: &[T]) -> T { list[0].clone() }
-- fn first(list: &[T]) -> &T { &list[0] }
+- fn first<T>(list: &[T]) -> T { list[0] }
 - fn first<T>(list: Vec<T>) -> &T { &list[0] }
-E: 第一项：把 T 从引用中移出需要 Copy 或 Clone，不能直接 list[0]。第二项正确：加了 Clone 约束后可以 .clone()。第三项：T 未声明。第四项：返回对局部 Vec 的引用，生命周期错误。
+- fn first(list: &[T]) -> &T { &list[0] }
+E: 第二项：把 T 从引用中移出需要 Copy 或 Clone，不能直接 list[0]。第一项正确：加了 Clone 约束后可以 .clone()。第四项：T 未声明。第三项：返回对局部 Vec 的引用，生命周期错误。
 ```
 
 ```rust
@@ -36,26 +36,26 @@ impl<T> Stack<T> {
 Q: 关于上面的 Stack<T>，哪些说法是正确的？
 + Stack<i32> 和 Stack<String> 都能正常使用
 + is_empty 不需要 T 有任何约束就能调用
-- Stack<T> 隐式要求 T: Clone
 + push 和 pop 可以在同一个 Stack 实例上交替调用
+- Stack<T> 隐式要求 T: Clone
 E: Stack<T> 没有约束，Vec 的 push/pop 对任意 T 都有效，is_empty 只检查长度，Clone 不是隐式要求的。
 ```
 
 ```quiz single
 Q: impl<T> Point<T> 和 impl Point<f64> 的区别是什么？
 - 两种写法功能完全相同
-+ impl<T> 为所有类型实现，impl Point<f64> 只为 f64 实现专属方法
 - impl Point<f64> 会覆盖 impl<T> 对 f64 的所有实现
 - Rust 不允许两者共存于同一文件
++ impl<T> 为所有类型实现，impl Point<f64> 只为 f64 实现专属方法
 E: 两者可以同时存在。impl<T> 的方法对所有 Point 都有效；impl Point<f64> 添加的方法只有 f64 版本才能调用。
 ```
 
 ```quiz single
 Q: 关于单态化，哪个说法是错误的？
-- 单态化在编译期完成
-- 使用的泛型类型越多，二进制体积可能越大
 + 单态化会在运行时使用虚函数表（vtable）进行类型查找
 - 单态化后的代码运行速度与手写具体类型代码相同
+- 单态化在编译期完成
+- 使用的泛型类型越多，二进制体积可能越大
 E: vtable 是动态分发（dyn Trait）的机制，不是单态化。单态化在编译期为每种具体类型生成独立代码，运行时没有任何类型查找。
 ```
 

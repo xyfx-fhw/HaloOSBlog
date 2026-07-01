@@ -497,19 +497,19 @@ fn main() {
 
 ```quiz single
 Q: 上面两个变量的类型分别是什么？
-- s1 是 String，s2 是 &str
-+ s1 是 &str，s2 是 String
 - 两个都是 String
++ s1 是 &str，s2 是 String
+- s1 是 String，s2 是 &str
 - 两个都是 &str
 E: 字符串字面量（双引号中的文本）的类型是 &str。String::from() 创建一个堆上的 String。
 ```
 
 ```quiz multi
 Q: 下列关于 String 和 &str 的说法，哪些正确？
++ 字符串字面量是 &str 类型
 + String 拥有其数据的所有权，声明为 mut 的话可以修改
 + &str 是借用的字符串切片，不可修改
 - String 总是存储在栈上
-+ 字符串字面量是 &str 类型
 E: String 在堆上分配数据，而 &str 可能指向栈、数据段或堆上的数据。字面量在编译时确定，属于 &str。
 ```
 
@@ -523,9 +523,9 @@ s.push_str(" World");
 
 ```quiz single
 Q: 执行上面代码后，s 的值是什么？
-- "Hello! World!"
 + "Hello! World"
 - "Hello World!"
+- "Hello! World!"
 - 编译错误
 E: push() 添加单个字符 '!'，push_str() 添加字符串 " World"，所以结果是 "Hello! World"。
 ```
@@ -549,19 +549,19 @@ let char_count = s.chars().count();
 
 ```quiz single
 Q: 上面代码执行后，byte_count 和 char_count 分别是多少？
-- byte_count = 9, char_count = 9
-- byte_count = 8, char_count = 7
 + byte_count = 12, char_count = 8
 - byte_count = 8, char_count = 8
+- byte_count = 8, char_count = 7
+- byte_count = 9, char_count = 9
 E: "Hello " 是 6 个字节，每个中文字符是 3 个字节（2 个），共 12 字节。字符数是 6 + 2 = 8。
 ```
 
 ```quiz single
 Q: 为什么 Rust 不允许用 `s[0]` 来访问字符串的第一个字符？
-- 这是 Rust 的设计限制
-+ 因为 UTF-8 字符可能占多个字节，s[0] 只能返回一个字节，而不是一个字符
 - String 不是数组
++ 因为 UTF-8 字符可能占多个字节，s[0] 只能返回一个字节，而不是一个字符
 - 这样可以提高性能
+- 这是 Rust 的设计限制
 E: Rust 禁用直接索引是为了避免在多字节字符中间切割，导致 panic 或未定义行为。
 ```
 
@@ -581,8 +581,8 @@ fn main() {
 ```quiz single
 Q: 上面的代码能否编译成功？
 + 能，&str 参数可以接收字面量和 String 的引用
-- 不能，不能同时传字面量和 String
 - 不能，String 需要显式转换
+- 不能，不能同时传字面量和 String
 - 不能，第二行语法错误
 E: &str 参数的优点就是既能接收 &str 类型的字面量，也能接收 String 通过 & 得到的引用（自动解引用）。
 ```

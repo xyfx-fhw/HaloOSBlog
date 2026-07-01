@@ -324,19 +324,19 @@ fn main() {
 
 ```quiz single
 Q: 上面的代码输出什么？
-- 11
 + 20
-- 5
+- 11
 - 编译错误
+- 5
 E: x = 10，条件 x > 5 为真，执行 if 分支 x * 2 = 20。
 ```
 
 ```quiz single
 Q: 以下哪段代码能通过 Rust 编译？
-- if 1 { println!("yes"); }
 + if 1 != 0 { println!("yes"); }
 - if "true" { println!("yes"); }
 - if 0 { println!("no"); }
+- if 1 { println!("yes"); }
 E: Rust 的 if 条件必须是 bool 类型。只有 `1 != 0` 是一个合法的布尔表达式，其余三项都把非 bool 值直接作为条件，会编译报错。
 ```
 
@@ -349,10 +349,10 @@ fn main() {
 
 ```quiz single
 Q: 上面的代码会发生什么？
+- 正常运行，val 的值是 "hello"
 - 正常运行，val 的值是 42
 - 运行时 panic
 + 编译错误，两个分支类型不匹配
-- 正常运行，val 的值是 "hello"
 E: Rust 在编译时检查 if 表达式两个分支的类型。42 是整数，"hello" 是字符串，类型不兼容，编译失败。Rust 需要在编译期确定变量类型，两个分支类型不一致就无法做到。
 ```
 
@@ -369,10 +369,10 @@ fn main() {
 
 ```quiz single
 Q: 上面的代码输出什么？
-- 编译错误
-- 无输出（无限循环）
 + 42
 - 0
+- 编译错误
+- 无输出（无限循环）
 E: loop 可以返回值，break 后跟的表达式就是整个 loop 表达式的值。这里直接 break 42，所以 result = 42。
 ```
 
@@ -395,17 +395,17 @@ fn main() {
 Q: 上面的代码输出什么？
 - 0
 - 1
-+ 2
 - 无限循环，不会打印
++ 2
 E: 内层 loop 每次迭代给 i 加 1。当 i 等于 2 时，break 'outer 直接退出外层循环，跳到 println!，打印 2。
 ```
 
 ```quiz multi
 Q: 下列关于 Rust 三种循环的说法，哪些是正确的？
 + for 循环遍历集合时不会发生越界访问
-+ loop 可以通过 break 表达式返回值
 - while 循环不能使用 break 提前退出
 + 嵌套循环中可以用循环标签指定 break 作用于哪一层
++ loop 可以通过 break 表达式返回值
 - for 循环只能遍历数组，不能遍历 Range
 E: for 遍历集合时 Rust 自动处理边界；loop 支持 break value 返回值；while 同样支持 break；循环标签可控制 break/continue 的作用层级。for 循环可以遍历任何实现了迭代器的类型，包括 Range。
 ```

@@ -226,9 +226,9 @@ enum TrafficLight {
 ```quiz single
 Q: 关于上面的枚举定义，下列说法正确的是？
 - TrafficLight 是一个值，Red、Yellow、Green 是类型
-+ Red、Yellow、Green 都是 TrafficLight 类型的值
 - 这个枚举定义中，Red、Yellow、Green 是三个不同的类型
 - TrafficLight 只能存储一个成员
++ Red、Yellow、Green 都是 TrafficLight 类型的值
 E: 枚举定义了一个类型（TrafficLight），其成员（Red、Yellow、Green）都是该类型的值。
 ```
 
@@ -246,19 +246,19 @@ fn main() {
 
 ```quiz multi
 Q: 下列关于上面枚举的说法，正确的是？（多选）
-+ Red 成员关联三个 u8 值
-+ Hex 成员关联一个 String 值
 + color1 和 color2 都是 Color 类型
 - Red 和 Hex 是不同的类型
++ Red 成员关联三个 u8 值
++ Hex 成员关联一个 String 值
 E: 枚举成员可以关联不同类型和数量的数据，但都属于同一个枚举类型。
 ```
 
 ```quiz single
 Q: 枚举相比多个布尔字段的优势是什么？
-- 占用更少的内存
+- 只是语法糖，没有实质区别
 + 编译器确保只会进入有效的状态组合，防止逻辑错误
 - 让代码执行得更快
-- 只是语法糖，没有实质区别
+- 占用更少的内存
 E: 用多个布尔字段时，可能陷入矛盾状态（如同时标记为 success 和 error）。枚举通过类型系统强制一个值只能是一个成员，保证了状态的有效性。
 ```
 

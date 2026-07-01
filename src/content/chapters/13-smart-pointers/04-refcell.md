@@ -138,19 +138,19 @@ fn main() {
 
 ```quiz single
 Q: `RefCell<T>` 相对于普通引用，最主要的区别是什么？
-- 它允许多个所有者。
-- 它可以跨线程使用。
-+ 它将借用规则的检查从编译期推迟到运行时，允许在某些编译器无法验证的场景中进行可变借用。
 - 它禁止了不可变借用。
++ 它将借用规则的检查从编译期推迟到运行时，允许在某些编译器无法验证的场景中进行可变借用。
+- 它可以跨线程使用。
+- 它允许多个所有者。
 E: RefCell 仍然遵守借用规则，只是检查时机变了。违规会在运行时 Panic，而非编译错误。
 ```
 
 ```quiz single
 Q: 如果在同一作用域内对一个 `RefCell<T>` 调用了两次 `borrow_mut()`，会发生什么？
-- 编译报错。
 - 第二次调用会等待第一次释放。
-+ 运行时 Panic，并显示 `BorrowMutError`。
+- 编译报错。
 - 正常运行，但可能产生数据竞争。
++ 运行时 Panic，并显示 `BorrowMutError`。
 E: RefCell 在运行时维护借用计数，违反规则时会 Panic 并退出线程，以此替代编译时错误。
 ```
 
@@ -170,8 +170,8 @@ println!("{}", data.borrow());
 
 ```quiz single
 Q: 以上代码最终打印的是什么？
-- 0
 - 10
+- 0
 - 5
 + 15
 E: a 和 b 都持有同一个 RefCell<i32> 的共享所有权。两次 borrow_mut() 分别加了 10 和 5，最终值为 15。每次 borrow_mut() 调用结束后借用权立即归还，所以两次调用不会冲突。
@@ -179,18 +179,18 @@ E: a 和 b 都持有同一个 RefCell<i32> 的共享所有权。两次 borrow_mu
 
 ```quiz single
 Q: `borrow()` 和 `borrow_mut()` 的返回类型分别是什么？
-- `&T` 和 `&mut T`
-- `Option<&T>` 和 `Option<&mut T>`
-+ `Ref<T>` 和 `RefMut<T>`
 - `Cell<T>` 和 `Cell<T>`
++ `Ref<T>` 和 `RefMut<T>`
+- `Option<&T>` 和 `Option<&mut T>`
+- `&T` 和 `&mut T`
 E: 返回的是智能指针 Ref<T> 和 RefMut<T>，它们实现了 Deref，会在 Drop 时自动减少借用计数。
 ```
 
 ```quiz single
 Q: 在以下场景中，哪种组合最合适？需要在单线程环境中，让多个地方能够修改同一份共享数据。
-- `Rc<T>`
-- `Box<RefCell<T>>`
 + `Rc<RefCell<T>>`
 - `Arc<Mutex<T>>`
+- `Rc<T>`
+- `Box<RefCell<T>>`
 E: Rc 提供多所有权，RefCell 提供内部可变性，二者组合恰好满足单线程多写的需求。Arc<Mutex<T>> 用于多线程。
 ```

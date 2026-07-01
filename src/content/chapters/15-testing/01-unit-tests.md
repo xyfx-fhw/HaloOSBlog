@@ -311,10 +311,10 @@ fn read_file_test() -> Result<(), std::io::Error> {
 
 ```quiz single
 Q: #[cfg(test)] 的作用是什么？
-- 让测试函数更快运行
+- 标记函数可以在测试中被调用
 + 告诉 Rust 只在 cargo test 时编译这段代码，cargo build 时跳过
 - 声明这是一个集成测试模块
-- 标记函数可以在测试中被调用
+- 让测试函数更快运行
 E: #[cfg(test)] 是条件编译标记，它告诉编译器：只有在 test 配置下（即运行 cargo test 时）才编译这个模块。cargo build 时不编译，节省时间和体积。
 ```
 
@@ -327,46 +327,46 @@ fn another() {
 
 ```quiz single
 Q: 上面的测试函数，运行结果是？
-- ok（测试通过）
-+ FAILED（测试失败）
 - 编译错误
++ FAILED（测试失败）
 - 测试被跳过
+- ok（测试通过）
 E: 测试函数 panic 时，测试就失败。panic! 宏触发 panic，所以 another 会标记为 FAILED。
 ```
 
 ```quiz single
 Q: assert_eq!(4, add_two(2)) 与 assert!(add_two(2) == 4) 的主要区别是？
 - 前者性能更好
+- 没有区别，完全等价
 - 前者更严格，后者更宽松
 + 前者失败时会打印出两个值，后者只说"断言失败"
-- 没有区别，完全等价
 E: assert_eq! 在失败时会用 Debug 格式打印 left 和 right 的具体值，告诉你"期望是 X，实际是 Y"。assert! 只会说断言失败，不给出具体值。
 ```
 
 ```quiz single
 Q: 下面哪种写法能更精确地测试"panic 信息包含特定内容"？
 - #[should_panic]
-+ #[should_panic(expected = "某段文字")]
-- #[test(panic = "某段文字")]
 - assert_panic!("某段文字")
+- #[test(panic = "某段文字")]
++ #[should_panic(expected = "某段文字")]
 E: #[should_panic] 只要 panic 了就通过，不管原因。加上 expected 参数后，只有当 panic 信息包含指定子串时才通过，更精确。
 ```
 
 ```quiz single
 Q: 使用 Result<(), String> 作为测试函数返回值的主要好处是什么？
++ 可以在测试体内使用 ? 运算符，方便传播错误
 - 可以同时使用 #[should_panic]
 - 测试运行更快
-+ 可以在测试体内使用 ? 运算符，方便传播错误
 - 可以不写 #[test]
 E: 返回 Result 的测试函数可以在内部使用 ? 运算符——遇到 Err 时测试直接失败，非常适合链式调用返回 Result 的函数。注意：这类测试不能同时使用 #[should_panic]。
 ```
 
 ```quiz single
 Q: 在测试模块中写 use super::* 是为了什么？
-- 引入标准库的测试工具
-+ 把外层模块的内容（包括私有函数）引入测试模块的作用域
-- 声明测试模块继承外层模块的所有属性
 - 告诉编译器跳过可见性检查
+- 引入标准库的测试工具
+- 声明测试模块继承外层模块的所有属性
++ 把外层模块的内容（包括私有函数）引入测试模块的作用域
 E: tests 是嵌套在源码文件里的内部模块，use super::* 把父模块的内容引入当前作用域，包括私有函数——Rust 允许测试访问私有实现，因为它们在同一文件中。
 ```
 

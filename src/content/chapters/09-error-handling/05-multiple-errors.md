@@ -161,28 +161,28 @@ fn main() {
 
 ```quiz single
 Q: Box<dyn Error> 和自定义错误枚举相比，主要缺点是什么？
-- 代码更复杂，需要实现很多 trait
 + 调用者拿到后无法精确区分是哪种错误，不能做分类处理
-- 不支持 ? 运算符
 - 性能比自定义错误类型差很多
+- 不支持 ? 运算符
+- 代码更复杂，需要实现很多 trait
 E: Box<dyn Error> 是不透明的容器，调用者只能打印错误信息，无法 match 具体是 io::Error 还是 ParseIntError。自定义错误枚举则允许调用者精确匹配每种情况。
 ```
 
 ```quiz single
 Q: Box<dyn Error> 最适合哪种场景？
 - 对外发布的库的 API
+- 需要错误类型在运行时可比较的场景
 - 需要精确匹配错误类型的场景
 + 应用程序 main 函数、脚本或快速原型
-- 需要错误类型在运行时可比较的场景
 E: Box<dyn Error> 代码简单，适合不需要精确处理错误类型的场景——比如 main 函数打印错误后退出、一次性脚本、原型开发。库的对外 API 则通常需要自定义错误枚举让调用者能精确处理。
 ```
 
 ```quiz single
 Q: 遍历一个字符串列表并解析为数字，希望"遇到任何一个解析失败就整体失败"，应该用哪种策略？
-- filter_map(|s| s.parse().ok())
 + .map(|s| s.parse()).collect::<Result<Vec<_>, _>>()
-- partition(Result::is_ok)
 - .map(|s| s.parse().unwrap())
+- partition(Result::is_ok)
+- filter_map(|s| s.parse().ok())
 E: collect::<Result<Vec<_>, _>>() 利用了 Result 实现了 FromIterator 的特性：遇到第一个 Err 就停止，返回整个 Err。filter_map 会忽略失败项，partition 会把成功和失败分开但都保留，unwrap 遇到失败会 panic。
 ```
 

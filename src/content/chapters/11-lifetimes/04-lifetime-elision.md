@@ -244,27 +244,27 @@ fn bad_idea(s: String) -> &'static str {
 ```quiz single
 Q: `fn foo(x: &str) -> &str` 应用省略规则后，编译器看到的是？
 - `fn foo(x: &str) -> &str` （无法推断，报错）
-+ `fn foo<'a>(x: &'a str) -> &'a str`
-- `fn foo<'a>(x: &'a str) -> &'static str`
 - `fn foo<'a, 'b>(x: &'a str) -> &'b str`
+- `fn foo<'a>(x: &'a str) -> &'static str`
++ `fn foo<'a>(x: &'a str) -> &'a str`
 E: 规则一给参数 x 分配 'a；只有一个输入生命周期，规则二把 'a 赋给返回值。结果是输入和输出共享同一个 'a。
 ```
 
 ```quiz single
 Q: `fn bar(x: &i32, y: &i32) -> &i32` 应用省略规则的结果是？
 - 编译器自动选择较长的参数生命周期作为返回值
-- `fn bar<'a>(x: &'a i32, y: &'a i32) -> &'a i32`
 + 编译器报错，无法确定返回值的生命周期
 - `fn bar<'a, 'b>(x: &'a i32, y: &'b i32) -> &'a i32`
+- `fn bar<'a>(x: &'a i32, y: &'a i32) -> &'a i32`
 E: 规则一给出 fn bar<'a, 'b>(x: &'a i32, y: &'b i32) -> &i32。两个输入生命周期，规则二不适用；没有 &self，规则三不适用。返回值生命周期无法确定，编译器报错。需要手动标注。
 ```
 
 ```quiz single
 Q: 方法 `fn show(&self, text: &str) -> &str` 应用省略规则后，返回值的生命周期与什么绑定？
-+ 与 &self 的生命周期相同（规则三）
 - 与 text 参数的生命周期相同（规则二）
-- 无法确定，需要手动标注
 - 与两者中较长的绑定
+- 无法确定，需要手动标注
++ 与 &self 的生命周期相同（规则三）
 E: 规则一分别给 &self 和 text 分配独立生命周期，规则三（有 &self 时）把 &self 的生命周期赋给返回值。所以返回值和 &self 绑定，与 text 无关。
 ```
 
@@ -272,19 +272,19 @@ E: 规则一分别给 &self 和 text 分配独立生命周期，规则三（有 
 
 ```quiz multi
 Q: 下列哪些数据拥有 'static 生命周期？
-+ 字符串字面量 "hello world"
 + `static COUNT: u32 = 0;` 这样声明的全局变量
 - 在 main 函数中声明的局部变量
++ 字符串字面量 "hello world"
 - 通过 Box::new() 分配的堆内存
 E: 字符串字面量和 static 变量都存储在程序的只读/静态内存区，整个程序运行期间都存在，所以有 'static 生命周期。局部变量在函数返回时销毁，不是 'static。Box 堆内存在 Box 被 drop 时释放，也不是 'static。
 ```
 
 ```quiz single
 Q: 编译器建议"consider using a `'static` lifetime"，你应该怎么做？
+- 用 unsafe 绕过检查
 - 立刻给返回值类型加上 'static
 - 把涉及的变量都声明为 static
 + 先理解为什么引用生命周期不够长，找到根本原因再决定方案
-- 用 unsafe 绕过检查
 E: "consider using 'static" 只是编译器列举的一个可能方案，不是建议。大多数情况下，你应该找根本原因：是否应该返回有所有权的值？数据声明的位置是否需要调整？乱加 'static 通常只会暴露更深层的设计问题。
 ```
 

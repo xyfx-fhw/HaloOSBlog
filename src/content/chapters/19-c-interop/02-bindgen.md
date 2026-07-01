@@ -123,45 +123,45 @@ fn main() {
 
 ```quiz single
 Q: bindgen 的核心功能是什么？
-- 把 Rust 编译成 C 语言。
 + 自动从 C 头文件生成 Rust FFI 声明代码。
-- 自动优化 C 语言的运行效率。
 - 给 C 语言添加所有权检查。
+- 把 Rust 编译成 C 语言。
+- 自动优化 C 语言的运行效率。
 E: bindgen 的作用是作为桥梁，自动完成原本需要手动编写的 `extern "C"` 声明。
 ```
 
 ```quiz single
 Q: 在 `build.rs` 中使用 bindgen 时，生成的 `bindings.rs` 通常放在哪里？
-- 项目根目录。
-- `src/` 目录下。
-+ `OUT_DIR` 环境变量指向的临时构建目录。
 - `target/debug/` 目录下。
+- 项目根目录。
++ `OUT_DIR` 环境变量指向的临时构建目录。
+- `src/` 目录下。
 E: 自动生成的代码不建议直接放进源码仓库（src/），而是放在构建输出目录中，通过 `include!` 宏引入。
 ```
 
 ```quiz multi
 Q: 使用构建脚本（build.rs）集成 bindgen 的好处有哪些？
 + 自动同步 C 头文件的更新。
-- 可以让 Rust 代码不再需要 `unsafe` 块。
 + 开发者不需要手动维护复杂的 FFI 类型声明。
+- 可以让 Rust 代码不再需要 `unsafe` 块。
 + 方便在不同的平台上自动适配。
 E: 虽然生成了代码，但调用 FFI 依然是 `unsafe` 的。其他选项都是自动化集成带来的典型优势。
 ```
 
 ```quiz single
 Q: 如果 C 头文件中包含大量无关的函数，但我只想要其中一个，该怎么做？
-- 手动删除生成的 bindings.rs 中的代码。
-- 必须全部引入，无法过滤。
-+ 在 bindgen 生成器中使用 `.allowlist_function`（白名单）。
 - 修改 C 头文件，删掉不需要的函数。
++ 在 bindgen 生成器中使用 `.allowlist_function`（白名单）。
+- 必须全部引入，无法过滤。
+- 手动删除生成的 bindings.rs 中的代码。
 E: bindgen 提供了强大的过滤功能（白名单/黑名单），允许开发者精确控制生成的代码量。
 ```
 
 ```quiz single
 Q: `include!(concat!(env!("OUT_DIR"), "/bindings.rs"));` 这行代码的作用是什么？
 - 下载并安装一个叫 bindings 的 crate。
+- 检查 bindings.rs 是否有语法错误。
 + 在当前位置插入生成的 bindings.rs 文件的源代码。
 - 把 bindings.rs 编译成动态链接库。
-- 检查 bindings.rs 是否有语法错误。
 E: `include!` 宏会将指定文件的内容原封不动地包含进当前文件中，类似于 C 语言的 `#include`。
 ```

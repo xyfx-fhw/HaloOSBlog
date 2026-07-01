@@ -343,10 +343,10 @@ match animal {
 
 ```quiz single
 Q: 这段代码能编译吗？
-- 能，因为我们处理了最常见的情况
-+ 不能，必须处理所有枚举成员
 - 能，但运行时会 panic
++ 不能，必须处理所有枚举成员
 - 不能，语法错误
+- 能，因为我们处理了最常见的情况
 E: match 是穷尽的，必须处理所有可能的情况。这里缺少 Animal::Bird 的分支，编译器会报错。
 ```
 
@@ -368,10 +368,10 @@ match status {
 
 ```quiz single
 Q: 在 Running 分支中，status 的值是什么？
-- 整个 Status 枚举
 + Status::Running
 - "运行中" 字符串
 - 编译错误
+- 整个 Status 枚举
 E: Running 分支被执行时，status 已经是 Status::Running，你可以在分支中使用它。
 ```
 
@@ -391,8 +391,8 @@ match msg {
 
 ```quiz single
 Q: 在 Number 分支中，n 的值和类型分别是什么？
-- n 是整个 Message，类型 Message
 + n 是 42，类型 i32
+- n 是整个 Message，类型 Message
 - n 是 Message::Number，类型 Message
 - 编译错误
 E: Number(n) 模式会**解构** Message::Number，提取内部的 i32 值。所以 n 是 42，类型是 i32。
@@ -417,8 +417,8 @@ match level {
 ```quiz single
 Q: 这段代码能编译吗？为什么？
 - 不能，语法错误
-+ 能，`|` 表示多个模式匹配同一分支
 - 不能，缺少 default 分支
++ 能，`|` 表示多个模式匹配同一分支
 - 不能，Level::High 被匹配了两次
 E: `|` 符号在 match 中表示"或"，允许多个模式执行同一分支代码。这里穷尽了 Level 的所有情况，所以能编译。
 ```

@@ -231,46 +231,46 @@ fn main() {
 
 ```quiz single
 Q: 上面的代码，`dbg!(3 + 1)` 会打印什么？
-- `[main.rs:5] 3 + 1 = 7`
-+ `[src/main.rs:5] 3 + 1 = 4`
-- `3 + 1 = 4`
 - 什么都不打印
++ `[src/main.rs:5] 3 + 1 = 4`
+- `[main.rs:5] 3 + 1 = 7`
+- `3 + 1 = 4`
 E: dbg! 的输出格式是 `[文件名:行号] 表达式文本 = 值`。`3 + 1` 的结果是 4，不是 7。输出会包含文件名和行号。
 ```
 
 ```quiz single
 Q: `dbg!(x)` 和 `println!("{:?}", x)` 最主要的区别是什么？
 - dbg! 只能用于数字类型
-- println! 无法打印复杂类型
 + dbg! 会返回 x 的值，可以嵌套在表达式中使用
+- println! 无法打印复杂类型
 - dbg! 只在 release 模式下有效
 E: dbg! 最大的特点是返回值（所有权），所以可以插入任何表达式中而不改变程序逻辑。println! 返回 ()，无法嵌套。
 ```
 
 ```quiz single
 Q: dbg! 的输出写入哪里？
-- 标准输出（stdout）
 + 标准错误（stderr）
-- 日志文件
 - 系统日志
+- 日志文件
+- 标准输出（stdout）
 E: dbg! 输出到 stderr，这样在重定向 stdout 时不会混入调试信息，适合在命令行工具中使用。
 ```
 
 ```quiz multi
 Q: 以下哪些情况适合使用 dbg! 而不是 println!？
-+ 想快速查看一个中间计算结果
-+ 需要知道代码走到了哪一行
-- 在生产环境记录运行日志
 + 调试链式调用中某一步的返回值
++ 想快速查看一个中间计算结果
+- 在生产环境记录运行日志
 - 向用户显示程序状态
++ 需要知道代码走到了哪一行
 E: dbg! 是临时调试工具，适合快速查看值和追踪执行路径。生产日志和用户输出应该用 log 库和 println!。
 ```
 
 ```quiz single
 Q: 对于自定义结构体，使用 dbg! 的前提是什么？
-- 实现 Display trait
-+ 实现 Debug trait（通常用 #[derive(Debug)]）
-- 实现 Clone trait
 - 不需要任何前提
+- 实现 Clone trait
++ 实现 Debug trait（通常用 #[derive(Debug)]）
+- 实现 Display trait
 E: dbg! 内部使用 {:?} 格式化，依赖 Debug trait。基本类型已内置实现，自定义类型需要手动派生 #[derive(Debug)]。
 ```

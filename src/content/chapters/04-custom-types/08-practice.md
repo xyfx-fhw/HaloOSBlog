@@ -34,9 +34,9 @@ fn main() {
 ```quiz single
 Q: 这段代码能编译吗？
 - 能，p1.name 被复制了
+- 能，Person 自动实现了 Copy
 + 不能，p1.name（String）的所有权被转移给了 p2.name
 - 能，但运行时会 panic
-- 能，Person 自动实现了 Copy
 E: String 不是 Copy 类型，赋值时发生移动。p1.name 的所有权转给 p2.name，之后 p1.name 无效。
 ```
 
@@ -61,9 +61,9 @@ fn main() {
 
 ```quiz single
 Q: 这段代码的输出是？
-- 编译错误
 + 正数：42
 - 非正数：42
+- 编译错误
 - 错误
 E: 第一个分支的守卫条件（x > 0）满足，所以输出"正数：42"。
 ```
@@ -80,9 +80,9 @@ fn main() {
 
 ```quiz single
 Q: 变量 y 的值是？
-- 编译错误
 + 0
 - None
+- 编译错误
 - panic
 E: x 是 None，所以不匹配 Some(val)，执行 else 分支返回 0。
 ```

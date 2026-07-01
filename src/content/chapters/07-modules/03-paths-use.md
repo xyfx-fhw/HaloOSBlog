@@ -487,8 +487,8 @@ mod outer {
 
 ```quiz single
 Q: 在 main 函数中调用 function，正确的绝对路径是什么？
-- outer::inner::function()
 + crate::outer::inner::function()
+- outer::inner::function()
 - ::outer::inner::function()
 - inner::function()
 E: 绝对路径以 crate 开头。相对路径则不需要。
@@ -497,16 +497,16 @@ E: 绝对路径以 crate 开头。相对路径则不需要。
 ```quiz single
 Q: 相对路径以下列哪个开头？（多选）
 - crate 关键字
-+ 当前模块名称、self 或 super
 - 总是 super
 - 包名
++ 当前模块名称、self 或 super
 E: 相对路径从当前模块、self（当前）或 super（父）开头。
 ```
 
 ```quiz multi
 Q: 下列关于 use 关键字的说法正确的是？（多选）
-+ use 将项引入当前作用域，之后可以使用短名称
 + 导入函数时应该导入父模块，而不是函数本身
++ use 将项引入当前作用域，之后可以使用短名称
 + 导入结构体/枚举时应该指定完整路径
 - use 会改变项的可见性
 E: use 是将项加入作用域的便捷方式。函数导入父模块体现意图，结构体导入完整路径是惯例。use 不改变可见性。
@@ -532,10 +532,10 @@ Q: 要合并这两行 use 语句，应该怎么写？
 use std::collections::HashMap;
 use std::collections::HashSet;
 
-- use std::collections;
 + use std::collections::{HashMap, HashSet};
 - use std::collections::*;
 - 无法合并
+- use std::collections;
 E: 使用大括号可以在一行中指定同一模块下的多个项。glob 是全导入，通常避免使用。
 ```
 

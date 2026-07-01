@@ -213,19 +213,19 @@ fn make_adder_broken(offset: i32) -> impl Fn(i32) -> i32 {
 
 ```quiz single
 Q: 一个消费了捕获变量（通过 drop 或移动）的闭包实现了哪个 trait？
-- 只实现 Fn
-- 只实现 FnMut
 + 只实现 FnOnce
+- 只实现 FnMut
 - 同时实现 Fn、FnMut 和 FnOnce
+- 只实现 Fn
 E: 消费捕获变量的闭包只能被调用一次（因为变量调用后就没了），所以只实现 FnOnce。Fn 和 FnMut 要求可以多次调用，无法满足。
 ```
 
 ```quiz single
 Q: 函数参数要接受所有类型的闭包（包括只能调一次的），应该用哪个 trait bound？
-- Fn
-- FnMut
 + FnOnce
+- FnMut
 - 三个都写
+- Fn
 E: FnOnce 是限制最少的——所有闭包（Fn、FnMut、FnOnce）都实现了 FnOnce。用 FnOnce 作为约束，接受范围最广。代价是只能调用一次。
 ```
 
@@ -244,19 +244,19 @@ fn main() {
 
 ```quiz single
 Q: 上面的代码能编译吗？
-+ 不能，修改 count 的闭包是 FnMut，不满足 Fn 约束
+- 不能，因为 Fn 不支持无参数闭包
 - 能，输出 2
 - 能，输出 0
-- 不能，因为 Fn 不支持无参数闭包
++ 不能，修改 count 的闭包是 FnMut，不满足 Fn 约束
 E: 闭包 || count += 1 修改了捕获的变量，实现的是 FnMut 而不是 Fn。run 函数要求 F: Fn()，FnMut 不满足 Fn 的约束，编译报错。把 run 改成 F: FnMut() 并加上 mut 才能解决。
 ```
 
 ```quiz single
 Q: 返回闭包时为什么通常需要 move 关键字？
 + 闭包可能捕获了函数的局部变量，函数返回后局部变量会被销毁，必须 move 进闭包才能继续使用
-- 因为 impl Fn 语法要求 move
 - 因为闭包不能返回引用
 - 为了让闭包能被调用多次
+- 因为 impl Fn 语法要求 move
 E: 函数返回后其栈帧销毁，局部变量也随之消失。若闭包只是借用这些变量，返回后就会持有悬垂引用。move 把变量所有权移入闭包，闭包持有数据本身，不依赖原函数的生命周期。
 ```
 

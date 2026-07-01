@@ -204,44 +204,44 @@ cargo test -- --ignored
 ```quiz single
 Q: cargo test -- --test-threads=1 的作用是什么？
 - 让测试编译得更快
-- 只运行第一个测试
 + 让所有测试串行（按顺序一个接一个）运行，不并行
 - 限制测试最多运行 1 秒
+- 只运行第一个测试
 E: 默认 cargo test 并行运行测试。传入 --test-threads=1 把线程数设为 1，测试就会串行执行，适合测试之间有共享状态（如共享文件）的情况。
 ```
 
 ```quiz single
 Q: 通过的测试中 println! 的输出默认是？
-- 显示在终端
-+ 被截获，不显示
 - 写入日志文件
+- 显示在终端
 - 触发编译警告
++ 被截获，不显示
 E: 默认情况下，Rust 测试框架会截获通过测试的标准输出，终端不会看到。加上 -- --show-output 才能让通过测试的输出也显示出来。
 ```
 
 ```quiz single
 Q: 假设有测试函数 fn test_add()、fn test_multiply()、fn benchmark_sort()，执行 cargo test test 会运行哪些测试？
-+ test_add 和 test_multiply
 - 只有 test_add
-- 全部三个
 - 一个都不运行
++ test_add 和 test_multiply
+- 全部三个
 E: cargo test 后跟关键词时，会运行所有名称中包含该关键词的测试。test_add 和 test_multiply 都包含 "test"，而 benchmark_sort 不包含，所以只运行前两个。
 ```
 
 ```quiz single
 Q: #[ignore] 属性的典型使用场景是？
++ 标记运行时间很长的测试，日常跑 cargo test 时跳过
 - 临时禁用有 bug 的测试，让 CI 跑过
 - 测试函数不需要 #[test] 时作为替代
-+ 标记运行时间很长的测试，日常跑 cargo test 时跳过
 - 标记只能在特定操作系统运行的测试
 E: #[ignore] 用于标记耗时的测试（如网络请求、大文件操作），让日常的 cargo test 快速完成。需要专门运行这些测试时，使用 cargo test -- --ignored。
 ```
 
 ```quiz single
 Q: 下面哪条命令只运行函数名里含有 "add" 的测试？
-- cargo test --filter add
-- cargo test --only add
 + cargo test add
+- cargo test --only add
 - cargo test -- --name add
+- cargo test --filter add
 E: cargo test 直接在命令后面跟关键词即可过滤测试名称。写法是 cargo test <关键词>，不需要任何额外标志。
 ```

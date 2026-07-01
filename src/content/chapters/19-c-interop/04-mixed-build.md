@@ -130,27 +130,27 @@ gcc main.c -L ./target/release/ -lmy_rust_core -lpthread -ldl -o my_app
 
 ```quiz single
 Q: 在 `cc` crate 的配置中，`.include("path")` 的主要作用是什么？
-- 将 path 下的所有 C 文件加入编译。
-+ 告诉编译器在哪可以找到 `#include` 引入的头文件。
-- 自动生成 Rust 对应的头文件。
 - 链接该路径下的静态库。
++ 告诉编译器在哪可以找到 `#include` 引入的头文件。
+- 将 path 下的所有 C 文件加入编译。
+- 自动生成 Rust 对应的头文件。
 E: include 对应的是编译器的 -I 参数，用于指定搜索头文件的目录。
 ```
 
 ```quiz single
 Q: 为什么在 build.rs 中建议写 `println!("cargo:rerun-if-changed=...")`？
 - 为了让代码运行得更快。
+- 为了自动删除旧的构建产物。
 + 为了让 Cargo 知道只有在这些文件变化时才重新运行构建脚本。
 - 为了在终端打印调试信息。
-- 为了自动删除旧的构建产物。
 E: 这是构建系统的增量编译机制，可以节省大量的重复编译时间。
 ```
 
 ```quiz multi
 Q: 当你需要在 C 语言工程中链接由 Rust 生成的静态库时，需要链接哪些东西？
-+ Rust 生成的静态库（如 libxxx.a）。
 - Rust 的源代码文件。
-+ 目标平台相关的系统库（如 Linux 下的 lpthread）。
 - Cargo.toml 文件。
++ 目标平台相关的系统库（如 Linux 下的 lpthread）。
++ Rust 生成的静态库（如 libxxx.a）。
 E: 链接器只需要二进制目标文件和它依赖的底层库，不需要源码或配置文件。
 ```

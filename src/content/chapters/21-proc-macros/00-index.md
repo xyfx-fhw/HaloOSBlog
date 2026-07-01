@@ -8,20 +8,14 @@ keywords: ["过程宏", "proc-macro", "derive宏", "类属性宏", "类函数宏
 
 过程宏（Procedural Macros）是 Rust 元编程的高级形式。与基于模式匹配的声明宏不同，过程宏是**真正的 Rust 程序**——它接收编译器传入的 token 流，运行任意代码逻辑，输出新的 token 流让编译器继续编译。
 
-## 本章内容
+过程宏有三种形式：自定义 `derive` 宏（`#[derive(MyTrait)]`）、类属性宏（`#[my_attr]`）和类函数宏（`my_macro!(...)`）。它们共同的核心工具链是 `syn`（解析 token 流为 AST）和 `quote`（将 AST 转回代码）。
 
-本章涵盖过程宏的三种形式，以及构建过程宏所需的核心工具链：
+## 本章目录
 
-1. **过程宏基础** — token 流、proc-macro crate 结构
-2. **自定义 derive 宏** — 为 trait 添加 `#[derive(...)]` 支持
-3. **类属性宏** — 可应用于任意项的自定义属性
-4. **类函数宏** — 接受任意 token 序列的函数形式宏
-5. **syn 与 quote** — 解析和生成代码的标准工具链
-
-## 前置知识
-
-学习本章前，请确保已掌握：
-
-- 声明宏（`macro_rules!`）基础（见[基础语法：宏](/RustCourse/chapters/02-basic-syntax/08-macros)）
-- trait 与 trait 实现（见[泛型与 Trait](/RustCourse/chapters/10-generics-traits/00-index)）
-- 智能指针基础，了解 `TokenStream` 的所有权模型（见[智能指针](/RustCourse/chapters/14-smart-pointers/00-index)）
+| 文章 | 主要内容 |
+| --- | --- |
+| [过程宏基础](./01-proc-macro-basics) | token 流的概念，proc-macro crate 的项目结构与调试方法 |
+| [自定义 derive 宏](./02-derive-macros) | 为 trait 添加 `#[derive(...)]` 支持，自动生成 impl 代码 |
+| [类属性宏](./03-attribute-macros) | 可应用于任意语法项的自定义属性宏 |
+| [类函数宏](./04-function-like-macros) | 接受任意 token 序列的函数形式宏 |
+| [syn 与 quote](./05-syn-and-quote) | 解析 AST 和生成代码的标准工具链 |

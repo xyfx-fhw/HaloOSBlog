@@ -122,10 +122,10 @@ Newtype 包装在运行时**完全没有开销**。
 
 ```quiz single
 Q: Newtype 模式的主要目的是什么？
-- 减少内存占用
-- 提升运行时性能
-+ 让编译器在类型层面区分语义不同但底层类型相同的值
 - 允许递归类型定义
++ 让编译器在类型层面区分语义不同但底层类型相同的值
+- 提升运行时性能
+- 减少内存占用
 E: Newtype 不改变运行时行为，也没有性能开销。它的价值在于类型安全：把两个都是 i32 的"年龄"和"ID"包成不同类型，编译器就能阻止你把年龄传给需要 ID 的函数。
 ```
 
@@ -140,19 +140,19 @@ fn get_user(id: UserId) -> String {
 
 ```quiz single
 Q: 以下哪个调用能通过编译？
-+ get_user(UserId(42))
 - get_user(PostId(42))
-- get_user(42)
++ get_user(UserId(42))
 - get_user(42_u64)
+- get_user(42)
 E: get_user 接受 UserId 类型，只有 UserId(42) 满足。PostId(42) 虽然内部也是 u64，但类型不同；裸的 42 或 42_u64 更不是 UserId。
 ```
 
 ```quiz single
 Q: Newtype 模式在运行时会带来性能开销吗？
-- 会，每次访问都需要解包装
 - 会，newtype 有额外的内存对齐开销
-+ 不会，newtype 在运行时与内部类型内存布局相同
 - 取决于内部类型的大小
++ 不会，newtype 在运行时与内部类型内存布局相同
+- 会，每次访问都需要解包装
 E: Newtype 是零成本抽象。struct Meters(f64) 在内存中和 f64 完全相同，"包装"只存在于编译期的类型检查阶段。
 ```
 

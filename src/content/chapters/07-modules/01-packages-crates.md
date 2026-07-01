@@ -286,54 +286,54 @@ path = "src/custom/lib.rs"  # 指定库 crate 的 root 路径
 
 ```quiz single
 Q: 下面哪个描述正确地区分了 Package 和 Crate？
-- Package 是代码的编译单元，Crate 是用 Cargo 管理的项目
-+ Package 是用 Cargo 管理的项目，Crate 是代码的编译单元
 - Package 和 Crate 是同义词
+- Package 是代码的编译单元，Crate 是用 Cargo 管理的项目
 - Package 只用于二进制项目，Crate 只用于库
++ Package 是用 Cargo 管理的项目，Crate 是代码的编译单元
 E: Package 是项目组织单位（包含 Cargo.toml），Crate 是编译单位。Package 可以包含多个 Crate。
 ```
 
 ```quiz single
 Q: 运行 `cargo new my-app` 后，以下哪个文件是二进制 crate 的根源文件？
-+ src/main.rs
 - src/lib.rs
-- Cargo.toml
 - src/bin/main.rs
+- Cargo.toml
++ src/main.rs
 E: 按 Cargo 约定，src/main.rs 是二进制 crate 的根源文件。它必须包含 main() 函数。
 ```
 
 ```quiz multi
 Q: 下列哪些说法关于 Cargo.toml 是正确的？（多选）
-+ Cargo.toml 定义了一个 Package
 + 不需要在 Cargo.toml 中显式列出 src/main.rs 或 src/lib.rs，Cargo 会按约定自动识别
-- 每个 Crate 都需要有自己的 Cargo.toml 文件
++ Cargo.toml 定义了一个 Package
 - Cargo.toml 中必须显式列出 src/bin/ 中的所有二进制 crate
+- 每个 Crate 都需要有自己的 Cargo.toml 文件
 E: Cargo.toml 定义 Package 级别的配置。Cargo 遵循约定自动识别 crate roots。单个 Package 可以有多个 Crate，但只有一个 Cargo.toml。
 ```
 
 ```quiz single
 Q: 一个 Package 可以包含多少个库 Crate？
-+ 至多 1 个
 - 至多 2 个
 - 任意多个
++ 至多 1 个
 - 0 个
 E: Rust 的规则是：一个 Package 至多包含 1 个库 Crate，但可以包含任意多个二进制 Crate。这是为了避免歧义。
 ```
 
 ```quiz single
 Q: 要在一个 Package 中创建两个名为 `tool1` 和 `tool2` 的二进制程序，应该如何组织文件？
-- 创建 src/tool1.rs 和 src/tool2.rs
 + 创建 src/bin/tool1.rs 和 src/bin/tool2.rs
-- 创建两个独立的 Package
+- 创建 src/tool1.rs 和 src/tool2.rs
 - 在 Cargo.toml 中显式列出
+- 创建两个独立的 Package
 E: 多个二进制 Crate 应该放在 src/bin/ 目录中，每个文件是一个独立的二进制 crate。使用 `cargo run --bin tool1` 来运行。
 ```
 
 ```quiz single
 Q: 库 Crate 的根源文件是什么，它必须包含什么？
-- src/main.rs，必须包含 main() 函数
-+ src/lib.rs，不必包含 main() 函数
-- src/lib.rs，必须包含 main() 函数
 - Cargo.toml
+- src/lib.rs，必须包含 main() 函数
++ src/lib.rs，不必包含 main() 函数
+- src/main.rs，必须包含 main() 函数
 E: 库 Crate 使用 src/lib.rs 作为根源文件，不需要 main() 函数，而是导出可供其他 crate 使用的函数或类型。
 ```

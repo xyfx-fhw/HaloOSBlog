@@ -237,8 +237,8 @@ fn main() {
 
 ```quiz single
 Q: 这段代码关于 const 的说法，正确的是？
-- const 可以被程序修改
 + const 必须指定类型，值在编译期计算
+- const 可以被程序修改
 - const 和 let 声明的变量没有区别
 - const 只能在函数内声明
 E: const 必须明确指定类型，且值必须是编译期可知的常数或常数表达式。
@@ -251,19 +251,19 @@ static NAME: String = String::from("App");
 
 ```quiz single
 Q: 这段代码能编译吗？
-- 能
 + 不能，因为 String::from() 不能在编译期执行
-- 能，但运行时会 panic
+- 能
 - 能，需要用 unsafe
+- 能，但运行时会 panic
 E: static 也要求值在编译期可知。String::from() 是运行时函数，不能用于 static 初始化。应该用 &str 字面量。
 ```
 
 ```quiz multi
 Q: 下列关于 const 的说法，正确的是？（多选）
-+ const 必须指定类型
 + const 值在编译期计算
 + const 可以在全局作用域定义
 - const 可以用 mut 修饰
++ const 必须指定类型
 E: const 总是不可变的，不能用 mut 修饰。static 才有 mut 变体（需 unsafe）。
 ```
 

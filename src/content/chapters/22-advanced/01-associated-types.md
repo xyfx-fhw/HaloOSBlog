@@ -294,10 +294,10 @@ trait Iterator {
 
 ```quiz single
 Q: 在 trait 里写 type Output; 是什么意思？
-- 声明一个名叫 Output 的字段，类型待定
+- 给 trait 起别名叫 Output
 + 声明一个类型槽，每个实现者在 impl 里用 type Output = 具体类型 来填入
 - 限制只有有 Output 字段的类型才能实现这个 trait
-- 给 trait 起别名叫 Output
+- 声明一个名叫 Output 的字段，类型待定
 E: type Output; 只是声明"这里有个待填入的类型"，本身不赋值。每个 impl 块里写 type Output = 某类型，由实现者来具体指定。
 ```
 
@@ -316,28 +316,28 @@ impl Converter for IsEven {
 
 ```quiz single
 Q: IsEven.convert(4) 的返回类型是什么？
-+ bool
 - Self::Output
 - i32
++ bool
 - Converter
 E: IsEven 的 impl 里写了 type Output = bool，所以 Self::Output 就是 bool，convert 返回 bool。
 ```
 
 ```quiz single
 Q: 为什么 trait Converter { type Output } 比 trait Converter<Output> 更适合表达"一种转换器只有一种输出"？
-- 关联类型语法更简洁
-+ 关联类型限制同一个类型只能实现 trait 一次，而泛型参数允许多次实现（不同的 Output）
-- 泛型参数不能用在 trait 里
 - 关联类型执行速度更快
+- 泛型参数不能用在 trait 里
++ 关联类型限制同一个类型只能实现 trait 一次，而泛型参数允许多次实现（不同的 Output）
+- 关联类型语法更简洁
 E: impl Converter<i32> for Double 和 impl Converter<String> for Double 可以同时存在——泛型参数允许多次实现。关联类型则强制 Double 只能 impl Converter 一次，type Output 只能填一个类型，语义上的"唯一"由编译器保证。
 ```
 
 ```quiz single
 Q: 泛型函数里的 C::Output 是什么意思？
-- 声明了一个新的泛型类型参数 Output
 + 引用 C 在实现 trait 时填入的关联类型 Output
 - 访问 C 类型上的一个叫 Output 的字段
 - C 和 Output 的某种组合类型
+- 声明了一个新的泛型类型参数 Output
 E: C::Output 不是新的类型参数，而是"查询 C 已经填好的那个 Output 是什么"。如果 C = Double 且 Double 实现了 type Output = i32，那么 C::Output 就是 i32，可以对它加约束（如 C::Output: Display）。
 ```
 
