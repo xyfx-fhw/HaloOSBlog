@@ -3,7 +3,7 @@ import BaseLayout from '../components/layout/BaseLayout.astro';
 import { buildNavTree, getFlatArticleList } from '../lib/content';
 
 // 开关：true = 正常开放证书；false = 课程更新中，暂不开放
-const CERTIFICATE_ENABLED = false;
+const CERTIFICATE_ENABLED = true;
 
 const navTree = await buildNavTree();
 const flatList = await getFlatArticleList(navTree);
