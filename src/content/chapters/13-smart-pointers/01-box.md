@@ -34,6 +34,8 @@ fn main() {
 
 ### 问题：无限大小的类型
 
+<img src="/RustCourse/diagrams/box.svg" alt="Box 指针示意图" style="max-width:100%;margin:1rem 0;" />
+
 我们来尝试用 Rust 定义一个来自函数式编程的经典数据结构 —— cons list（一种简单的链表）：
 
 ```rust
