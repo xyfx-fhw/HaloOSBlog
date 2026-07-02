@@ -54,24 +54,10 @@ $ rtodo remove 1
 
 ## 本章结构
 
-1. **数据建模** — `Todo` 结构体、`Command` 枚举（含 `Search`）、参数解析
-2. **数据持久化** — JSON 序列化、文件读写、存储路径
-3. **实现命令** — add/list/done/remove/search 的完整实现
-4. **输出与测试** — 彩色终端输出、单元测试、可选扩展
-
-## 创建项目
-
-```bash
-cargo new rtodo
-cd rtodo
-```
-
-`Cargo.toml` 添加依赖：
-
-```toml
-[dependencies]
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-```
-
-> 本章代码需要在本地 cargo 项目中运行。`serde` 是 Rust 生态最常用的序列化库，几乎所有实际项目都会用到。
+1. **项目架构** — Workspace 结构、两个 crate 的职责划分、搭建骨架
+2. **解析命令行参数** — `Command` 枚举、`lib.rs` + `main.rs` 并存、切片模式匹配
+3. **数据建模** — `Todo` 结构体、`TodoList`、用 `todo!()` 先规划接口
+4. **实现 TodoList** — TDD 方式逐个实现 CRUD 方法
+5. **接入 run 函数** — 连接解析层和数据层，跑通所有命令
+6. **数据持久化** — serde + JSON 文件读写，让数据在重启后保留
+7. **体验优化** — 改善错误信息、输出格式、Display trait 和彩色输出
