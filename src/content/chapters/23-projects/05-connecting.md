@@ -55,14 +55,10 @@ cargo build
 
 # 先写测试
 
-在 `rtodo/src/lib.rs` 末尾添加测试模块。测试直接调用 `execute`，验证每条命令对 `TodoList` 的状态变化：
+在 `rtodo/src/lib.rs` 里已有一个 `mod tests`（上一章 `parse_args` 的测试在那里）。把 `execute` 的测试追加到**同一个** `mod tests` 里，不要新建：
 
 ```rust
-// rtodo/src/lib.rs — 文件末尾添加
-#[cfg(test)]
-mod tests {
-    use super::*;
-
+// rtodo/src/lib.rs — 已有的 mod tests 内，追加以下测试函数
     #[test]
     fn test_execute_add() {
         let mut list = TodoList::new();
@@ -106,8 +102,9 @@ mod tests {
         assert!(execute(Command::List, &mut list).is_ok());
         assert!(execute(Command::Search("Rust".to_string()), &mut list).is_ok());
     }
-}
 ```
+
+把这六个测试函数写在已有 `mod tests` 的**闭合 `}` 之前**，不要在文件末尾再新建一个 `mod tests`——同一个文件里不能有两个同名模块。
 
 运行，所有测试因 `todo!()` 而失败：
 

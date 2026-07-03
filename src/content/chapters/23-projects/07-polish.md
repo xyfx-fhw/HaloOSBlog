@@ -73,7 +73,7 @@ _ => Err(format!("未知命令：{}", args.join(" "))),
 ```rust
 // rtodo/src/lib.rs — execute() 内，替换 Command::List 分支
 Command::List => {
-    let todos = store.all();
+    let todos = list.all();
     if todos.is_empty() {
         println!("暂无任务");
     } else {
@@ -94,7 +94,7 @@ Command::List => {
 ```rust
 // rtodo/src/lib.rs — execute() 内，替换 Command::Search 分支
 Command::Search(query) => {
-    let results = store.search(&query);
+    let results = list.search(&query);
     if results.is_empty() {
         println!("没有找到包含 \"{}\" 的任务", query);
     } else {
@@ -135,7 +135,7 @@ pub fn mark_done(&mut self, id: u32) -> Result<String, String> {
 ```rust
 // rtodo/src/lib.rs — execute() 内，替换 Command::Done 分支
 Command::Done(id) => {
-    let title = store.mark_done(id)?;
+    let title = list.mark_done(id)?;
     println!("已完成：[{}] {}", id, title);
 }
 ```
@@ -184,7 +184,7 @@ impl fmt::Display for Todo {
 ```rust
 // rtodo/src/lib.rs — execute() 内，替换 Command::List 和 Command::Search 分支
 Command::List => {
-    let todos = store.all();
+    let todos = list.all();
     if todos.is_empty() {
         println!("暂无任务。使用 `rtodo add \"任务内容\"` 添加。");
     } else {
@@ -197,7 +197,7 @@ Command::List => {
 }
 
 Command::Search(query) => {
-    let results = store.search(&query);
+    let results = list.search(&query);
     if results.is_empty() {
         println!("没有找到包含 \"{}\" 的任务。", query);
     } else {
@@ -233,8 +233,8 @@ crossterm = "0.28"
 
 ```rust
 // rtodo/src/lib.rs — 文件顶部添加
-use crossterm::style::Colorize;
-use rtodo_core::{Todo, TodoStore, data_path};
+use crossterm::style::Stylize;
+use rtodo_core::{Todo, TodoList, data_path};
 ```
 
 ```rust
@@ -242,7 +242,7 @@ use rtodo_core::{Todo, TodoStore, data_path};
 fn print_todo(todo: &Todo) {
     let id_str = format!("{:>4}", todo.id);
     if todo.completed {
-        println!("{}  [✓]  {}", id_str.green(), todo.title.dark_grey());
+        println!("{}  [✓]  {}", id_str.green(), todo.title.as_str().dark_grey());
     } else {
         println!("{}  [ ]  {}", id_str, todo.title);
     }
@@ -258,7 +258,7 @@ fn print_todo(todo: &Todo) {
 ```rust
 // rtodo/src/lib.rs — execute() 内，替换 Command::List 分支（带颜色版本）
 Command::List => {
-    let todos = store.all();
+    let todos = list.all();
     if todos.is_empty() {
         println!("{}", "暂无任务。使用 `rtodo add \"任务内容\"` 添加。".dark_grey());
     } else {
@@ -302,7 +302,7 @@ Command::List => {
 
 | 章节 | 用在了哪里 |
 |------|-----------|
-| 结构体与枚举 | `Todo`、`Command`、`TodoStore` |
+| 结构体与枚举 | `Todo`、`Command`、`TodoList` |
 | 所有权与借用 | `&Todo`（只读引用）vs `Todo`（移交所有权），`&mut self` 修改方法 |
 | 错误处理 | `Result<_, String>`、`?`、`.map_err()`、`.ok_or_else()` |
 | 迭代器 | `.find()`、`.position()`、`.filter()`、`.count()`、`.max()` |

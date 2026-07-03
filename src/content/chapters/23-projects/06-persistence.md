@@ -50,11 +50,10 @@ pub struct Todo {
 }
 ```
 
-和上一章相比，这里做了三处改动：
+和上一章相比，这里做了两处改动：
 
 - 加了 `#[derive(Serialize, Deserialize)]`：编译器在编译时自动生成 `Todo ↔ JSON` 的转换代码，不需要手写任何逻辑
-- 加了 `Clone`：`TodoStore` 的 load 方法里会用到，一并加上
-- 结构体和字段都加了 `pub`：让 `rtodo` bin crate 能访问 `Todo` 的字段
+- 加了 `Clone`：`TodoList` 的 `load` 方法里会用到，一并加上
 
 # 确定存储路径
 
@@ -86,41 +85,39 @@ pub fn data_path() -> PathBuf {
 
 这里用 `PathBuf` 而不是 `String` 来表示路径。路径在不同操作系统上分隔符不同（Unix 用 `/`，Windows 用 `\`），`PathBuf` 会自动处理这个差异，`.join()` 也会使用正确的分隔符拼接。如果用字符串硬拼 `home + "/.rtodo.json"`，在 Windows 上路径会出错。
 
-# 给 TodoStore 加上文件读写
+# 给 TodoList 加上文件读写
 
-## 给 TodoStore 加 path 字段
+## 给 TodoList 加 path 字段
 
-上一章的 `TodoStore` 只有 `todos` 字段。现在要加一个 `path`，记录数据文件的位置：
+上一章的 `TodoList` 只有 `todos` 字段。现在要加一个 `path`，记录数据文件的位置：
 
 ```rust
 // rtodo-core/src/lib.rs — 替换原有 TodoList 定义
-pub struct TodoStore {
+pub struct TodoList {
     path: PathBuf,
     todos: Vec<Todo>,
 }
 ```
 
-`path` 是私有字段，外部不能直接改，只能通过 `load` 方法传入。同时把上一章的 `new()` 方法删掉，改用 `load()` 来创建 `TodoStore`。
+`path` 是私有字段，外部不能直接改，只能通过 `load` 方法传入。同时把上一章的 `new()` 方法删掉，改用 `load()` 来创建 `TodoList`。
 
 ## 实现 load
 
 `load` 从文件读取任务列表，文件不存在时返回空列表（第一次运行的正常情况）：
 
 ```rust
-// rtodo-core/src/lib.rs — TodoStore 定义之后写入
-impl TodoStore {
-    pub fn load(path: PathBuf) -> Result<Self, String> {
-        let todos = if path.exists() {
-            let content = std::fs::read_to_string(&path)
-                .map_err(|e| format!("读取文件失败：{}", e))?;
-            serde_json::from_str(&content)
-                .map_err(|e| format!("解析 JSON 失败：{}", e))?
-        } else {
-            Vec::new()
-        };
+// rtodo-core/src/lib.rs — impl TodoList 内，替换 new()，添加 load()
+pub fn load(path: PathBuf) -> Result<Self, String> {
+    let todos = if path.exists() {
+        let content = std::fs::read_to_string(&path)
+            .map_err(|e| format!("读取文件失败：{}", e))?;
+        serde_json::from_str(&content)
+            .map_err(|e| format!("解析 JSON 失败：{}", e))?
+    } else {
+        Vec::new()
+    };
 
-        Ok(TodoStore { path, todos })
-    }
+    Ok(TodoList { path, todos })
 }
 ```
 
@@ -131,30 +128,73 @@ impl TodoStore {
 `save` 把当前任务列表序列化并写回文件：
 
 ```rust
-// rtodo-core/src/lib.rs — impl TodoStore 内，load 之后添加
-    pub fn save(&self) -> Result<(), String> {
-        let content = serde_json::to_string_pretty(&self.todos)
-            .map_err(|e| format!("序列化失败：{}", e))?;
-        std::fs::write(&self.path, content)
-            .map_err(|e| format!("写入文件失败：{}", e))?;
-        Ok(())
-    }
+// rtodo-core/src/lib.rs — impl TodoList 内，load 之后添加
+pub fn save(&self) -> Result<(), String> {
+    let content = serde_json::to_string_pretty(&self.todos)
+        .map_err(|e| format!("序列化失败：{}", e))?;
+    std::fs::write(&self.path, content)
+        .map_err(|e| format!("写入文件失败：{}", e))?;
+    Ok(())
+}
 ```
 
 `to_string_pretty` 生成带缩进的 JSON，文件内容更易于人工查看。`fs::write` 不需要提前创建文件——文件不存在时自动创建，存在时直接覆盖。
 
-# 接入 main
+# 更新测试用例
+
+`TodoList` 加了 `path` 字段后，原来的 `TodoList::new()` 不再存在——编译器会报错。打开 `rtodo-core/src/lib.rs`，找到 `mod tests`，在模块顶部加一个辅助函数替代 `new()`：
+
+```rust
+// rtodo-core/src/lib.rs — mod tests 内，use super::* 之后添加
+fn empty_list() -> TodoList {
+    TodoList {
+        path: "/tmp/rtodo_test_nonexistent.json".into(),
+        todos: vec![],
+    }
+}
+```
+
+`path` 是私有字段，只有同一文件的 `mod tests` 能直接访问它，外部调用方做不到。路径指向一个不存在的文件——测试不会真的读写磁盘，只是给结构体一个合法的 `PathBuf` 值。
+
+然后把 `mod tests` 里所有的 `TodoList::new()` 替换为 `empty_list()`：
+
+```rust
+// rtodo-core/src/lib.rs — 替换 mod tests 内所有 TodoList::new()
+// 改前：let mut list = TodoList::new();
+// 改后：let mut list = empty_list();
+```
+
+## 更新 rtodo 里的测试
+
+`rtodo/src/lib.rs` 里也有一组 `execute` 的测试，同样用了 `TodoList::new()`。这里情况不同——`rtodo` 是另一个 crate，无法直接访问 `TodoList` 的私有字段，不能用上面那种方式。
+
+但 `TodoList::load()` 是公开方法，传入一个不存在的路径，它会直接返回空列表：
+
+```rust
+// rtodo/src/lib.rs — mod tests 内，use super::* 之后添加
+fn empty_list() -> TodoList {
+    TodoList::load("/tmp/rtodo_test_nonexistent.json".into()).unwrap()
+}
+```
+
+同样把 `mod tests` 里所有的 `TodoList::new()` 替换为 `empty_list()`，确认所有测试全绿：
+
+```bash
+cargo test
+```
+
+# 接入 run 函数
 
 ## 更新引入和 run 函数
 
-回到 `rtodo/src/lib.rs`，更新顶部的引入，加上 `data_path` 和 `TodoStore`：
+回到 `rtodo/src/lib.rs`，更新顶部的引入，加上 `data_path`：
 
 ```rust
 // rtodo/src/lib.rs — 文件顶部，替换原有 use
-use rtodo_core::{TodoStore, data_path};
+use rtodo_core::{TodoList, data_path};
 ```
 
-在 `run` 函数里，把 `TodoList::new()` 换成 `TodoStore::load(data_path())`，并在命令执行完后调用 `store.save()`：
+在 `run` 函数里，把 `TodoList::new()` 换成 `TodoList::load(data_path())`，并在命令执行完后调用 `list.save()`：
 
 ```rust
 // rtodo/src/lib.rs — 替换 run() 函数
@@ -162,18 +202,15 @@ pub fn run() -> Result<(), String> {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let command = parse_args(&args)?;
 
-    let mut store = TodoStore::load(data_path())?;
+    let mut list = TodoList::load(data_path())?;
+    execute(command, &mut list)?;
 
-    match command {
-        // ... 和上一章完全相同 ...
-    }
-
-    store.save()?;
+    list.save()?;
     Ok(())
 }
 ```
 
-`store.save()` 放在 `match` **之后**，每次命令执行完都写回文件，不管执行的是哪条命令。
+`list.save()` 放在 `execute` **之后**，每次命令执行完都写回文件。
 
 ## 再次运行
 
