@@ -260,6 +260,12 @@ pub fn log_call(_attr: TokenStream, item: TokenStream) -> TokenStream {
         }
     }.into()
 }
+
+// 使用宏标注函数：
+#[log_call]
+fn greet(name: &str) {
+    println!("你好，{}", name);
+}
 ```
 
 ```quiz single

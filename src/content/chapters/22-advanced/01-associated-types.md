@@ -30,7 +30,7 @@ trait Converter {
 
 ## 第一次尝试：impl Trait
 
-你刚学过 `impl Trait` 可以让返回类型灵活，试一下：
+你学过 `impl Trait` 可以让返回类型灵活，试一下：
 
 ```rust runnable expect-error
 trait Converter {
@@ -339,33 +339,4 @@ Q: 泛型函数里的 C::Output 是什么意思？
 - C 和 Output 的某种组合类型
 - 声明了一个新的泛型类型参数 Output
 E: C::Output 不是新的类型参数，而是"查询 C 已经填好的那个 Output 是什么"。如果 C = Double 且 Double 实现了 type Output = i32，那么 C::Output 就是 i32，可以对它加约束（如 C::Output: Display）。
-```
-
-## 编程练习
-
-实现两种"格式化器"，它们都接受一个 `i32`，但输出类型不同：
-
-```rust editable
-trait Formatter {
-    type Result;
-    fn format(&self, value: i32) -> Self::Result;
-}
-
-// NumberFormatter：返回 value * 2 的数字（i32）
-struct NumberFormatter;
-
-// LabelFormatter：返回 "值: {value}" 格式的字符串（String）
-struct LabelFormatter;
-
-// TODO: 为两者实现 Formatter trait
-
-fn main() {
-    println!("{}", NumberFormatter.format(21)); // 42
-    println!("值: {}", LabelFormatter.format(42));  // 值: 42
-}
-```
-
-```expected
-42
-值: 42
 ```

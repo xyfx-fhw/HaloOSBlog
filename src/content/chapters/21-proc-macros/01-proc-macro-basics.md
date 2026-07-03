@@ -160,7 +160,7 @@ edition = "2021"
 proc-macro = true    # 告诉编译器这是一个过程宏 crate
 
 [dependencies]
-# 通常需要这两个库（后面章节会详细讲）
+# 通常需要这两个库
 syn = "2"
 quote = "1"
 ```

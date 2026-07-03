@@ -18,4 +18,3 @@ keywords: ["过程宏", "proc-macro", "derive宏", "类属性宏", "类函数宏
 | [自定义 derive 宏](./02-derive-macros) | 为 trait 添加 `#[derive(...)]` 支持，自动生成 impl 代码 |
 | [类属性宏](./03-attribute-macros) | 可应用于任意语法项的自定义属性宏 |
 | [类函数宏](./04-function-like-macros) | 接受任意 token 序列的函数形式宏 |
-| [syn 与 quote](./05-syn-and-quote) | 解析 AST 和生成代码的标准工具链 |

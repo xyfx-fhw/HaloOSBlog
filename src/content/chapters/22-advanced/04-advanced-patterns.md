@@ -305,6 +305,181 @@ fn main() {
 }
 ```
 
+# 切片模式
+
+结构体和枚举的解构你已经很熟悉了。切片（slice）也可以用模式匹配，而且语法非常直观——用 `[]` 括起来，按位置描述元素。
+
+## 基本用法
+
+```rust runnable
+fn describe(nums: &[i32]) -> String {
+    match nums {
+        []        => "空".to_string(),
+        [x]       => format!("只有一个：{}", x),
+        [x, y]    => format!("恰好两个：{} 和 {}", x, y),
+        [first, .., last] => format!("首 {}，尾 {}，共 {} 个", first, last, nums.len()),
+    }
+}
+
+fn main() {
+    println!("{}", describe(&[]));          // 空
+    println!("{}", describe(&[42]));        // 只有一个：42
+    println!("{}", describe(&[1, 2]));      // 恰好两个：1 和 2
+    println!("{}", describe(&[1, 2, 3, 4])); // 首 1，尾 4，共 4 个
+}
+```
+
+`[first, .., last]` 里的 `..` 和结构体里的 `..` 是同一个概念——忽略中间任意多个元素。
+
+## 捕获剩余部分：`rest @ ..`
+
+用 `@` 绑定可以把"剩余部分"也捕获成一个子切片：
+
+```rust runnable
+fn process(data: &[i32]) {
+    match data {
+        [] => println!("没有数据"),
+        [head, tail @ ..] => {
+            // head 是第一个元素，tail 是剩余部分的切片
+            println!("头：{}，剩余 {} 个：{:?}", head, tail.len(), tail);
+            // 可以递归处理 tail，或者继续匹配
+        }
+    }
+}
+
+fn main() {
+    process(&[10, 20, 30, 40]);  // 头：10，剩余 3 个：[20, 30, 40]
+    process(&[99]);               // 头：99，剩余 0 个：[]
+    process(&[]);                 // 没有数据
+}
+```
+
+`tail @ ..` 的意思是：把 `..`（剩余所有元素）绑定到名字 `tail`。`tail` 的类型是 `&[i32]`，可以继续对它做任何切片操作。
+
+## 实际用途：协议解析
+
+切片模式在处理结构化字节流时特别有用——比如解析一个简单的文本命令：
+
+```rust runnable
+fn handle_command(parts: &[&str]) -> String {
+    match parts {
+        ["quit"] | ["exit"] => "退出程序".to_string(),
+        ["help"] => "显示帮助".to_string(),
+        ["get", key] => format!("获取 key: {}", key),
+        ["set", key, value] => format!("设置 {} = {}", key, value),
+        ["set", ..] => "用法：set <key> <value>".to_string(),
+        [cmd, ..] => format!("未知命令：{}", cmd),
+        [] => "请输入命令".to_string(),
+    }
+}
+
+fn main() {
+    println!("{}", handle_command(&["get", "name"]));       // 获取 key: name
+    println!("{}", handle_command(&["set", "x", "42"]));    // 设置 x = 42
+    println!("{}", handle_command(&["set", "x"]));          // 用法：set <key> <value>
+    println!("{}", handle_command(&["quit"]));               // 退出程序
+    println!("{}", handle_command(&["foo", "bar", "baz"])); // 未知命令：foo
+}
+```
+
+注意分支顺序：`["set", key, value]` 必须在 `["set", ..]` 前面，因为 `match` 从上往下匹配，更具体的模式要写在更宽泛的前面。
+
+# ref 绑定与 match ergonomics
+
+## 所有权问题
+
+`match` 默认会**移动**被匹配的值。对 `String`、`Vec` 等有所有权的类型，这往往不是你想要的：
+
+```rust runnable expect-error
+struct User {
+    name: String,
+    age: u32,
+}
+
+fn greet(user: &User) {
+    match user {
+        User { name, age } => println!("你好 {}，{}岁", name, age),
+        // ❌ 试图从 &User 里移走 String，不允许
+    }
+}
+# fn main() {}
+```
+
+有三种方式解决。
+
+## 方式一：对引用本身 match
+
+最常见的做法——直接 match `&user`（或者 match `*user` 并在模式里写 `&`）：
+
+```rust runnable
+struct User { name: String, age: u32 }
+
+fn greet(user: &User) {
+    // 对 &User 解构，name 和 age 自动成为引用
+    let User { name, age } = user;
+    println!("你好 {}，{}岁", name, age);
+}
+
+fn main() {
+    let u = User { name: "Alice".to_string(), age: 30 };
+    greet(&u);
+    println!("u.name 还在：{}", u.name); // 没有被移走
+}
+```
+
+对 `&T` 做 `let` 解构时，Rust 自动把字段变成引用（`name: &String`，`age: &u32`）。这就是 **match ergonomics**：编译器帮你省去了每个字段前手写 `ref` 的麻烦。
+
+## 方式二：显式 ref 绑定
+
+在模式里显式写 `ref`，把绑定变成引用而不是移动：
+
+```rust runnable
+struct User { name: String, age: u32 }
+
+fn greet(user: User) { // 注意：拿的是所有权
+    match user {
+        User { ref name, age } => {
+            // name 是 &String（借用），age 是 u32（Copy，直接复制）
+            println!("你好 {}，{}岁", name, age);
+            // user.name 没有被移走，但 user 还在这个 match 作用域里
+        }
+    }
+}
+
+fn main() {
+    greet(User { name: "Bob".to_string(), age: 25 });
+}
+```
+
+`ref name` 告诉编译器：不要移动 `name`，给我一个 `&String`。`ref mut name` 则给一个 `&mut String`。
+
+## 什么时候还需要手写 ref？
+
+match ergonomics（自动推导引用）覆盖了大多数情况，但有两种场景仍需手写 `ref`：
+
+**1. 在 `let` 解构里只想借用部分字段，其他字段要移动：**
+
+```rust runnable
+struct Packet { header: u8, payload: String }
+
+fn main() {
+    let p = Packet { header: 0xAB, payload: "数据".to_string() };
+
+    // header 移动（Copy 类型，实际是复制），payload 借用
+    let Packet { header, ref payload } = p;
+
+    println!("头：{:#x}", header);
+    println!("数据：{}", payload);
+    println!("p.payload 还在：{}", p.payload); // 没有被移走
+}
+```
+
+**2. 在 `match` 里对同一个值同时需要移动部分字段和借用部分字段时，ergonomics 可能推导不出你想要的，显式 `ref` 可以精确控制。**
+
+> **简单记法**：
+> - 匹配 `&T` 或 `&mut T` → match ergonomics 自动处理，大多数情况不需要 `ref`
+> - 匹配有所有权的 `T`，只想借用某个字段 → 在那个字段前写 `ref`
+
 # 练习题
 
 ## 模式匹配测验
@@ -339,8 +514,16 @@ Q: 上面的代码输出什么？
 E: pair = (3, -2)，x=3，y=-2。第一个守卫：x == y → 3 == -2 → 假，跳过。第二个守卫：x + y > 0 → 3 + (-2) = 1 > 0 → 真，匹配。输出"和为正"。
 ```
 
+```rust
+fn main() {
+    let numbers = (1, 2, 3, 4, 5);
+    let (.., last) = numbers;
+    println!("{}", last);
+}
+```
+
 ```quiz single
-Q: 下面的代码用 .. 解构元组 (1, 2, 3, 4, 5)：let (.., last) = (1, 2, 3, 4, 5);，last 的值是什么？
+Q: 上面的代码中 last 的值是什么？
 - 1
 - (2, 3, 4, 5)
 + 5
@@ -372,48 +555,4 @@ Q: 关于模式守卫（if guard），下列哪些说法是正确的？
 + 如果守卫为假，match 会继续尝试下一个分支
 + 守卫中可以使用已被模式解构出来的变量
 E: 守卫的执行顺序是：先检查模式是否匹配，匹配了再评估守卫条件。所以守卫里可以使用解构出的变量（x、y 等）。如果守卫为假，不是返回默认值，而是继续往下看有没有其他分支能匹配。
-```
-
-## 编程练习
-
-用 `@` 绑定和模式守卫，写一个学生成绩评级函数：
-
-```rust editable
-#[derive(Debug)]
-struct Student {
-    name: String,
-    score: u32,
-}
-
-fn grade_report(students: &[Student]) {
-    for student in students {
-        let grade = match student.score {
-            // TODO: 使用 @ 绑定匹配分数范围并在格式化字符串中使用具体分数
-            // 90..=100 → "A (分数)"
-            // 80..=89  → "B (分数)"
-            // 60..=79  → "C (分数)"
-            // 0..=59   → "不及格 (分数)"
-            // _        → "无效分数"
-            _ => format!("未知 ({})", student.score),
-        };
-        println!("{}: {}", student.name, grade);
-    }
-}
-
-fn main() {
-    let students = vec![
-        Student { name: "Alice".to_string(), score: 95 },
-        Student { name: "Bob".to_string(), score: 82 },
-        Student { name: "Carol".to_string(), score: 73 },
-        Student { name: "Dave".to_string(), score: 45 },
-    ];
-    grade_report(&students);
-}
-```
-
-```expected
-Alice: A (95)
-Bob: B (82)
-Carol: C (73)
-Dave: 不及格 (45)
 ```
