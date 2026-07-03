@@ -14,9 +14,9 @@ Rust 嵌入式的核心优势：**零成本抽象**（高级语法，C 级机器
 
 | 文章 | 主要内容 |
 | --- | --- |
-| [裸机开发基础](./01-no-std-basics) | `no_std` 环境、Panic 处理与程序入口点 |
+| [裸机开发基础：no_std 环境](./01-no-std-basics) | `no_std` 环境、Panic 处理与程序入口点 |
 | [内存布局与链接脚本](./02-memory-layout) | 内存映射、`memory.x` 与启动时的内存段初始化 |
-| [硬件抽象与寄存器](./03-hardware-abstraction) | PAC、HAL 以及类型安全的寄存器操作 |
-| [中断与内存安全](./04-interrupts-concurrency) | 嵌入式并发、原子操作，中断中的安全数据访问 |
-| [异步嵌入式：Embassy](./05-async-embassy) | 现代化异步嵌入式框架，高效处理多任务 |
-| [工具链与调试](./06-toolchain-debug) | 嵌入式工具链配置、调试手段与实战项目串联 |
+| [硬件抽象：PAC 与 HAL](./03-hardware-abstraction) | PAC、HAL 以及类型安全的寄存器操作 |
+| [中断与并发安全](./04-interrupts-concurrency) | 嵌入式并发、原子操作，中断中的安全数据访问 |
+| [实战演练：简易内核实验](./05-async-embassy) | 现代化异步嵌入式框架，高效处理多任务 |
+| [异步嵌入式：Embassy 框架](./06-toolchain-debug) | 嵌入式工具链配置、调试手段与实战项目串联 |
