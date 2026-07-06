@@ -40,11 +40,15 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   </div>
 </header>
 
-<script define:vars={{ firstChapterHref }} is:inline>
+<script define:vars={{ firstChapterHref, articleSlugs }} is:inline>
   const last = localStorage.getItem('rust-tutorial-last-visited');
   if (last) {
-    const link = document.getElementById('tutorial-nav-link');
-    if (link) link.href = last;
+    if (articleSlugs.some(s => last.endsWith('/chapters/' + s))) {
+      const link = document.getElementById('tutorial-nav-link');
+      if (link) link.href = last;
+    } else {
+      localStorage.removeItem('rust-tutorial-last-visited');
+    }
   }
 </script>
 

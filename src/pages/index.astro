@@ -58,11 +58,15 @@ const articleSlugs = navTree.flatMap(ch => [ch.indexSlug, ...ch.articles.map(a =
     </div>
   </section>
 
-  <script define:vars={{ firstChapterHref }} is:inline>
+  <script define:vars={{ firstChapterHref, articleSlugs }} is:inline>
     const last = localStorage.getItem('rust-tutorial-last-visited');
     if (last) {
-      const btn = document.getElementById('start-btn');
-      if (btn) btn.href = last;
+      if (articleSlugs.some(s => last.endsWith('/chapters/' + s))) {
+        const btn = document.getElementById('start-btn');
+        if (btn) btn.href = last;
+      } else {
+        localStorage.removeItem('rust-tutorial-last-visited');
+      }
     }
   </script>
 
