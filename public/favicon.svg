@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="10" fill="#CE412B"/>
+  <rect width="64" height="64" rx="16" fill="#CEA472"/>
   <text
-    x="32" y="47"
+    x="32" y="46"
     font-family="monospace"
     font-size="42"
     font-weight="bold"
     text-anchor="middle"
     fill="white"
-  >R</text>
+  >H</text>
 </svg>

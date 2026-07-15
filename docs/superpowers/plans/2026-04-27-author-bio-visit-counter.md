@@ -64,7 +64,7 @@ git commit -m "chore: move logo.svg to public/images/"
 在 `src/components/layout/BaseLayout.astro` 第 30 行（`<title>...</title>` 之后）添加：
 
 ```html
-    <title>{title} — RUST 互动教程</title>
+    <title>{title} — HaloOS 系列讲解</title>
     <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
   </head>
 ```

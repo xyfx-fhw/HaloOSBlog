@@ -27,22 +27,18 @@ const totalArticles = navTree.reduce((sum, ch) => sum + 1 + ch.articles.length, 
 const articleSlugs = navTree.flatMap(ch => [ch.indexSlug, ...ch.articles.map(a => a.slug)]);
 ---
 
-<BaseLayout title="首页" description="RUST 互动教程 — 零基础系统学习 Rust 语言">
+<BaseLayout title="首页" description="HaloOS 系列讲解 — 整车操作系统架构与核心技术">
   <ConfirmDialog />
   <!-- Hero 区 -->
   <section class="hero">
     <div class="hero-bg" aria-hidden="true">
-      <div class="orb orb-1"></div>
-      <div class="orb orb-2"></div>
-      <div class="orb orb-3"></div>
+      <canvas id="matrix-canvas"></canvas>
     </div>
     <div class="hero-inner">
-      <div class="hero-badge">循序 · 互动 · 零基础</div>
-      <h1 class="hero-title">
-        <span class="accent">RUST</span> 互动教程
-      </h1>
+      <div class="hero-badge">VCOS · ADOS · VBS</div>
+      <h1 class="hero-title">整车操作系统 <span class="accent">HaloOS</span> 系列讲解</h1>
       <p class="hero-subtitle">
-        像官方 Rust Book 一样系统讲解，加入在线代码执行、可编辑练习、章节测验等互动功能。从第一行代码开始，逐步掌握 Rust 语言。
+        星环OS（HaloOS）是一款专为智能化与AI业务而生的整车操作系统，旨在为未来更前沿、更复杂的系统功能演进筑牢基石。
       </p>
       <div class="hero-actions">
         <a href={firstChapterHref} class="btn-primary" id="start-btn">开始学习 →</a>
@@ -59,6 +55,89 @@ const articleSlugs = navTree.flatMap(ch => [ch.indexSlug, ...ch.articles.map(a =
   </section>
 
   <script define:vars={{ firstChapterHref, articleSlugs }} is:inline>
+    // 矩阵雨：流式算法，彻底避免叠加
+    (function () {
+      const canvas = document.getElementById('matrix-canvas');
+      if (!canvas || !(canvas instanceof HTMLCanvasElement)) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const FONT_SIZE  = 16;
+      const COL_GAP    = 28;
+      const TAIL_MIN   = 10;
+      const TAIL_MAX   = 30;
+      const SPEED_MIN  = 0.6;
+      const SPEED_MAX  = 1.0;
+
+      function makeStream(totalRows) {
+        const tailLen = TAIL_MIN + Math.floor(Math.random() * (TAIL_MAX - TAIL_MIN));
+        return {
+          head:    -Math.floor(Math.random() * totalRows * 2),
+          tailLen: tailLen,
+          speed:   SPEED_MIN + Math.random() * (SPEED_MAX - SPEED_MIN),
+          chars:   Array.from({ length: tailLen }, () => Math.random() < 0.5 ? '0' : '1'),
+        };
+      }
+
+      let streams = [];
+      let totalRows = 0;
+      let totalCols = 0;
+      ctx.font = `bold ${FONT_SIZE}px 'JetBrains Mono', monospace`;
+
+      function init() {
+        const parent = canvas.parentElement;
+        if (!parent) return;
+        canvas.width  = parent.offsetWidth;
+        canvas.height = parent.offsetHeight;
+        totalRows = Math.ceil(canvas.height / FONT_SIZE);
+        totalCols = Math.ceil(canvas.width  / COL_GAP);
+        streams = Array.from({ length: totalCols }, () => makeStream(totalRows));
+      }
+
+      init();
+      window.addEventListener('resize', init);
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.font = `bold ${FONT_SIZE}px 'JetBrains Mono', monospace`;
+
+        for (let col = 0; col < streams.length; col++) {
+          const s = streams[col];
+          const x = col * COL_GAP;
+
+          for (let t = 0; t < s.tailLen; t++) {
+            const row = Math.floor(s.head) - t;
+            if (row < 0 || row >= totalRows) continue;
+
+            const y = row * FONT_SIZE + FONT_SIZE;
+            const tailAlpha = 1 - t / s.tailLen;
+            const yAlpha = Math.max(0, 1 - y / canvas.height);
+            const alpha = tailAlpha * yAlpha;
+
+            if (t === 0) {
+              ctx.fillStyle = `rgba(140, 220, 140, ${yAlpha})`;
+            } else {
+              ctx.fillStyle = `rgba(0, 114, 109, ${alpha * 0.9})`;
+            }
+
+            const char = (t === 0 && Math.random() < 0.15)
+              ? (Math.random() < 0.5 ? '0' : '1')
+              : s.chars[t % s.tailLen];
+
+            ctx.fillText(char, x, y);
+          }
+
+          s.head += s.speed;
+
+          if (Math.floor(s.head) > totalRows + s.tailLen + 2) {
+            streams[col] = makeStream(totalRows);
+          }
+        }
+      }
+
+      setInterval(draw, 80);
+    })();
+
     const last = localStorage.getItem('rust-tutorial-last-visited');
     if (last) {
       if (articleSlugs.some(s => last.endsWith('/chapters/' + s))) {
@@ -180,74 +259,21 @@ const articleSlugs = navTree.flatMap(ch => [ch.indexSlug, ...ch.articles.map(a =
     pointer-events: none;
   }
 
-  /* 底部渐变淡出，消除与下方黑色区域的硬断层 */
-  .hero::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 140px;
-    background: linear-gradient(to bottom, transparent, var(--color-bg));
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(80px);
-  }
-
-  .orb-1 {
-    width: 560px;
-    height: 380px;
-    background: radial-gradient(circle at 40% 40%, rgba(206, 65, 43, 0.22), transparent 70%);
-    top: -120px;
-    left: 50%;
-    animation: orb-drift-1 18s ease-in-out infinite;
-  }
-
-  .orb-2 {
-    width: 400px;
-    height: 300px;
-    background: radial-gradient(circle at 50% 50%, rgba(217, 119, 6, 0.15), transparent 70%);
-    top: -80px;
-    left: -80px;
-    animation: orb-drift-2 22s ease-in-out infinite;
-  }
-
-  .orb-3 {
-    width: 300px;
-    height: 240px;
-    background: radial-gradient(circle at 50% 50%, rgba(99, 55, 180, 0.10), transparent 70%);
-    bottom: 25%;
-    right: 5%;
-    animation: orb-drift-3 15s ease-in-out infinite;
-  }
-
-  @keyframes orb-drift-1 {
-    0%, 100% { transform: translateX(-30%) translateY(0) scale(1); }
-    35%       { transform: translateX(-20%) translateY(-30px) scale(1.06); }
-    70%       { transform: translateX(-40%) translateY(20px) scale(0.96); }
-  }
-
-  @keyframes orb-drift-2 {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    40%       { transform: translate(30px, -25px) scale(1.08); }
-    75%       { transform: translate(-20px, 15px) scale(0.94); }
-  }
-
-  @keyframes orb-drift-3 {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    50%       { transform: translate(-25px, -20px) scale(1.1); }
+  #matrix-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
   }
 
   .hero-inner {
     position: relative;
     z-index: 1;
-    max-width: 640px;
+    max-width: 800px;
     margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
   }
 
   .hero-badge {
@@ -310,7 +336,7 @@ const articleSlugs = navTree.flatMap(ch => [ch.indexSlug, ...ch.articles.map(a =
     gap: 0.25rem;
     font-size: 0.7rem;
     padding: 0.15rem 0.5rem;
-    border: 1px solid rgba(206, 65, 43, 0.35);
+    border: 1px solid rgba(206, 164, 114, 0.6);
     border-radius: 999px;
     color: var(--color-accent);
     opacity: 0.8;

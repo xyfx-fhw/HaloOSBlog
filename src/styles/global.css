@@ -3,20 +3,20 @@
 
 /* CSS 变量（设计令牌） */
 :root {
-  --color-bg: #0D0D0F;
-  --color-surface: #111114;
-  --color-code-bg: #1A1A1E;
-  --color-accent: #CE412B;
-  --color-accent-hover: #b8351f;
+  --color-bg: #000000;
+  --color-surface: #0A0A0A;
+  --color-code-bg: #141414;
+  --color-accent: #CEA472;
+  --color-accent-hover: #B8945F;
   --color-link: #6ba3f5;
   --color-link-hover: #90bbf8;
   --color-text: #E8E8E8;
   --color-text-muted: #888890;
-  --color-border: #2A2A2F;
+  --color-border: #1F1F1F;
   --color-success: #22c55e;
   --color-warning: #f59e0b;
   --color-error: #ef4444;
-  --color-code-text: #e8d5b7;
+  --color-code-text: #BEFCAE;
 
   --font-sans: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --font-body: 'Inter', 'Noto Sans SC', 'PingFang SC', sans-serif;
@@ -135,7 +135,7 @@ a:hover {
   font-weight: 700;
 }
 
-/* **text** → 主题橙加粗 */
+/* **text** → 主题镶金加粗 */
 .prose .strong-star {
   color: var(--color-accent);
 }
@@ -182,7 +182,7 @@ a:hover {
 
 .prose blockquote {
   border-left: 3px solid var(--color-accent);
-  background: rgba(206, 65, 43, 0.08);
+  background: rgba(206, 164, 114, 0.08);
   padding: 0.75rem 1rem 0.75rem 1.25rem;
   border-radius: 0 6px 6px 0;
   color: #d8dce8;
@@ -247,7 +247,7 @@ a:hover {
 }
 
 .prose tbody tr:hover {
-  background: rgba(206, 65, 43, 0.04);
+  background: rgba(206, 164, 114, 0.04);
 }
 
 .prose a {
