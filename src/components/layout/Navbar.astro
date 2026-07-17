@@ -43,7 +43,8 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 <script define:vars={{ firstChapterHref, articleSlugs }} is:inline>
   const last = localStorage.getItem('rust-tutorial-last-visited');
   if (last) {
-    if (articleSlugs.some(s => last.endsWith('/chapters/' + s))) {
+    const base = firstChapterHref.replace(/\/chapters\/?$/, '');
+    if (articleSlugs.some(s => last === base + '/chapters/' + s)) {
       const link = document.getElementById('tutorial-nav-link');
       if (link) link.href = last;
     } else {

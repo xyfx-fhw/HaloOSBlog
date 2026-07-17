@@ -140,7 +140,8 @@ const articleSlugs = navTree.flatMap(ch => [ch.indexSlug, ...ch.articles.map(a =
 
     const last = localStorage.getItem('rust-tutorial-last-visited');
     if (last) {
-      if (articleSlugs.some(s => last.endsWith('/chapters/' + s))) {
+      const base = firstChapterHref.replace(/\/chapters\/?$/, '');
+      if (articleSlugs.some(s => last === base + '/chapters/' + s)) {
         const btn = document.getElementById('start-btn');
         if (btn) btn.href = last;
       } else {
