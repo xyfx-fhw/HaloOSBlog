@@ -54,7 +54,7 @@ const articleSlugs = navTree.flatMap(ch => [ch.indexSlug, ...ch.articles.map(a =
     </div>
   </section>
 
-  <script define:vars={{ firstChapterHref, articleSlugs }} is:inline>
+  <script define:vars={{ firstChapterHref, articleSlugs, base }} is:inline>
     // 矩阵雨：流式算法，彻底避免叠加
     (function () {
       const canvas = document.getElementById('matrix-canvas');
@@ -138,7 +138,6 @@ const articleSlugs = navTree.flatMap(ch => [ch.indexSlug, ...ch.articles.map(a =
       setInterval(draw, 80);
     })();
 
-    const base = firstChapterHref.replace(/\/chapters\/?$/, '');
     const STORAGE_KEY = 'rust-tutorial-last-visited:' + base;
     const last = localStorage.getItem(STORAGE_KEY);
     if (last) {

@@ -40,8 +40,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   </div>
 </header>
 
-<script define:vars={{ firstChapterHref, articleSlugs }} is:inline>
-  const base = firstChapterHref.replace(/\/chapters\/?$/, '');
+<script define:vars={{ firstChapterHref, articleSlugs, base }} is:inline>
   const STORAGE_KEY = 'rust-tutorial-last-visited:' + base;
   const last = localStorage.getItem(STORAGE_KEY);
   if (last) {
