@@ -47,8 +47,8 @@ const breadcrumb: BreadcrumbItem[] = [
   prevArticle={prevArticle}
   nextArticle={nextArticle}
 >
-  <script>
-    localStorage.setItem('rust-tutorial-last-visited', window.location.pathname);
+  <script define:vars={{ base }} is:inline>
+    localStorage.setItem('rust-tutorial-last-visited:' + base, window.location.pathname);
   </script>
   <article class="prose">
     <h1>{entry.data.title}</h1>

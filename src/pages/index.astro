@@ -138,14 +138,15 @@ const articleSlugs = navTree.flatMap(ch => [ch.indexSlug, ...ch.articles.map(a =
       setInterval(draw, 80);
     })();
 
-    const last = localStorage.getItem('rust-tutorial-last-visited');
+    const base = firstChapterHref.replace(/\/chapters\/?$/, '');
+    const STORAGE_KEY = 'rust-tutorial-last-visited:' + base;
+    const last = localStorage.getItem(STORAGE_KEY);
     if (last) {
-      const base = firstChapterHref.replace(/\/chapters\/?$/, '');
       if (articleSlugs.some(s => last === base + '/chapters/' + s)) {
         const btn = document.getElementById('start-btn');
         if (btn) btn.href = last;
       } else {
-        localStorage.removeItem('rust-tutorial-last-visited');
+        localStorage.removeItem(STORAGE_KEY);
       }
     }
   </script>
